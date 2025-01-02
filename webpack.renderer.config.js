@@ -1,0 +1,49 @@
+const rules = require('./webpack.rules');
+const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+rules.push({
+  test: /\.css$/,
+  use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
+},
+{
+  test: /\.(png|jpg|gif|svg)$/,
+  use: [
+    {
+      loader: 'file-loader',
+      options: {
+        name: '[name].[ext]',
+        outputPath: 'assets/',
+      },
+    },
+  ],
+});
+
+module.exports = {
+  // Put your normal webpack config below here
+  devtool: 'source-map',
+  module: {
+    rules,
+  },
+  resolve: {
+    alias: {
+      'Components': path.resolve(__dirname, './src/renderer/js/components'),
+      'Types': path.resolve(__dirname, './src/renderer/js/types'),
+      'Styles': path.resolve(__dirname, './src/renderer/css/styles'),
+      'PagesCSS': path.resolve(__dirname, './src/renderer/css/pages'),
+      'Assets': path.resolve(__dirname, './src/assets'),
+    },
+    fallback: {
+      "fs": false,
+      "path": require.resolve("path-browserify")
+    }
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: './src/renderer/css', to: 'css' },
+        { from: './src/assets', to: 'assets' },
+      ],
+    }),
+  ]
+};

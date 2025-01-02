@@ -1,0 +1,34 @@
+/*
+*   Paleta de colores: https://paletasdecolores.com/paleta-de-colores-2412/
+*/
+
+:root {
+    --body-background-color: #b1b6c9;
+    --primary-color: #fdfdfd;
+    --primary-dark-color: #1F2740;
+    --primary-background-color: #013274;
+    --secondary-color: #fdfdfd;
+    --secondary-background-color: #00abe3;
+
+    --search-color: #fdfdfd;
+    --search-background-color: #013274;
+
+    --button-primary-background-color: #457DC8;
+    --button-primary-hover-background-color: #7CAFF2;
+    --button-secondary-background-color: #838694;
+    --button-secondary-hover-background-color: #a3a8b9;
+    --button-link-hover-color: #457DC8;
+
+    --table-color:#fdfdfd;
+    --table-hover-color:#1F2740;
+    --table-header-background-color: #00abe3;
+    --table-first-row-background-color: #457DC8;
+    --table-second-row-background-color: #7CAFF2;
+    --table-hover-row-background-color: #c6dfff;
+
+
+    --window-header-background-color: #013274;
+    --window-background-color: #0000002a;
+    --pop-up-background-color: #b1b6c9;
+    --pop-up-shadow: black;
+}

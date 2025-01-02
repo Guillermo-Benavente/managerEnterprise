@@ -1,0 +1,19 @@
+.search {
+    display: flex;
+    padding: 10px;
+    background-color: var(--search-background-color);
+    color: var(--search-color);
+    border-radius: 5px;
+    align-content: center;
+
+    input{
+        background-image: url('../../assets/img/search.svg');
+        background-repeat: no-repeat;
+        background-position: 5px center;
+        background-size: 13px;
+        padding-left: 25px;
+        border-radius: 20px;
+        width: 160px;
+        margin-left: 10px;
+    }
+}

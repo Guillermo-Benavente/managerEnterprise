@@ -1,0 +1,8 @@
+.bar-opt{
+    display: flex;
+
+    .bar-right { 
+        margin-left: auto;
+        align-content: center;
+    }
+}

@@ -1,0 +1,49 @@
+.frm-cnt{
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.frm {
+    color: var(--secondary-color);
+    background-color: var(--secondary-background-color);
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+
+    .frm-row-btn {
+        border-spacing: 0 18px;
+        input{ margin-right: 10px; }
+    }
+
+    input:not([type="submit"]) {
+        height: 25px;
+        border: 0;
+        border-radius: 3px;
+        padding-left: 5px;
+    
+        &[type="date"] {
+            width: 97.5%;
+            text-align: center;
+        }
+    }
+
+    input[type="submit"] { margin-top: auto; }
+
+    td:has(input):has(span) input[type="date"] { width: 67% !important; }
+
+    label { 
+        display: flex;
+        padding-right: 15px;
+        width: 100%;
+    }
+
+    .frmFile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
