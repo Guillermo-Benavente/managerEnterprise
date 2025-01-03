@@ -23,6 +23,7 @@ DOM(() => {
     ChargeCourses((data) => {
         CreateBody('#' + idTable, data, COURSE, rowsPerPage);
         UpdatePages('#' + idTable, data.length, rowsPerPage);
+        Delete();
 
         tableBody = GetElement('#' + idTable + ' tbody');
         pageNumber = GetElement('#vPages-' + idTable);
@@ -67,7 +68,6 @@ DOM(() => {
         GetCourses(employeeId, (success, data) => {
             if (success) {
                 callback(data);
-                Delete();
                 UploadImages();
             }
         });
