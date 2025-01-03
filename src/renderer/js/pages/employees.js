@@ -22,6 +22,7 @@ DOM(() => {
     ChargeEmployees((data) => {
         CreateBody('#' + idTable, FormatEmployee(data), EMPLOYEE, rowsPerPage);
         UpdatePages('#' + idTable, data.length, rowsPerPage);
+        Delete();
 
         tableBody = GetElement('#' + idTable + ' tbody');
         pageNumber = GetElement('#vPages-' + idTable);
@@ -77,12 +78,12 @@ DOM(() => {
     });
 
     UploadImages();
+    
 
     function ChargeEmployees(callback) {
         GetEmployees((success, data) => {
             if (success) {
                 callback(data);
-                Delete();
                 UploadImages();
             }
         });
