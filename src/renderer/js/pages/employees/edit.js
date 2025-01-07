@@ -1,7 +1,6 @@
 import { DOM, AddEvent, GetElement, AddElement, Navigate } from 'Components/controlAPI.js';
 import { EMPLOYEE, FormatEmployee, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
 import { CreateForm, CreateChangeDateForm } from 'Components/form.js';
-import { UploadImages } from 'Components/button.js';
 import { AlertWindow } from 'Components/window.js';
 import Alert from 'Types/alert.js';
 
@@ -36,13 +35,13 @@ DOM(() => {
                 ), GetElement('.frm-cnt'));
 
                 //TODO agregar los nuevos botones para los documentos y un input para la fecha
-                AddElement(CreateChangeDateForm({
+                /*AddElement(CreateChangeDateForm({
                     'AptitudeCertificate':'Certificado de aptitud',
                     'Art1819':'Art. 18-19',
                     'MachineryUses':'Usos de maquinaria',
                     'HealthMonitoring':'Vigilancia de la salud',
                     'Epi':'Epi'
-                }), GetElement('.frm-cnt'));
+                }), GetElement('.frm-cnt'));*/
             }
 
             AddEvent('.pgCourse', 'click', () => { Navigate('courseemployees', {id:employeeId} ); });

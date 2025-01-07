@@ -1,114 +1,117 @@
-import { DOM, AddEvent, GetElement, AddElement } from '../controlAPI.js';
-import { COMPANY_TYPES, GetCompanies, SetCompany } from '../dbAPI.js';
-import { UploadImages } from '../button.js';
-import { CreateBody, CreateHeader, UpdatePages, LoadPage, GetRowsPerPage } from '../table.js';
-import { CreateFormWindow } from '../window.js';
+import { DOM, AddEvent, GetElement, AddElement, RemoveElement, Navigate } from 'Components/controlAPI.js';
+import { COMPANY, GetCompanies, SetCompany, DeleteCompany } from 'Components/dbAPI.js';
+import { UploadImages } from 'Components/button.js';
+import { CreateBody, CreateHeader, UpdatePages, LoadPage, GetRowsPerPage } from 'Components/table.js';
+import { CreateFormWindow, AlertWindow } from 'Components/window.js';
+import Alert from 'Types/alert.js';
 
 DOM(() => {
-    const SIZE_ROW = 53; 
-    const SIZE_HEAD = 240;
-    const ID_TABLE = 'tblCompanies';
-    const HEADER = [{ 
-        'nif': 'nif',
-        'name': 'nombre',
-        'telephone': 'teléfono',
-        'registration_date':'fecha de registro'
-    }];
-    const INSERT_DATA = { 
-        'nif': 'nif',
-        'name': 'nombre',
-        'telephone': 'teléfono',
-        'registration_date':'fecha de registro'
-    };
-    //[{ 'nif': '','nombre': '','teléfono': '','email': '','domicilio fiscal':''}];
-    let rowsPerPage = GetRowsPerPage(SIZE_ROW,SIZE_HEAD);
+    const sizeRow = 53; 
+    const sizeHead = 240;
+    const idTable = 'tblCompanies';
 
-    CreateHeader('#' + ID_TABLE, HEADER);
+    let tableBody;
+    let pageNumber;
+    
+    let rowsPerPage = GetRowsPerPage(sizeRow,sizeHead);
 
-    GetCompanies((success, data) => {
-        if (success) {
-            CreateBody('#' + ID_TABLE, data, rowsPerPage);
-            UpdatePages('#' + ID_TABLE, data.length, rowsPerPage);
-            UploadImages();
-        }
+    AddEvent('.pgBack', 'click', () => { Navigate('main_window'); });
+
+    CreateHeader('#' + idTable, COMPANY);
+
+    ChargeCompanies((data) => {
+        CreateBody('#' + idTable, data, COMPANY, rowsPerPage);
+        UpdatePages('#' + idTable, data.length, rowsPerPage);
+        Delete();
+
+        tableBody = GetElement('#' + idTable + ' tbody');
+        pageNumber = GetElement('#vPages-' + idTable);
     });
 
-    AddEvent(null, 'resize',() => {
-        if (rowsPerPage != GetRowsPerPage(SIZE_ROW,SIZE_HEAD)) {
-            rowsPerPage = GetRowsPerPage(SIZE_ROW,SIZE_HEAD);
-            const tableBody = GetElement('#' + ID_TABLE + ' tbody');
-            const pageNumber = GetElement('#vPages-' + ID_TABLE);
+    AddEvent(null, 'resize', () => {
+        if (rowsPerPage != GetRowsPerPage(sizeRow,sizeHead)) {
+            rowsPerPage = GetRowsPerPage(sizeRow,sizeHead);
             
-            GetCompanies((success, data) => {
-                if (success) {
-                    UpdatePages('#' + ID_TABLE, data.length, rowsPerPage);
-                    LoadPage(tableBody, pageNumber, data, rowsPerPage);
-                    UploadImages();
-                }
+            ChargeCompanies((data) => {
+                UpdatePages('#' + idTable, data.length, rowsPerPage);
+                LoadPage(tableBody, pageNumber, data, COMPANY, rowsPerPage);
             });
         }
     });
 
-    AddEvent('.pgBack', 'click', () => {
-        window.location.href = '../../index.html';
-    });
-
     AddEvent('.wininCreate', 'click', () => {
-        AddElement(CreateFormWindow('Datos de empresa', INSERT_DATA, COMPANY_TYPES,
+        AddElement(CreateFormWindow('Datos de empresa', COMPANY,
             (companie) => {
                 SetCompany(companie, (success) => {
                     if (success) {
-                        GetCompanies((success, data) => {
-                            if (success) {
-                                const tableBody = GetElement('#' + ID_TABLE + ' tbody');
-                                const pageNumber = GetElement('#vPages-' + ID_TABLE);
-                                
-                                UpdatePages('#' + ID_TABLE, data.length, rowsPerPage);
-                                LoadPage(tableBody, pageNumber, data, rowsPerPage);
-                                UploadImages();
-                            }
+                        ChargeCompanies((data) => {
+                            UpdatePages('#' + idTable, data.length, rowsPerPage);
+                            LoadPage(tableBody, pageNumber, data, COMPANY, rowsPerPage);
                         });
-                    } else {
-                        //TODO añadir un mensaje informativo de que no se ha podido añadir por x razon
-                    }
+                    } else AddElement(AlertWindow('error','No se ha podido añadir a la empresa'));
                 });
             }
         ,'Crear Empresa'));
-        UploadImages();
     });
 
     AddEvent('.btnBefore', 'click', () => {
-        const tableBody = GetElement('#' + ID_TABLE + ' tbody');
-        const pageNumber = GetElement('#vPages-' + ID_TABLE);
-
         if(pageNumber.textContent > 1){
             pageNumber.textContent = pageNumber.textContent - 1
 
-            GetCompanies((success, data) => {
-                if (success) {
-                    LoadPage(tableBody, pageNumber, data, rowsPerPage);
-                    UploadImages();
-                }
+            ChargeCompanies((data) => {
+                LoadPage(tableBody, pageNumber, data, COMPANY, rowsPerPage);
             });
         }
     });
 
     AddEvent('.btnAfter', 'click', () => {
-        const tableBody = GetElement('#' + ID_TABLE + ' tbody');
-        const pageNumber = GetElement('#vPages-' + ID_TABLE);
-        const pageNumberTotal = GetElement('#vPagesTotal-' + ID_TABLE)
+        const pageNumberTotal = GetElement('#vPagesTotal-' + idTable)
 
         if(pageNumberTotal.textContent > pageNumber.textContent){
             pageNumber.textContent = parseInt(pageNumber.textContent) + 1
 
-            GetCompanies((success, data) => {
-                if (success) {
-                    LoadPage(tableBody, pageNumber, data, rowsPerPage);
-                    UploadImages();
-                }
+            ChargeCompanies((data) => {
+                LoadPage(tableBody, pageNumber, data, COMPANY, rowsPerPage);
             });
         }
     });
 
     UploadImages();
+
+    function ChargeCompanies(callback) {
+        GetCompanies((success, data) => {
+            if (success) {
+                callback(data);
+                UploadImages();
+            }
+        });
+    }
+
+    function Delete() {
+        //TODO esta parte hay que cambiarla e un futuro por AddEvent, el problema es el evento que no pasa correctamente
+        document.querySelector('#' + idTable + ' tbody').addEventListener('click', (event) => {
+            const target = event.target;
+
+            if (target.classList.contains('tbl-row-del')) {
+                event.stopPropagation();
+
+                const nif = target.closest('tr').children[0].textContent;
+                AddElement(AlertWindow(Alert.WARNING, 'Vas a eliminar un empleado ¿Estás Seguro?', (success) => {
+                    if (success) DeleteCompany(nif, (success) => {
+                        if (success) {
+                            RemoveElement(target.closest('tr'), tableBody);
+                            ChargeCompanies((data) => {
+                                UpdatePages('#' + idTable, data.length, rowsPerPage);
+                                LoadPage(tableBody, pageNumber, data, COMPANY, rowsPerPage);
+                            });
+                        }
+                    });
+                }));
+            } else if (target.closest('tr')) {
+                const row = target.closest('tr');
+                const idKey = row.children[0].textContent;
+                Navigate('editcompanies', {id:idKey} );
+            }
+        });
+    }
 });

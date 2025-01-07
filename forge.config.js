@@ -68,6 +68,22 @@ module.exports = {
                 js: './src/preload.js',
               },
             },
+            {
+              html: './src/renderer/html/companies.html',
+              js: './src/renderer/js/pages/companies.js',
+              name: 'companies',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
+              html: './src/renderer/html/companies/edit.html',
+              js: './src/renderer/js/pages/companies/edit.js',
+              name: 'editcompanies',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
           ],
         },
       },

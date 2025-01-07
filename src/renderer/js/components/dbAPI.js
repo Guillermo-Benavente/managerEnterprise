@@ -53,6 +53,33 @@ export const COMPANY_TYPES = {
     'telephone': 'number',
     'registration_date':'date'
 };
+//[{ 'nif': '','nombre': '','teléfono': '','email': '','domicilio fiscal':''}];
+export const COMPANY = { 
+    'nif': {
+        'name':'nif',
+        'type':'string',
+        'insertData':true,
+        'showTable':true
+    },
+    'name': {
+        'name':'nombre',
+        'type':'string',
+        'insertData':true,
+        'showTable':true
+    },
+    'telephone': {
+        'name':'teléfono',
+        'type':'string',
+        'insertData':true,
+        'showTable':true
+    },
+    'registration_date':{
+        'name':'fecha de registro',
+        'type':'date',
+        'insertData':true,
+        'showTable':true
+    }
+};
 
 export const COURSE = {
     'id': {
@@ -344,7 +371,7 @@ export function UpdateEmployee(employee, callback) {
             if (typeof callback === 'function') callback(true);
         })
         .catch(error => {
-            console.error('Error setEmployee:', error);
+            console.error('Error updateEmployee:', error);
             if (typeof callback === 'function') callback(false, error);
         });
 }
@@ -505,6 +532,28 @@ export function SetCompany(company, callback) {
         })
         .catch(error => {
             console.error('Error setCompany:', error);
+            if (typeof callback === 'function') callback(false, error);
+        });
+}
+
+export function UpdateCompany(employee, callback) {
+    window.dbAPI.updateCompany(employee)
+        .then(() => {
+            if (typeof callback === 'function') callback(true);
+        })
+        .catch(error => {
+            console.error('Error updateCompany:', error);
+            if (typeof callback === 'function') callback(false, error);
+        });
+}
+
+export function DeleteCompany(nif, callback) {
+    window.dbAPI.deleteCompany(nif)
+        .then(() => {
+            if (typeof callback === 'function') callback(true);
+        })
+        .catch(error => {
+            console.error('Error deleteCompany:', error);
             if (typeof callback === 'function') callback(false, error);
         });
 }

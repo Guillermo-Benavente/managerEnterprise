@@ -52,7 +52,6 @@ DOM(() => {
                 });
             }
         ,'Crear Empleado'));
-        UploadImages();
     });
 
     AddEvent('.btnBefore', 'click', () => {
@@ -79,7 +78,6 @@ DOM(() => {
 
     UploadImages();
     
-
     function ChargeEmployees(callback) {
         GetEmployees((success, data) => {
             if (success) {
@@ -102,9 +100,9 @@ DOM(() => {
                     if (success) DeleteEmployee(dni, (success) => {
                         if (success) {
                             RemoveElement(target.closest('tr'), tableBody);
-                            ChargeCourses((data) => {
+                            ChargeEmployees((data) => {
                                 UpdatePages('#' + idTable, data.length, rowsPerPage);
-                                LoadPage(tableBody, pageNumber, data, COURSE, rowsPerPage);
+                                LoadPage(tableBody, pageNumber, FormatEmployee(data), EMPLOYEE, rowsPerPage);
                             });
                         }
                     });
@@ -113,7 +111,6 @@ DOM(() => {
                 const row = target.closest('tr');
                 const idKey = row.children[0].textContent;
                 Navigate('editemployees', {id:idKey} );
-                //window.location.href = `employees/edit.html?id=${idKey}`;
             }
         });
     }
