@@ -1,5 +1,9 @@
 import afterImage from '../../../assets/img/after.svg';
 import beforeImage from '../../../assets/img/before.svg';
+import { GetEmployees, SetEmployee, DeleteEmployee, FormatEmployee, FormatDbEmployee } from 'Components/dbAPI.js';
+import { AddElement, GetElement, RemoveElement, Navigate } from 'Components/controlAPI.js';
+import { CreateFormWindow, AlertWindow } from 'Components/window.js';
+import Alert from 'Types/alert.js';
 
 /**
  * Crea una tabla en un elemento HTML con los datos proporcionados y soporte de paginación.
@@ -234,4 +238,132 @@ export function GetRowsPerPage (rowHeight, headerHeight) {
     let screenHeight = window.innerHeight - headerHeight;
     // Calculo cuántas filas caben en la pantalla
     return Math.floor(screenHeight / rowHeight);
+}
+
+export class Table {
+    constructor(tableId, dataType, apiPath, columns = []) {
+        this.tableId = tableId;
+        this.dataType = dataType; // 'employee' o 'company'
+        this.apiPath = apiPath;
+        this.columns = columns;
+        this.tableBody = null;
+        this.pageNumber = null;
+        this.rowsPerPage = GetRowsPerPage(sizeRow, sizeHead);
+    }
+
+    async loadInitialData() {
+        const response = await GetEmployees();
+        if (response.success) {
+            this.data = response.data;
+            this.currentPage = 1;
+            this.updateTable();
+        }
+    }
+
+    updatePage(page) {
+        this.currentPage = page;
+        this.loadPage();
+    }
+
+    loadMorePages() {
+        const totalPages = document.querySelector(`#vPagesTotal-${this.tableId}`).textContent;
+        if (this.currentPage < totalPages) {
+            this.currentPage++;
+            this.loadPage();
+        }
+    }
+
+    loadLessPages() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.loadPage();
+        }
+    }
+
+    async loadPage(number = this.currentPage) {
+        const data = await GetEmployees();
+        if (data.success) {
+            this.data = data.data;
+            this.updateTable();
+        }
+    }
+
+    showForm(type = 'add') {
+        AddElement(CreateFormWindow(
+            type === 'add' ? 'Agregar Empleado' : 'Agregar Empresa',
+            this.dataType,
+            (formData) => {
+                if (type === 'add') {
+                    this.addNewRecord(formData);
+                } else {
+                    this.editRecord(formData);
+                }
+            }
+        ));
+    }
+
+    async addNewRecord(formData) {
+        const response = await SetEmployee(FormatDbEmployee(formData));
+        if (response.success) {
+            this.loadInitialData();
+            this.hideForm();
+        } else {
+            this.showError('No se ha podido agregar el registro');
+            this.hideForm();
+        }
+    }
+
+    async editRecord(formData) {
+        const id = formData.id;
+        const response = await GetEmployees(id);
+        if (response.success) {
+            this.showEditForm();
+        } else {
+            this.showError('No se ha podido editar el registro');
+        }
+    }
+
+    async deleteRecord(id) {
+        const response = await DeleteEmployee(id);
+        if (response.success) {
+            this.removeRow();
+            this.loadInitialData();
+        } else {
+            this.showError('No se ha podido eliminar el registro');
+        }
+    }
+
+    updateTable() {
+        CreateBody(`#${this.tableId}`, FormatEmployee(this.data), EMPLOYEE, this.rowsPerPage);
+        UpdatePages(`#${this.tableId}`, this.data.length, this.rowsPerPage);
+        this.delete();
+    }
+
+    showAlert(type) {
+        AddElement(AlertWindow(
+            type, 'Vas a hacer algo ¿Estás seguro?', (success) => {}
+        ));
+    }
+
+    delete() {
+        document.querySelector(`#${this.tableId} tbody`).addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('tbl-row-del')) {
+                event.stopPropagation();
+                const dni = target.closest('tr').children[0].textContent;
+                AddElement(AlertWindow(Alert.WARNING, 'Vas a eliminar un empleado ¿Estás Seguro?', (success) => {
+                    if (success) DeleteEmployee(dni, (success) => {
+                        if (success) {
+                            RemoveElement(target.closest('tr'), this.tableBody);
+                            this.loadInitialData();
+                        }
+                    });
+                }));
+            } else if (target.closest('tr')) {
+                const row = target.closest('tr');
+                const idKey = row.children[0].textContent;
+                Navigate('editemployees', { id: idKey });
+            }
+        });
+    }
 }
