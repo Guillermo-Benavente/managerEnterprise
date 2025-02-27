@@ -19,13 +19,14 @@
     --button-secondary-hover-background-color: #a3a8b9;
     --button-link-hover-color: #457DC8;
 
-    --table-color:#fdfdfd;
+    --table-color: #fdfdfd;
+    --table-header-color:#fdfdfd;
+    --table-body-color: #1F2740;
     --table-hover-color:#1F2740;
-    --table-header-background-color: #00abe3;
-    --table-first-row-background-color: #457DC8;
-    --table-second-row-background-color: #7CAFF2;
-    --table-hover-row-background-color: #c6dfff;
-
+    --table-background-color: #00abe3;
+    --table-header-background-color: #457DC8;
+    --table-body-background-color: #7CAFF2;
+    --table-hover-row-background-color: rgba(0, 0, 0, 0.1);
 
     --window-header-background-color: #013274;
     --window-background-color: #0000002a;

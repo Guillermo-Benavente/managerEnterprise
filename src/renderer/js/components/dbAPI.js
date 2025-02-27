@@ -189,8 +189,21 @@ export function FormatEmployee(employeeOrArray) {
  * @date 2024-11-05
  * @author guillermob
  */
+//TODO Actualizar comentario
 function FormatSingleEmployee(employee) {
-    return {
+
+    let newFormatEmployee;
+
+    if(Object.entries(employee).length === 5) newFormatEmployee = {
+        dni: employee.dni,
+        name: employee.name,
+        surnames: employee.surnames,
+        discharge_date: employee.discharge_date,
+        leave_date: null,
+        medical_leave_date: null,
+        medical_discharge_date: null,
+        courses: employee.courses.length
+    }; else newFormatEmployee = {
         dni: employee.dni,
         name: employee.name,
         surnames: employee.first_surname + ' ' + employee.second_surname,
@@ -199,7 +212,9 @@ function FormatSingleEmployee(employee) {
         medical_leave_date: employee.medical_leave_date,
         medical_discharge_date: employee.medical_discharge_date,
         courses: employee.courses
-    };
+    }
+
+    return newFormatEmployee;
 }
 
 //TOOD crear comentarios
@@ -536,6 +551,7 @@ export function SetCompany(company, callback) {
         });
 }
 
+//TODO añadir comentarios
 export function UpdateCompany(employee, callback) {
     window.dbAPI.updateCompany(employee)
         .then(() => {
@@ -547,6 +563,7 @@ export function UpdateCompany(employee, callback) {
         });
 }
 
+//TODO añadir comentarios
 export function DeleteCompany(nif, callback) {
     window.dbAPI.deleteCompany(nif)
         .then(() => {
@@ -558,6 +575,7 @@ export function DeleteCompany(nif, callback) {
         });
 }
 
+//TODO añadir comentarios
 export function GetCourses(dni, callback) {
     window.dbAPI.getCourses(dni)
         .then(course => {

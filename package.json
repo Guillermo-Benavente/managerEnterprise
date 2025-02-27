@@ -39,6 +39,7 @@
   },
   "license": "",
   "dependencies": {
+    "datatables.net-dt": "^2.2.2",
     "electron-squirrel-startup": "^1.0.1",
     "manager": "file:",
     "path-browserify": "^1.0.1",

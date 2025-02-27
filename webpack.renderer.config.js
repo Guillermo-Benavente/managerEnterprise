@@ -43,6 +43,7 @@ module.exports = {
       patterns: [
         { from: './src/renderer/css', to: 'css' },
         { from: './src/assets', to: 'assets' },
+        { from: './node_modules/datatables.net-dt/css/dataTables.dataTables.css', to: 'css/module' },
       ],
     }),
   ]

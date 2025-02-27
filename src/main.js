@@ -11,10 +11,10 @@ const Db = new Database();
 
 const createWindow = async () => {
   const mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 600,
-    minWidth: 900,
-    minHeight: 600,
+    width: 1100,
+    height: 650,
+    minWidth: 1000,
+    minHeight: 650,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
