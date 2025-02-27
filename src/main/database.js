@@ -79,14 +79,14 @@ class Database {
             const query = db.prepare(`
                 SELECT name 
                 FROM sqlite_master 
-                WHERE type='table' AND name IN ('employee', 'company', 'course')
+                WHERE type='table' AND name IN ('employee', 'company', 'course', 'documents', 'employeebydocument')
             `);
 
             query.all((error, rows) => {
                 if (error) {
                     console.error("Error al verificar la existencia de las tablas:", error.message);
                     reject(error);
-                } else resolve({ exists: rows.length === 3, rows });
+                } else resolve({ exists: rows.length === 5, rows });
             });
 
             query.finalize();
@@ -199,6 +199,31 @@ class Database {
                 query.all([dni], (error, row) => {
                     if (error) {
                         console.error('Error al obtener los cursos:', error);
+                        reject(error);
+                    } else {
+                        resolve(row);
+                    }
+                });
+
+                query.finalize();
+            } catch (error) {
+                console.error('Error al ejecutar la consulta:', error);
+                reject(error);
+            }
+        });
+    }
+
+    //TODO crear comentarios
+    async GetDocuments(nif) {
+        const db = await this.db;
+
+        return new Promise((resolve, reject) => {
+            try {
+                const query = db.prepare('SELECT * FROM documents WHERE company = ?');
+
+                query.all([nif], (error, row) => {
+                    if (error) {
+                        console.error('Error al obtener los documentos:', error);
                         reject(error);
                     } else {
                         resolve(row);
@@ -433,11 +458,82 @@ class Database {
                 const result = await this.InsertCourse(dni, course);
                 results.push(result);
             }
-
-            console.info('Todos los cursos se han procesado correctamente.');
             return results;
         } catch (error) {
             console.error('Error al procesar los cursos:', error);
+            throw error;
+        }
+    }
+
+    //TODO crear comentarios
+    async InsertDocument(nif, document) {
+        const db = await this.db;
+        const id = nif + Date.now();
+        const coursePath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
+
+        try {
+            await mkdir(dirname(coursePath), { recursive: true });
+
+            const courseBuffer = Buffer.from(document.buffer, 'base64');
+
+            await new Promise((resolve, reject) => {
+                const writeStream = createWriteStream(coursePath);
+                writeStream.write(courseBuffer);
+                writeStream.end();
+
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            });
+
+            const coursePathInserted = await new Promise((resolve, reject) => {
+                try {
+                    const query = db.prepare(`
+                        INSERT INTO documents (id, name, company, content, url)
+                        VALUES (?, ?, ?, ?, ?)
+                    `);
+
+                    console.log('id: '+id)
+                    console.log('name: '+document.name)
+                    console.log('company: '+nif)
+                    console.log('content: '+JSON.stringify(document.content))
+                    console.log('url: '+coursePath)
+
+                    query.run(id, document.name, nif, JSON.stringify(document.content), coursePath, function (error) {
+                        if (error) {
+                            console.error('Error al insertar un documento:', error);
+                            reject(error);
+                        } else {
+                            resolve(coursePath);
+                        }
+                    });
+
+                    query.finalize();
+                } catch (error) {
+                    console.error('Error al ejecutar la inserción del documento:', error);
+                    reject(error); 
+                }
+            });
+
+            return coursePathInserted;
+        } catch (error) {
+            console.error('Error al crear la ruta del documento a guardar:', error);
+        }
+    }
+
+    //TODO crear comentarios
+    async InsertDocuments(nif, documents) {
+        try {
+            const results = [];
+            console.log(nif);
+            console.log(documents);
+
+            for (const document of documents) {
+                const result = await this.InsertDocument(nif, document);
+                results.push(result);
+            }
+            return results;
+        } catch (error) {
+            console.error('Error al procesar los documentos:', error);
             throw error;
         }
     }
@@ -635,6 +731,14 @@ class Database {
         if (!existingTables.includes('course')) {
             console.log("Creando tabla 'course'...");
             await this.CreateTableCourseAsync();
+        }
+        if (!existingTables.includes('documents')) {
+            console.log("Creando tabla 'documents'...");
+            await this.CreateTableDocumentsAsync();
+        } 
+        if (!existingTables.includes('employeebydocument')) {
+            console.log("Creando tabla 'employeebydocument'...");
+            await this.CreateTableEmployeeByDocumentAsync();
         } 
     }
 
@@ -843,6 +947,115 @@ class Database {
                         reject(err);
                     } else {
                         console.log('Indices de course creados.');
+                        resolve();
+                    }
+                });
+            })
+        ]);
+    }
+
+    //TODO crear comentarios
+    async CreateTableDocumentsAsync() {
+        const db = await this.db;
+
+        // Crea la tabla documents
+        await new Promise((resolve, reject) => {
+            db.run(`
+                CREATE TABLE IF NOT EXISTS documents (
+                    id VARCHAR(15) PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    company VARCHAR(15) NOT NULL,
+                    content TEXT NOT NULL,
+                    url VARCHAR(255) NOT NULL
+                );
+            `, (err) => {
+                if (err) {
+                    console.error('Error al crear la tabla documents: ' + err.message);
+                    reject(err);
+                } else {
+                    console.log('Tabla documents creada.');
+                    resolve();
+                }
+            });
+        });
+
+        // Crea los índices para la tabla documents
+        await Promise.all([
+            new Promise((resolve, reject) => {
+                db.run(`
+                    CREATE INDEX IF NOT EXISTS documents_name ON documents(name);
+                `, (err) => {
+                    if (err) {
+                        console.error('Error al crear el índice documents_name: ' + err.message);
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.run(`
+                    CREATE INDEX IF NOT EXISTS documents_company ON documents(company);
+                `, (err) => {
+                    if (err) {
+                        console.error('Error al crear el índice documents_company: ' + err.message);
+                        reject(err);
+                    } else {
+                        console.log('Índices de documents creados.');
+                        resolve();
+                    }
+                });
+            })
+        ]);
+    }
+
+    //TODO crear comentarios
+    async CreateTableEmployeeByDocumentAsync() {
+        const db = await this.db;
+
+        // Crea la tabla employeebydocument
+        await new Promise((resolve, reject) => {
+            db.run(`
+                CREATE TABLE IF NOT EXISTS employeebydocument (
+                    id VARCHAR(15) PRIMARY KEY,
+                    employee VARCHAR(15) NOT NULL,
+                    document VARCHAR(15) NOT NULL,
+                    date DATE NOT NULL
+                );
+            `, (err) => {
+                if (err) {
+                    console.error('Error al crear la tabla employeebydocument: ' + err.message);
+                    reject(err);
+                } else {
+                    console.log('Tabla employeebydocument creada.');
+                    resolve();
+                }
+            });
+        });
+
+        // Crea los índices para la tabla employeebydocument
+        await Promise.all([
+            new Promise((resolve, reject) => {
+                db.run(`
+                    CREATE INDEX IF NOT EXISTS employeebydocument_employee ON employeebydocument(employee);
+                `, (err) => {
+                    if (err) {
+                        console.error('Error al crear el índice employeebydocument_employee: ' + err.message);
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.run(`
+                    CREATE INDEX IF NOT EXISTS employeebydocument_document ON employeebydocument(document);
+                `, (err) => {
+                    if (err) {
+                        console.error('Error al crear el índice employeebydocument_document: ' + err.message);
+                        reject(err);
+                    } else {
+                        console.log('Índices de employeebydocument creados.');
                         resolve();
                     }
                 });

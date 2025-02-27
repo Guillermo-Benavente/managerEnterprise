@@ -32,6 +32,7 @@ module.exports = {
       'Styles': path.resolve(__dirname, './src/renderer/css/styles'),
       'PagesCSS': path.resolve(__dirname, './src/renderer/css/pages'),
       'Assets': path.resolve(__dirname, './src/assets'),
+      'Dictionary': path.resolve(__dirname, './public/dictionary'),
     },
     fallback: {
       "fs": false,

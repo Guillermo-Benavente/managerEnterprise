@@ -39,8 +39,16 @@
   },
   "license": "",
   "dependencies": {
+    "@editorjs/editorjs": "^2.30.7",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/image": "^2.10.1",
+    "@editorjs/list": "^2.0.2",
+    "@editorjs/paragraph": "^2.11.7",
+    "@editorjs/table": "^2.4.3",
     "datatables.net-dt": "^2.2.2",
     "electron-squirrel-startup": "^1.0.1",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "manager": "file:",
     "path-browserify": "^1.0.1",
     "sqlite3": "^5.1.7"

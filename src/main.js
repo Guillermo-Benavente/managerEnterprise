@@ -34,7 +34,7 @@ const createWindow = async () => {
 
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     details.responseHeaders['Content-Security-Policy'] = [
-      "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none';"
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; img-src 'self' data:;"
     ];
     callback({ cancel: false, responseHeaders: details.responseHeaders });
   });

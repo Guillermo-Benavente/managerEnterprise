@@ -1,4 +1,5 @@
 import Alert from 'Types/alert.js';
+import Window from 'Types/window.js';
 /**
  * Crea y muestra una ventana emergente con un formulario generado dinámicamente basado en los datos proporcionados.
  * La ventana emergente incluye un título, un botón de cierre con un ícono SVG, y un formulario que se construye a partir de las claves del objeto `data`.
@@ -18,7 +19,7 @@ import Alert from 'Types/alert.js';
  * // Esto creará una ventana emergente con un formulario de tres campos: Nombre, Edad y Correo.
  * // El popup incluirá un botón para cerrar la ventana.
  */
-export function CreateFormWindow(title, dataType, onSubmitCallback, confirmText = null, cancelText = null) {
+export function CreateFormWindow(title, dataType, onSubmitCallback, windowType, confirmText = null, cancelText = null) {
     
     const windowPopUp = document.createElement('div');
     windowPopUp.className = 'win-ctn';
@@ -156,7 +157,6 @@ export function CreateFormWindow(title, dataType, onSubmitCallback, confirmText 
 
         try {
             await Promise.all(fileProcessingPromises);
-            console.log('Todos los archivos han sido procesados:', values);
             if (onSubmitCallback) onSubmitCallback(values);
         } catch (error) { console.error('Error al procesar los archivos:', error); }
         finally { DeleteWindow(windowPopUp); }

@@ -8,8 +8,6 @@ export function CreateForm(data, dataType, onSubmitCallback, confirmText = null)
     confirmForm.type = 'submit';
     confirmForm.value = confirmText ?? 'Guardar';
 
-    console.log(dataType);
-
     Object.entries(data).forEach(([key, value]) => {
         
         const row = document.createElement('tr');
@@ -74,37 +72,43 @@ export function CreateChangeDateForm(data, dataType, confirmText = null){
     const form = document.createElement('form');
     form.className = 'frm';
 
-    const confirmForm = document.createElement('input');
-    confirmForm.className = 'btn btn-primary';
-    confirmForm.type = 'submit';
-    confirmForm.value = confirmText ?? 'Guardar';
+    const AddRow = document.createElement('span');
+    AddRow.className = 'btn btn-secondary pgCreateDocument';
+    AddRow.textContent = 'Añadir Documento';
 
     const contentForm = document.createElement('table');
     contentForm.className = 'frm-row-btn';
-    Object.entries(data).forEach(([key, value]) => {
 
+    Object.entries(data).forEach(([key, value]) => {
         const row = document.createElement('tr');
         const contentLabel = document.createElement('td');
         const contentInput = document.createElement('td');
 
         const label = document.createElement('label');
         label.setAttribute('for', key);
-        label.textContent = value;
+        label.textContent = value.name;
 
-        const dateForm = document.createElement('input');
+        /*const dateForm = document.createElement('input');
         dateForm.type = 'date';
         dateForm.id = key;
-        dateForm.name = key;
+        dateForm.name = key;*/
 
-        const button = document.createElement('span');
-        button.className = 'btn btn-primary';
-        button.name = key;
-        button.id = key;
-        button.textContent = 'Ver';
+        const editButton = document.createElement('span');
+        editButton.className = 'btn btn-primary';
+        editButton.name = key;
+        editButton.id = key;
+        editButton.textContent = 'Editar';
+
+        const deleteButton = document.createElement('span');
+        deleteButton.className = 'btn btn-secondary';
+        deleteButton.name = key;
+        deleteButton.id = key;
+        deleteButton.textContent = 'Eliminar';
 
         contentLabel.appendChild(label);
-        contentInput.appendChild(dateForm);
-        contentInput.appendChild(button);
+        //contentInput.appendChild(dateForm);
+        contentInput.appendChild(editButton);
+        contentInput.appendChild(deleteButton);
 
         row.appendChild(contentLabel);
         row.appendChild(contentInput);
@@ -112,18 +116,7 @@ export function CreateChangeDateForm(data, dataType, confirmText = null){
     });
 
     form.appendChild(contentForm);
-    form.appendChild(confirmForm);
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const values = Object.fromEntries(formData.entries());
-
-        if (onSubmitCallback) {
-            onSubmitCallback(values);
-        }
-    });
+    form.appendChild(AddRow);
 
     return form;
 }

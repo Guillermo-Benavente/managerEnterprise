@@ -84,6 +84,14 @@ module.exports = {
                 js: './src/preload.js',
               },
             },
+            {
+              html: './src/renderer/html/companies/createdocument.html',
+              js: './src/renderer/js/pages/companies/createdocument.js',
+              name: 'createdocument',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
           ],
         },
       },

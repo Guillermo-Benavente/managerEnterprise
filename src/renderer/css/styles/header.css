@@ -5,6 +5,8 @@
     border-radius: 5px;
     padding: 15px;
     align-items: center;
+    margin-bottom: 10px;
+    min-height: 45px;
 
     .title {
         margin-right: 10px;

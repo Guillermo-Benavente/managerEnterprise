@@ -1,4 +1,8 @@
+@import url('../../styles/bar.css');
+@import url('../../styles/body.css');
 @import url('../../styles/button.css');
 @import url('../../styles/header.css');
 @import url('../../styles/form.css');
+@import url('../../styles/table.css');
 @import url('../../styles/window.css');
+@import url('../../module/dataTables.dataTables.css');

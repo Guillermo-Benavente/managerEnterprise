@@ -18,6 +18,10 @@ contextBridge.exposeInMainWorld('dbAPI', {
   /// TABLE METHODS COURSES ///
   getCourses: (dni) => ipcRenderer.invoke('get-courses', dni),
   insertCourses: (dni, courses) => ipcRenderer.invoke('insert-courses', dni, courses),
+
+  /// TABLE METHODS DOCUMENTS ///
+  getDocuments: (nif) => ipcRenderer.invoke('get-documets', nif),
+  insertDocuments: (nif, documents) => ipcRenderer.invoke('insert-documents', nif, documents),
 });
 
 contextBridge.exposeInMainWorld('utilAPI', {

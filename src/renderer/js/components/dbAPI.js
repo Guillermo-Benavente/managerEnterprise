@@ -47,12 +47,6 @@ export const EMPLOYEE = {
     }
 }
 
-export const COMPANY_TYPES = { 
-    'nif': 'text',
-    'name': 'text',
-    'telephone': 'number',
-    'registration_date':'date'
-};
 //[{ 'nif': '','nombre': '','teléfono': '','email': '','domicilio fiscal':''}];
 export const COMPANY = { 
     'nif': {
@@ -101,6 +95,54 @@ export const COURSE = {
         'name':'dirección',
         'type':'string',
         'showTable':false
+    }
+}
+
+export const DOCUMENT = {
+    'id': {
+        'name':'id',
+        'type':'string',
+        'showTable':false
+    },
+    'name':{
+        'name':'nombre',
+        'type':'string',
+        'insertData':true,
+        'showTable':true
+    },
+    'company':{
+        'name':'empresa',
+        'type':'string',
+        'showTable':false
+    },
+    'content':{
+        'name':'contenido',
+        'type':'string',
+        'showTable':false
+    },
+    'url':{
+        'name':'dirección',
+        'type':'string',
+        'showTable':false
+    }
+}
+
+export const DOCUMENTBYEMPLOYEES = {
+    'id': {
+        'name':'id',
+        'type':'string'
+    },
+    'employee':{
+        'name':'empleado',
+        'type':'string'
+    },
+    'document':{
+        'name':'documento',
+        'type':'string'
+    },
+    'date':{
+        'name':'fecha',
+        'type':'date'
     }
 }
 
@@ -551,9 +593,9 @@ export function SetCompany(company, callback) {
         });
 }
 
-//TODO añadir comentarios
-export function UpdateCompany(employee, callback) {
-    window.dbAPI.updateCompany(employee)
+//TOOD crear comentarios
+export function UpdateCompany(company, callback) {
+    window.dbAPI.updateCompany(company)
         .then(() => {
             if (typeof callback === 'function') callback(true);
         })
@@ -563,7 +605,7 @@ export function UpdateCompany(employee, callback) {
         });
 }
 
-//TODO añadir comentarios
+//TOOD crear comentarios
 export function DeleteCompany(nif, callback) {
     window.dbAPI.deleteCompany(nif)
         .then(() => {
@@ -575,7 +617,7 @@ export function DeleteCompany(nif, callback) {
         });
 }
 
-//TODO añadir comentarios
+//TOOD crear comentarios
 export function GetCourses(dni, callback) {
     window.dbAPI.getCourses(dni)
         .then(course => {
@@ -583,6 +625,30 @@ export function GetCourses(dni, callback) {
         })
         .catch(error => {
             console.error('Error getCourses:', error);
+            if (typeof callback === 'function') callback(false, error);
+        });
+}
+
+//TOOD crear comentarios
+export function GetDocuments(nif, callback) {
+    window.dbAPI.getDocuments(nif)
+        .then(document => {
+            if (typeof callback === 'function') callback(true, document);
+        })
+        .catch(error => {
+            console.error('Error getDocuments:', error);
+            if (typeof callback === 'function') callback(false, error);
+        });
+}
+
+//TOOD crear comentarios
+export function SetDocuments(nif, documents, callback) {
+    window.dbAPI.insertDocuments(nif, documents)
+        .then(() => {
+            if (typeof callback === 'function') callback(true);
+        })
+        .catch(error => {
+            console.error('Error setDocument:', error);
             if (typeof callback === 'function') callback(false, error);
         });
 }

@@ -1,7 +1,5 @@
 import { ipcMain } from 'electron';
 import util from './util';
-import path from 'path';
-import { access } from 'fs/promises';
 
 function AddDatabaseHandlers(db) {
     /// TABLE METHODS EMPLOYED ///
@@ -145,6 +143,28 @@ function AddDatabaseHandlers(db) {
             );
         } catch (err) {
             console.error('Error al intentar insertar los cusrsos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    /// TABLE METHODS DOCUMENTS ///
+
+    ipcMain.handle('get-documets', async (_, nif) => {
+        try { return await db.GetDocuments(nif); } 
+        catch (err) { 
+            console.error('Error al intentar obtener los documentos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('insert-documents', async (_, nif, documents) => {
+        try {
+            return await db.InsertDocuments(
+                nif, 
+                documents
+            );
+        } catch (err) {
+            console.error('Error al intentar insertar los docmuentos:', err);
             return { success: false, error: err.message };
         }
     });

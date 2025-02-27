@@ -86,3 +86,11 @@ input.btn.btn-primary {
         color: var(--button-link-hover-color);
     }
 }
+
+.btn-fixed-bc {
+    position: fixed;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
