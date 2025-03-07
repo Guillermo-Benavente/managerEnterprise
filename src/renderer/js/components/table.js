@@ -1,8 +1,7 @@
 import DeleteImage from 'Assets/img/delete.svg';
 import DataTable from 'datatables.net-dt';
 import { UploadImages } from 'Components/button.js';
-import { AddElement, Navigate } from 'Components/controlAPI.js';
-import { AlertWindow } from 'Components/window.js';
+import { Navigate, Dialog } from 'Components/controlAPI.js';
 import Alert from 'Types/alert.js'
 
 export default class Table {
@@ -72,7 +71,7 @@ export default class Table {
             if (event.target.classList.contains('tbl-row-del')) {
                 event.stopPropagation();
                 const dni = event.target.closest('tr').children[0].textContent;
-                AddElement(AlertWindow(Alert.WARNING, message, (success) => { if (success) callback(dni); }));
+                Dialog('Eliminar', message, Alert.WARNING).then(result => { if (result) callback(dni); });
             } else if (event.target.closest('tr')) {
                 const row = event.target.closest('tr');
                 const idKey = row.children[0].textContent;

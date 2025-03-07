@@ -25,7 +25,7 @@ DOM(() => {
                 console.log(Object.entries(employee).length);
                 SetEmployee(FormatDbEmployee(employee), (success) => {
                     if (success) table.addRow(FormatEmployee(employee));
-                    else AddElement(AlertWindow('error','No se ha podido añadir el curso'));
+                    else Dialog('Error', 'No se ha podido añadir el curso.', Alert.ERROR);
                 });
             }
         ,'Crear Empleado'));

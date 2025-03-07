@@ -387,7 +387,11 @@ export function SetEmployee(employee, callback) {
             employee.courses = courses.length;
             return window.dbAPI.insertEmployee(employee);
         })
-        .then(() => { if (typeof callback === 'function') callback(true); })
+        .then(result => { 
+            console.log(result.success);
+            if (typeof callback === 'function' && result.success) callback(true);
+            else if (typeof callback === 'function') callback(false, result.error); 
+        })
         .catch(error => {
             console.error('Error setEmployee:', error);
             if (typeof callback === 'function') callback(false, error);

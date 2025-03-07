@@ -21,6 +21,30 @@ export const DOM = (callback) => window.controlAPI.dom(callback);
 //TODO crear comentario
 export const Navigate = (page, attr = null) => window.controlAPI.navigate(page, attr);
 
+//TODO crear comentario
+export const Modal = (page, attr) => {
+    return new Promise((resolve) => {
+        window.controlAPI.modalWindow(page, attr);
+        window.controlAPI.onModalResponse((response) => resolve(response));
+    });
+};
+
+//TODO crear comentario
+export const SendModalResponse = (response) => window.controlAPI.sendModalResponse(response);
+
+//TODO crear comentario
+export const Dialog = (title, message, type = 0) => {
+    return new Promise((resolve) => {
+        window.controlAPI.dialogWindow(type, title, message);
+
+        window.controlAPI.onDialogResponse((response) => {
+            let resut = false;
+            if (response === 'Yes' || response === 'OK') resut = true;
+            resolve(resut);
+        });
+    });
+};
+
 /**
  * Añade un manejador de evento a un elemento del DOM identificado por un selector.
  * 

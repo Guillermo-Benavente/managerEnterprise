@@ -1,6 +1,7 @@
 export default {
-  INFO: 0,
-  WARNING: 1,
-  SUCCESS: 2,
-  ERROR: 3
+  NONE: 'none',
+  INFO: 'info',
+  ERROR: 'error',
+  QUESTION: 'question',
+  WARNING: 'warning'
 };

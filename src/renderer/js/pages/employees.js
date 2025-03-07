@@ -1,6 +1,7 @@
-import { DOM, AddEvent, AddElement, Navigate } from 'Components/controlAPI.js';
+import { DOM, AddEvent, AddElement, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { EMPLOYEE, FormatEmployee, FormatDbEmployee, GetEmployees, SetEmployee, DeleteEmployee } from 'Components/dbAPI.js';
-import { CreateFormWindow, AlertWindow } from 'Components/window.js';
+import { CreateFormWindow } from 'Components/window.js';
+import Alert from 'Types/alert.js';
 import Table from 'Components/table.js';
 
 DOM(() => {
@@ -18,16 +19,14 @@ DOM(() => {
             });
         } 
     });
-    
+
     AddEvent('.wininCreate', 'click', () => {
-        AddElement(CreateFormWindow('Datos del empleado', EMPLOYEE,
-            (employee) => {
-                console.log(Object.entries(employee).length);
-                SetEmployee(FormatDbEmployee(employee), (success) => {
-                    if (success) table.addRow(FormatEmployee(employee));
-                    else AddElement(AlertWindow('error','No se ha podido añadir al empleado'));
-                });
-            }
-        ,'Crear Empleado'));
+        Modal('newElement', { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
+        .then((employee) => {
+            SetEmployee(FormatDbEmployee(employee), (success) => {
+                if (success) table.addRow(FormatEmployee(employee));
+                else Dialog('Error', 'No se ha podido añadir al empleado.', Alert.ERROR);
+            });
+        });
     });
 });

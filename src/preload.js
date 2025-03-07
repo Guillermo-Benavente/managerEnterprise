@@ -31,6 +31,12 @@ contextBridge.exposeInMainWorld('utilAPI', {
 contextBridge.exposeInMainWorld('controlAPI', {
   dom: (callback) => document.addEventListener('DOMContentLoaded', callback),
   navigate: (page, attr) => ipcRenderer.send('navigate', page, attr),
+  close: () => ipcRenderer.send('close-window'),
+  modalWindow: (page, attr) => ipcRenderer.send('modal-window', page, attr),
+  onModalResponse: (callback) => ipcRenderer.on('modal-response', (_, response) => callback(response)),
+  sendModalResponse: (response) => ipcRenderer.send('modal-send', response),
+  dialogWindow: (type, title, message) => ipcRenderer.send('dialog-window', type, title, message),
+  onDialogResponse: (callback) => ipcRenderer.on('dialog-response', (_, response) => callback(response)),
   addEvent: (selector = document.defaultView, type, callback) => {
     if (selector == null) window.addEventListener(type, callback);
     else {
@@ -51,7 +57,11 @@ contextBridge.exposeInMainWorld('controlAPI', {
 
     return element;
   },
-  addElement: (child, parent = document.body) => parent.appendChild(child),
+  addElement: (children, parent = document.body) => { 
+    if (Array.isArray(children)) children.forEach(child => parent.appendChild(child));
+    else parent.appendChild(children);
+    return parent; 
+  },
   removeElement: (child, parent = document.body) => parent.removeChild(child),
 });
 

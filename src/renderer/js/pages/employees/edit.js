@@ -1,7 +1,6 @@
-import { DOM, AddEvent, GetElement, AddElement, Navigate } from 'Components/controlAPI.js';
-import { EMPLOYEE, FormatEmployee, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
-import { CreateForm, CreateChangeDateForm } from 'Components/form.js';
-import { AlertWindow } from 'Components/window.js';
+import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog } from 'Components/controlAPI.js';
+import { EMPLOYEE, FormatEmployee, FormatDbEmployee, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
+import { CreateForm } from 'Components/form.js';
 import Alert from 'Types/alert.js';
 
 DOM(() => {
@@ -14,34 +13,12 @@ DOM(() => {
             if(success){
                 AddElement(CreateForm(FormatEmployee(data), EMPLOYEE, 
                     (employee) => {
-                        let surnamesArray = employee.surnames.split(" ");
-                        let newFormatEmployee = {
-                            'dni': employee.dni,
-                            'name': employee.name,
-                            'first_surname': surnamesArray[0],
-                            'second_surname': surnamesArray[1] || '',
-                            'discharge_date': employee.discharge_date,
-                            'leave_date': employee.leave_date,
-                            'medical_leave_date': employee.medical_leave_date,
-                            'medical_discharge_date': employee.medical_discharge_date,
-                            'courses': employee.courses
-                        };
-
-                        UpdateEmployee(newFormatEmployee, (success) => {
-                            if (success) AddElement(AlertWindow(Alert.SUCCESS,'Información actualizada'));
-                            else AddElement(AlertWindow(Alert.ERROR,'No se pudo actualizar la informacion con éxito'));
+                        UpdateEmployee(FormatDbEmployee(employee), (success) => {
+                            if (success) Dialog('Información', 'Información actualizada.', Alert.INFO).then(() => { Navigate('employees'); });
+                            else Dialog('Error', 'No se pudo actualizar la informacion con éxito.', Alert.ERROR);
                         });
                     }
                 ), GetElement('.frm-cnt'));
-
-                //TODO agregar los nuevos botones para los documentos y un input para la fecha
-                /*AddElement(CreateChangeDateForm({
-                    'AptitudeCertificate':'Certificado de aptitud',
-                    'Art1819':'Art. 18-19',
-                    'MachineryUses':'Usos de maquinaria',
-                    'HealthMonitoring':'Vigilancia de la salud',
-                    'Epi':'Epi'
-                }), GetElement('.frm-cnt'));*/
             }
 
             AddEvent('.pgCourse', 'click', () => { Navigate('courseemployees', {id:employeeId} ); });

@@ -1,7 +1,7 @@
-import { DOM, AddEvent, GetElement, AddElement, Navigate } from 'Components/controlAPI.js';
+import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog } from 'Components/controlAPI.js';
 import { DOCUMENT, UpdateCompany, SetDocuments, GetDocuments } from 'Components/dbAPI.js';
 import { CreateForm, CreateChangeDateForm } from 'Components/form.js';
-import { CreateFormWindow, AlertWindow } from 'Components/window.js';
+import { CreateFormWindow } from 'Components/window.js';
 import { newPdf } from 'Components/createPdf.js'
 import Alert from 'Types/alert.js';
 import Window from 'Types/window.js';
@@ -99,7 +99,7 @@ DOM(() => {
                                     if (success) {
                                         
                                         //AddEvent('.pgConfigDocument', 'click', () => { Navigate('selectdocumentemployee', {company:companyId,id:}); });
-                                    } else AddElement(AlertWindow('error','No se ha podido guardar el documento'));
+                                    } else Dialog('Error', 'No se ha podido guardar el documento.', Alert.ERROR);
                                 });
                             }).catch((error) => {
                                 console.log('Saving failed: ', error)

@@ -45,6 +45,14 @@ module.exports = {
               },
             },
             {
+              html: './src/renderer/html/modal/newElement.html',
+              js: './src/renderer/js/pages/modal/newElement.js',
+              name: 'newElement',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
               html: './src/renderer/html/employees.html',
               js: './src/renderer/js/pages/employees.js',
               name: 'employees',

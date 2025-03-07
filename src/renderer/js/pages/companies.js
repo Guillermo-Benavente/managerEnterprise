@@ -1,6 +1,6 @@
-import { DOM, AddEvent, AddElement, Navigate } from 'Components/controlAPI.js';
+import { DOM, AddEvent, AddElement, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { COMPANY, GetCompanies, SetCompany, DeleteCompany } from 'Components/dbAPI.js';
-import { CreateFormWindow, AlertWindow } from 'Components/window.js';
+import { CreateFormWindow } from 'Components/window.js';
 import Table from 'Components/table.js';
 
 DOM(() => {
@@ -20,13 +20,12 @@ DOM(() => {
     });
 
     AddEvent('.wininCreate', 'click', () => {
-        AddElement(CreateFormWindow('Datos de empresa', COMPANY,
-            (company) => {
-                SetCompany(company, (success) => {
-                    if (success) table.addRow(company);
-                    else AddElement(AlertWindow('error','No se ha podido añadir a la empresa'));
-                });
-            }
-        ,'Crear Empresa'));
+        Modal('newElement', { title: 'Nueva empresa', dataType: JSON.stringify(COMPANY) })
+        .then((company) => {
+            SetCompany(company, (success) => {
+                if (success) table.addRow(company);
+                else Dialog('Error', 'No se ha podido añadir a la empresa.', Alert.ERROR);
+            });
+        });
     });
 });

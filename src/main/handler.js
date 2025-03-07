@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, BrowserWindow, dialog } from 'electron';
 import util from './util';
 
 function AddDatabaseHandlers(db) {
@@ -186,17 +186,82 @@ function AddUtilHandlers() {
 }
 
 function AddPathHandlers(mainWindow) {
+    const serverURL = 'http://localhost:3000';
+
     ipcMain.on('navigate', async (_, page, attr) => {
         let filePath = '';
-        const serverURL = 'http://localhost:3000';
-
         if (page != '') filePath = `${serverURL}/${page}/index.html`;
-        console.log(attr)
         if (attr && typeof attr === 'object')
             filePath += `?${new URLSearchParams(attr).toString()}`;
-
-        console.log(filePath);
         if (filePath != '') mainWindow.loadURL(filePath);
+    });
+
+    ipcMain.on('modal-window', async (_, page, attr) => {
+        let filePath = '';
+
+        let modal = new BrowserWindow({
+            width: 800,
+            height: 600,
+            parent: mainWindow,
+            modal: true,
+            show: false,
+            resizable: false,
+            webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            }
+        });
+
+        if (page != '') filePath = `${serverURL}/${page}/index.html`;
+        if (attr && typeof attr === 'object')
+            filePath += `?${new URLSearchParams(attr).toString()}`;
+        if (filePath != '') modal.loadURL(filePath);
+        
+        modal.once('ready-to-show', () => {
+            modal.show();
+
+            modal.webContents.executeJavaScript(`
+                new Promise(resolve => {
+                    const body = document.body;
+                    const width = body.scrollWidth;
+                    const height = body.scrollHeight;
+                    resolve({ width, height });
+                });
+            `).then(size => {
+                modal.setBounds({
+                    width: Math.min(size.width + 85, 800),
+                    height: Math.min(size.height + 85, 600)
+                });
+            });
+        });
+        modal.on('closed', () => { modal = null; });
+    });
+
+    ipcMain.on('modal-send', (_, data) => {
+        mainWindow.webContents.send('modal-response', data);
+    });
+
+    ipcMain.on('dialog-window', async (_, type, title, message) => {
+        const options = {
+            question: { buttons: ['Yes', 'No', 'Cancel'], defaultId: 1 },
+            warning: { buttons: ['OK', 'Cancel'], defaultId: 0 },
+            error: { buttons: ['Close'], defaultId: 0 },
+            info: { buttons: ['OK', 'Más información'], defaultId: 0 }
+        };
+
+        const { buttons, defaultId } = options[type] || { buttons: ['OK'], defaultId: 0 };
+
+        const response = dialog.showMessageBoxSync(mainWindow, {
+            type: type,
+            title: title,
+            message: message,
+            buttons: buttons,
+            defaultId: defaultId,
+            modal: true
+        });
+
+        mainWindow.webContents.send('dialog-response', buttons[response]);
     });
 }
 

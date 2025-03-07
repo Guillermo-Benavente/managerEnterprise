@@ -1,7 +1,6 @@
-import { DOM, AddEvent, GetElement, AddElement, Navigate } from 'Components/controlAPI.js';
+import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog } from 'Components/controlAPI.js';
 import { COMPANY, DOCUMENT, GetCompany, UpdateCompany, GetDocuments } from 'Components/dbAPI.js';
-import { CreateForm, CreateChangeDateForm } from 'Components/form.js';
-import { AlertWindow } from 'Components/window.js';
+import { CreateForm } from 'Components/form.js';
 import Alert from 'Types/alert.js';
 import Table from 'Components/table.js';
 
@@ -23,8 +22,8 @@ DOM(() => {
                 AddElement(CreateForm(data, COMPANY,
                     (company) => {
                         UpdateCompany(company, (success) => {
-                            if (success) AddElement(AlertWindow(Alert.SUCCESS,'Información actualizada'));
-                            else AddElement(AlertWindow(Alert.ERROR,'No se pudo actualizar la informacion con éxito'));
+                            if (success) Dialog('Información', 'Información actualizada.', Alert.INFO).then(() => { Navigate('companies'); });
+                            else Dialog('Error', 'No se pudo actualizar la informacion con éxito.', Alert.ERROR);
                         });
                     }
                 ), GetElement('.frm-cnt'));

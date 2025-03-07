@@ -1,4 +1,3 @@
-import Alert from 'Types/alert.js';
 import Window from 'Types/window.js';
 /**
  * Crea y muestra una ventana emergente con un formulario generado dinámicamente basado en los datos proporcionados.
@@ -19,7 +18,7 @@ import Window from 'Types/window.js';
  * // Esto creará una ventana emergente con un formulario de tres campos: Nombre, Edad y Correo.
  * // El popup incluirá un botón para cerrar la ventana.
  */
-export function CreateFormWindow(title, dataType, onSubmitCallback, windowType, confirmText = null, cancelText = null) {
+export function CreateFormWindow(title, dataType, onSubmitCallback, confirmText = null, cancelText = null) {
     
     const windowPopUp = document.createElement('div');
     windowPopUp.className = 'win-ctn';
@@ -187,79 +186,4 @@ export function DeleteWindow(windowPopUp) {
     setTimeout(() => {
         document.body.removeChild(windowPopUp);
     }, 500);
-}
-
-export function AlertWindow(type, textMessage, callback) {
-    const windowPopUp = document.createElement('div');
-    windowPopUp.className = 'win-ctn';
-
-    const popUp = document.createElement('form');
-    popUp.className = 'win';
-
-    const titlePopUp = document.createElement('h1');
-    titlePopUp.className = 'win-tit header';
-    switch (type) {
-        case Alert.INFO: titlePopUp.textContent = 'Información';
-            break;
-        case Alert.WARNING: titlePopUp.textContent = 'Advertencia';
-            break;
-        case Alert.SUCCESS: titlePopUp.textContent = 'Éxito';
-            break;
-        case Alert.ERROR: titlePopUp.textContent = 'Error';
-            break;
-        default: titlePopUp.textContent = 'Información';
-            break;
-    }
-
-    const closePopUp = document.createElement('span');
-    closePopUp.className = 'btn-img win-cls';
-    closePopUp.setAttribute('data-img', '../../assets/img/delete.svg');
-    closePopUp.setAttribute('data-clr', '#fdfdfd');
-
-    const message = document.createElement('span');
-    message.textContent = textMessage;
-    
-    popUp.appendChild(closePopUp);
-    popUp.appendChild(titlePopUp);
-    popUp.appendChild(message);
-
-    if(type != Alert.SUCCESS){
-        const options = document.createElement('div');
-        options.className = 'btn-cnt-rigth';
-
-        const confirmForm = document.createElement('span');
-        confirmForm.className = 'btn btn-primary';
-        confirmForm.textContent = 'Aceptar';
-
-        const closeForm = document.createElement('span');
-        closeForm.className = 'btn btn-secondary';
-        closeForm.textContent = 'Cancelar';
-
-        options.appendChild(closeForm);
-        options.appendChild(confirmForm);
-        popUp.appendChild(options);
-
-        closeForm.addEventListener('click', () => { 
-            callback(false);
-            DeleteWindow(windowPopUp);
-        });
-        confirmForm.addEventListener('click', () => { 
-            callback(true);
-            DeleteWindow(windowPopUp);
-        });
-    }
-
-    windowPopUp.appendChild(popUp);
-
-    setTimeout(() => {
-        windowPopUp.classList.add('visible');
-    }, 10);
-
-    if (type == Alert.SUCCESS) {
-        setTimeout(() => {
-            DeleteWindow(windowPopUp);
-        }, 1250);
-    }
-
-    return windowPopUp;
 }

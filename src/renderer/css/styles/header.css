@@ -8,8 +8,12 @@
     margin-bottom: 10px;
     min-height: 45px;
 
-    .title {
+    h1 {
+        display: inline;
+        margin: 0;
         margin-right: 10px;
+        font-size: 1.5em;
+        font-weight: normal;
     }
 
     .actions {
