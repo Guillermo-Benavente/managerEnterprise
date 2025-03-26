@@ -24,7 +24,6 @@ DOM(() => {
             AddEvent('.pgCourse', 'click', () => { Navigate('courseemployees', {id:employeeId} ); });
 
             //TODO Añadir a empleados un nuevo campo de la fecha de DNI
-            //TODO Añadir un check al lateral sobre si tiene o no asignado el documento de CreateChangeDateForm
         });
     };
 });

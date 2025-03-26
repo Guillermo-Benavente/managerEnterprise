@@ -1,6 +1,5 @@
-import { DOM, AddEvent, AddElement, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
+import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { EMPLOYEE, FormatEmployee, FormatDbEmployee, GetEmployees, SetEmployee, DeleteEmployee } from 'Components/dbAPI.js';
-import { CreateFormWindow } from 'Components/window.js';
 import Alert from 'Types/alert.js';
 import Table from 'Components/table.js';
 
@@ -21,7 +20,7 @@ DOM(() => {
     });
 
     AddEvent('.wininCreate', 'click', () => {
-        Modal('newElement', { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
+        Modal('form', { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
         .then((employee) => {
             SetEmployee(FormatDbEmployee(employee), (success) => {
                 if (success) table.addRow(FormatEmployee(employee));

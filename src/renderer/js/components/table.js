@@ -23,7 +23,7 @@ export default class Table {
             language: {
                 search: "Buscar:",
                 lengthMenu: "Mostrar _MENU_ registros por página",
-                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                info: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
                 infoEmpty: "No hay registros disponibles",
                 infoFiltered: "(filtrado de _MAX_ registros en total)",
                 loadingRecords: "Cargando...",
@@ -46,12 +46,10 @@ export default class Table {
         let header = document.createElement('thead');
         let row = document.createElement('tr');
 
-        Object.keys(this.dataType).forEach(key => { 
-            if(this.dataType[key].showTable){
-                let th = document.createElement('th');
-                th.textContent = this.dataType[key].name.charAt(0).toUpperCase() + this.dataType[key].name.slice(1);
-                row.appendChild(th);
-            }
+        Object.keys(this.dataType).filter(key => this.dataType[key].showTable).forEach(key => { 
+            let th = document.createElement('th');
+            th.textContent = this.dataType[key].name.charAt(0).toUpperCase() + this.dataType[key].name.slice(1);
+            row.appendChild(th);
         });
         let actions = document.createElement('th');
         actions.textContent = 'Acciones';

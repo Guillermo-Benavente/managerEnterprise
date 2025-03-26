@@ -28,13 +28,6 @@ DOM(() => {
                     }
                 ), GetElement('.frm-cnt'));
             }
-            /*GetDocuments(companyId, (success, data) => {
-                if(success){
-                    AddElement(CreateChangeDateForm(data), GetElement('.frm-cnt'));
-                    AddEvent('.pgCreateDocument', 'click', () => { Navigate('createdocument', {id:companyId}); });
-                }
-            });*/
-            //TODO Añadir un check al lateral sobre si tiene o no asignado el documento de CreateChangeDateForm
         });
 
         GetDocuments(companyId,(success, data) => {

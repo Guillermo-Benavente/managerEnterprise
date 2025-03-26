@@ -1,3 +1,180 @@
+import { CreateElement, GetElement, AddElement, SendModalResponse, Dialog } from 'Components/controlAPI.js';
+import FormType from 'Types/form.js';
+import Alert from 'Types/alert.js';
+
+export default class Fieldset {
+    constructor(fieldset, data, type) {
+        this.fieldset = fieldset;
+        this.data = data;
+        this.type = type;
+    }
+
+    init() {
+        if (this.type === FormType.NORMAL) {
+            Object.values(this.createForm(this.data)).forEach((element) => {
+                AddElement(element['label'], this.fieldset);
+                AddElement(element['input'], this.fieldset);
+            });
+        } else if(this.type === FormType.SELECTOR) {
+            const inputs = this.createInputs(this.data['object'][0]);
+
+            const identifiers = Array.isArray(this.data['object']) 
+                ? this.data['object'].map(obj => Object.keys(obj).find(key => obj[key].identifier))
+                : [this.data['object'].identifier];
+
+            const text = Array.isArray(this.data['object']) 
+                ? this.data['object'].map(obj => Object.keys(obj).filter(key => obj[key].showFormSelectorText))
+                : [Object.keys(this.data['object']).filter(key => this.data['object'][key].showFormSelectorText)];
+
+            Object.values(this.data['data']).forEach((value) => {
+                const id = Object.keys(value).find(key => identifiers.includes(key.identifier));
+                const values = Object.keys(value).filter(key => text.flat().includes(key)).map(key => value[key]);
+                const newInputs = Object.values(inputs).map((node) => node.cloneNode(true));
+                AddElement(this.createSelector(value[id], values.join(' '), newInputs), this.fieldset);
+            });
+        }
+    }
+    
+    createInputs(object) {
+        let skeleton = {};
+        Object.keys(object).filter(key => object[key].showForm).forEach(key => {
+            skeleton[key] = this.createInput(object[key], key);
+        });
+        return skeleton;
+    }
+
+    createSelector(id, text, inputs) {
+        const content = CreateElement('div');
+        const label = CreateElement('label');
+        const checkbox = CreateElement('input', { type: 'checkbox', name: id });
+        const checkText = CreateElement('span', {title: id}, text);
+        const finalInputs = Object.values(inputs).map(input => { input.name = id+input.name; return input; });
+
+        checkbox.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                finalInputs.forEach(() => {
+                    const allFilled = finalInputs.every(input => input.value.trim() !== '');
+                    if (!allFilled) {
+                        event.target.checked = false;
+                        Dialog('Advertencia','Por favor, llena todos los campos antes de seleccionarlo.', Alert.WARNING);
+                    }
+                });
+            }
+        });
+
+        return AddElement([AddElement([checkbox, checkText], label), ...finalInputs], content);
+    }
+
+    createForm(object) {
+        let skeleton = {};
+        Object.keys(object).filter(key => object[key].showForm).forEach(key => {
+            const data = object[key];
+            skeleton[key] = {};
+            skeleton[key]['label'] = CreateElement('label', { for: key }, data.name.toLowerCase().replace(/./, c => c.toUpperCase()));
+            skeleton[key]['input'] = this.createInput(data, key);
+        });
+        return skeleton;
+    }
+
+    createInput(element, key){
+        let finalInput;
+        const inputForm = CreateElement('input', { name: key, id: key, type: element.type });
+
+        if (element.type == 'file') {
+            this.fieldset.form.enctype = 'multipart/form-data';
+            inputForm.accept = element.accept;
+            inputForm.multiple = true;
+            inputForm.style = 'display: none';
+
+            const contentInputFile = CreateElement('label', { for: key, class: 'btn btn-primary' });
+            const textInputFile = CreateElement('span', {}, 'Añadir archivos');
+
+            inputForm.addEventListener('change', (event) => {
+                const files = event.target.files;
+                const text = files.length > 0
+                    ? `${files.length} archivo(s)`
+                    : 'Añadir archivos';
+                textInputFile.textContent = text;
+            });
+
+            finalInput = AddElement([textInputFile, inputForm], contentInputFile);
+        } else finalInput = inputForm;
+
+        return finalInput;
+    }
+};
+
+export function SubmitForm(form) {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const values = Object.fromEntries(new FormData(form).entries());
+
+        const fileProcessingPromises = [];
+
+        form.querySelectorAll('input[type="file"]').forEach(input => {
+            const filePromises = Array.from(input.files).map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+
+                    reader.onloadend = () => resolve({name:file.name, data:reader.result.split(',')[1]});
+                    reader.onerror = (error) => reject(error);
+
+                    reader.readAsDataURL(file);
+                });
+            });
+            const processedFilesPromise = Promise.all(filePromises).then((fileContents) => {
+                values[input.name] = fileContents;
+            });
+
+            fileProcessingPromises.push(processedFilesPromise);
+        });
+
+        try {
+            await Promise.all(fileProcessingPromises);
+            SendModalResponse(values);
+            window.close();
+        } catch (error) { 
+            Dialog('Error', 'No se ha podido añadir los nuevos datos.', Alert.ERROR);
+            console.error('Error al procesar los archivos:', error); 
+        }
+    });
+}
+
+
+
+export function CreateInputs(object, fieldset, form) {
+    Object.keys(object).filter(key => object[key].showForm).forEach(key => {
+        const label = CreateElement('label', { for: key }, 
+            object[key].name.toLowerCase().replace(/./, c => c.toUpperCase())
+        );
+
+        AddElement(label, fieldset);
+
+        const inputForm = CreateElement('input', { name: key, id: key, type: object[key].type });
+
+        if (object[key].type == 'file') {
+            form.enctype = 'multipart/form-data';
+            inputForm.accept = object[key].accept;
+            inputForm.multiple = true;
+            inputForm.style = 'display: none';
+
+            const contentInputFile = CreateElement('label', { for: key, class: 'btn btn-primary' });
+            const textInputFile = CreateElement('span', {}, 'Añadir archivos');
+
+            inputForm.addEventListener('change', (event) => {
+                const files = event.target.files;
+                const text = files.length > 0
+                    ? `${files.length} archivo(s)`
+                    : 'Añadir archivos';
+                textInputFile.textContent = text;
+            });
+
+            AddElement(AddElement([textInputFile, inputForm], contentInputFile), fieldset);
+        } else AddElement(inputForm, fieldset);
+    });
+}
+
 export function CreateForm(data, dataType, onSubmitCallback, confirmText = null) {
     const form = document.createElement('form');
     form.className = 'frm';
@@ -64,59 +241,6 @@ export function CreateForm(data, dataType, onSubmitCallback, confirmText = null)
             onSubmitCallback(values);
         }
     });
-
-    return form;
-}
-
-export function CreateChangeDateForm(data, dataType, confirmText = null){
-    const form = document.createElement('form');
-    form.className = 'frm';
-
-    const AddRow = document.createElement('span');
-    AddRow.className = 'btn btn-secondary pgCreateDocument';
-    AddRow.textContent = 'Añadir Documento';
-
-    const contentForm = document.createElement('table');
-    contentForm.className = 'frm-row-btn';
-
-    Object.entries(data).forEach(([key, value]) => {
-        const row = document.createElement('tr');
-        const contentLabel = document.createElement('td');
-        const contentInput = document.createElement('td');
-
-        const label = document.createElement('label');
-        label.setAttribute('for', key);
-        label.textContent = value.name;
-
-        /*const dateForm = document.createElement('input');
-        dateForm.type = 'date';
-        dateForm.id = key;
-        dateForm.name = key;*/
-
-        const editButton = document.createElement('span');
-        editButton.className = 'btn btn-primary';
-        editButton.name = key;
-        editButton.id = key;
-        editButton.textContent = 'Editar';
-
-        const deleteButton = document.createElement('span');
-        deleteButton.className = 'btn btn-secondary';
-        deleteButton.name = key;
-        deleteButton.id = key;
-        deleteButton.textContent = 'Eliminar';
-
-        contentLabel.appendChild(label);
-        //contentInput.appendChild(dateForm);
-        contentInput.appendChild(editButton);
-        contentInput.appendChild(deleteButton);
-
-        row.appendChild(contentLabel);
-        row.appendChild(contentInput);
-        contentForm.appendChild(row);
-    });
-
-    form.appendChild(contentForm);
-    form.appendChild(AddRow);
 
     return form;
 }

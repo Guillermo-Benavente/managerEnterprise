@@ -1,6 +1,5 @@
-import { DOM, AddEvent, AddElement, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
+import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { COMPANY, GetCompanies, SetCompany, DeleteCompany } from 'Components/dbAPI.js';
-import { CreateFormWindow } from 'Components/window.js';
 import Table from 'Components/table.js';
 
 DOM(() => {
@@ -16,11 +15,11 @@ DOM(() => {
             table.addInteractiveRow('editcompanies', 'Vas a eliminar una empresa ¿Estás Seguro?', (nif) => {
                 DeleteCompany(nif, (success) => { if (success) table.deleteRow(nif); });
             });
-        } 
+        }
     });
 
     AddEvent('.wininCreate', 'click', () => {
-        Modal('newElement', { title: 'Nueva empresa', dataType: JSON.stringify(COMPANY) })
+        Modal('form', { title: 'Nueva empresa', dataType: JSON.stringify(COMPANY) })
         .then((company) => {
             SetCompany(company, (success) => {
                 if (success) table.addRow(company);

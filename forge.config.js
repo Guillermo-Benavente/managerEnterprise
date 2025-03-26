@@ -45,9 +45,17 @@ module.exports = {
               },
             },
             {
-              html: './src/renderer/html/modal/newElement.html',
-              js: './src/renderer/js/pages/modal/newElement.js',
-              name: 'newElement',
+              html: './src/renderer/html/modal/form.html',
+              js: './src/renderer/js/pages/modal/form.js',
+              name: 'form',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
+              html: './src/renderer/html/modal/formdocument.html',
+              js: './src/renderer/js/pages/modal/formdocument.js',
+              name: 'formdocument',
               preload: {
                 js: './src/preload.js',
               },

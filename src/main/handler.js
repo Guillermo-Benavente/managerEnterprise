@@ -169,6 +169,21 @@ function AddDatabaseHandlers(db) {
         }
     });
 
+    /// TABLE METHODS EMPLOYEEBYDOCUMENT///
+
+    ipcMain.handle('insert-employee-document', async (_, employee, document, date) => {
+        try {
+            return await db.InsertEmployeeByDocument(
+                employee, 
+                document,
+                date
+            );
+        } catch (err) {
+            console.error('Error al intentar crear la referencia entre empleado y documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
     console.log('Cargado los handlers de Database correctamente.');
 }
 
@@ -199,13 +214,15 @@ function AddPathHandlers(mainWindow) {
     ipcMain.on('modal-window', async (_, page, attr) => {
         let filePath = '';
 
+        const parentWindow = BrowserWindow.getFocusedWindow() || mainWindow;
+
         let modal = new BrowserWindow({
             width: 800,
             height: 600,
-            parent: mainWindow,
+            parent: parentWindow,
             modal: true,
             show: false,
-            resizable: false,
+            //resizable: false,
             webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -219,8 +236,6 @@ function AddPathHandlers(mainWindow) {
         if (filePath != '') modal.loadURL(filePath);
         
         modal.once('ready-to-show', () => {
-            modal.show();
-
             modal.webContents.executeJavaScript(`
                 new Promise(resolve => {
                     const body = document.body;
@@ -229,17 +244,21 @@ function AddPathHandlers(mainWindow) {
                     resolve({ width, height });
                 });
             `).then(size => {
-                modal.setBounds({
-                    width: Math.min(size.width + 85, 800),
-                    height: Math.min(size.height + 85, 600)
-                });
+                const newWidth = Math.min(size.width + 85, 800);
+                const newHeight = Math.min(size.height + 85, 600);
+                const { width: screenWidth, height: screenHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+                const newX = Math.round((screenWidth - newWidth) / 2);
+                const newY = Math.round((screenHeight - newHeight) / 2);
+                modal.setBounds({ x: Math.round(newX), y: Math.round(newY), width: newWidth, height: newHeight });
             });
-        });
-        modal.on('closed', () => { modal = null; });
-    });
 
-    ipcMain.on('modal-send', (_, data) => {
-        mainWindow.webContents.send('modal-response', data);
+            modal.show();
+        });
+        ipcMain.on('modal-send', (_, data) => {
+            parentWindow.webContents.send('modal-response', data);
+        });
+
+        modal.on('closed', () => { modal = null; });
     });
 
     ipcMain.on('dialog-window', async (_, type, title, message) => {

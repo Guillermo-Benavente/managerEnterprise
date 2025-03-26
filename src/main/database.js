@@ -432,7 +432,7 @@ class Database {
                             console.error('Error al insertar un curso:', error);
                             reject(error);
                         } else {
-                            resolve(coursePath);
+                            resolve(id);
                         }
                     });
 
@@ -492,18 +492,12 @@ class Database {
                         VALUES (?, ?, ?, ?, ?)
                     `);
 
-                    console.log('id: '+id)
-                    console.log('name: '+document.name)
-                    console.log('company: '+nif)
-                    console.log('content: '+JSON.stringify(document.content))
-                    console.log('url: '+coursePath)
-
                     query.run(id, document.name, nif, JSON.stringify(document.content), coursePath, function (error) {
                         if (error) {
                             console.error('Error al insertar un documento:', error);
                             reject(error);
                         } else {
-                            resolve(coursePath);
+                            resolve(id);
                         }
                     });
 
@@ -524,8 +518,6 @@ class Database {
     async InsertDocuments(nif, documents) {
         try {
             const results = [];
-            console.log(nif);
-            console.log(documents);
 
             for (const document of documents) {
                 const result = await this.InsertDocument(nif, document);
@@ -536,6 +528,35 @@ class Database {
             console.error('Error al procesar los documentos:', error);
             throw error;
         }
+    }
+
+    //TODO crear comentarios
+    async InsertEmployeeByDocument(employee, document, date) {
+        const db = await this.db;
+        const id = employee + Date.now();
+
+        return new Promise((resolve, reject) => {
+            try {
+                const query = db.prepare(`
+                    INSERT INTO employeebydocument (id, employee, document, date)
+                    VALUES (?, ?, ?, ?)
+                `);
+
+                query.run(id, employee, document, date, (error) => {
+                    if (error) {
+                        console.error('Error al insertar una referencia del documento del empleado:', error);
+                        reject(error);
+                    } else {
+                        resolve(id);
+                    }
+                });
+
+                query.finalize();
+            } catch (error) {
+                console.error('Error al insertar una referencia del documento del empleado:', error);
+                reject(error);
+            }
+        });
     }
 
     /**
@@ -718,29 +739,41 @@ class Database {
      * @returns {Promise<void>} No retorna un valor explícito, pero crea las tablas necesarias.
      */
     async CreateTablesAsync(rows) {
-        const existingTables = rows.map(row => row.name);
+        const existingTables = new Set(rows.map(row => row.name));
 
-        if (!existingTables.includes('employee')) {
-            console.log("Creando tabla 'employee'...");
-            await this.CreateTableEmployeeAsync();
+        const tablesToCreate = {
+            employee: this.CreateTableEmployeeAsync,
+            company: this.CreateTableCompanyAsync,
+            course: this.CreateTableCourseAsync,
+            documents: this.CreateTableDocumentsAsync,
+            employeebydocument: this.CreateTableEmployeeByDocumentAsync
+        };
+
+        for (const [tableName, createMethod] of Object.entries(tablesToCreate)) {
+            if (!existingTables.has(tableName)) {
+                console.log(`Creando tabla '${tableName}'...`);
+                await createMethod.call(this);
+            }
         }
-        if (!existingTables.includes('company')) {
-            console.log("Creando tabla 'company'...");
-            await this.CreateTableCompanyAsync();
-        }
-        if (!existingTables.includes('course')) {
-            console.log("Creando tabla 'course'...");
-            await this.CreateTableCourseAsync();
-        }
-        if (!existingTables.includes('documents')) {
-            console.log("Creando tabla 'documents'...");
-            await this.CreateTableDocumentsAsync();
-        } 
-        if (!existingTables.includes('employeebydocument')) {
-            console.log("Creando tabla 'employeebydocument'...");
-            await this.CreateTableEmployeeByDocumentAsync();
-        } 
     }
+
+    //TODO Crear comentarios
+    async CreatePromisesTable(db, consults){
+        await new Promise((resolve, reject) => {
+            db.run(consults[0], (err) => err ? reject(err) : resolve());
+        });
+
+        if (consults.length > 1) {
+            await Promise.all(
+                consults.slice(1).map(consult =>
+                    new Promise((resolve, reject) => {
+                        db.run(consult, (err) => err ? reject(err) : resolve());
+                    })
+                )
+            );
+        }
+    }
+
 
     /**
      * Crea la tabla `employee` en la base de datos junto con sus índices si aún no existen.
@@ -754,73 +787,25 @@ class Database {
      * @date 2024-10-28
      * @author guillermob
      */
+    //TODO modificar
     async CreateTableEmployeeAsync() {
         const db = await this.db;
 
-        // Crea la tabla employee
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS employee (
-                    dni VARCHAR(9) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    first_surname VARCHAR(100) NOT NULL,
-                    second_surname VARCHAR(100),
-                    discharge_date DATE NOT NULL,
-                    leave_date DATE,
-                    medical_leave_date DATE,
-                    medical_discharge_date DATE,
-                    courses VARCHAR(100)
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla employee: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla employee creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla employee
-        await Promise.all([
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employee_name ON employee(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice employee_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employee_first_surname ON employee(first_surname);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice employee_first_surname: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employee_second_surname ON employee(second_surname);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice employee_second_surname: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Indices de employee creados.');
-                        resolve();
-                    }
-                });
-            })
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS employee (
+                dni VARCHAR(9) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                first_surname VARCHAR(100) NOT NULL,
+                second_surname VARCHAR(100),
+                discharge_date DATE NOT NULL,
+                leave_date DATE,
+                medical_leave_date DATE,
+                medical_discharge_date DATE,
+                courses VARCHAR(100)
+            );`,
+            `CREATE INDEX IF NOT EXISTS employee_name ON employee(name);`,
+            `CREATE INDEX IF NOT EXISTS employee_first_surname ON employee(first_surname);`,
+            `CREATE INDEX IF NOT EXISTS employee_second_surname ON employee(second_surname);`
         ]);
     }
 
@@ -836,56 +821,19 @@ class Database {
      * @date 2024-10-28
      * @author guillermob
      */
+    //TODO modificar
     async CreateTableCompanyAsync() {
         const db = await this.db;
 
-        // Crea la tabla company
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS company (
-                    nif VARCHAR(15) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    telephone VARCHAR(15) NOT NULL,
-                    registration_date DATE
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla company: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla company creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla company
-        await Promise.all([
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS company_name ON company(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice company_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS company_telephone ON company(telephone);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice company_telephone: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Indices de company creados.');
-                        resolve();
-                    }
-                });
-            })
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS company (
+                nif VARCHAR(15) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                telephone VARCHAR(15) NOT NULL,
+                registration_date DATE
+            );`,
+            `CREATE INDEX IF NOT EXISTS company_name ON company(name);`,
+            `CREATE INDEX IF NOT EXISTS company_telephone ON company(telephone);`
         ]);
     }
 
@@ -901,56 +849,20 @@ class Database {
      * @date 2024-11-16
      * @author guillermob
      */
+    //TODO modificar
     async CreateTableCourseAsync() {
         const db = await this.db;
 
-        // Crea la tabla course
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS course (
-                    id VARCHAR(15) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    employee VARCHAR(15) NOT NULL,
-                    url VARCHAR(255) NOT NULL
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla course: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla course creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla course
-        await Promise.all([
-                new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS course_name ON course(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice course_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS course_employee ON course(employee);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice course_employee: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Indices de course creados.');
-                        resolve();
-                    }
-                });
-            })
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS course (
+                id VARCHAR(15) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                employee VARCHAR(15) NOT NULL,
+                url VARCHAR(255) NOT NULL,
+                FOREIGN KEY (employee) REFERENCES employee(dni) ON DELETE CASCADE
+            );`,
+            `CREATE INDEX IF NOT EXISTS course_name ON course(name);`,
+            `CREATE INDEX IF NOT EXISTS course_employee ON course(employee);`
         ]);
     }
 
@@ -958,108 +870,35 @@ class Database {
     async CreateTableDocumentsAsync() {
         const db = await this.db;
 
-        // Crea la tabla documents
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS documents (
-                    id VARCHAR(15) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    company VARCHAR(15) NOT NULL,
-                    content TEXT NOT NULL,
-                    url VARCHAR(255) NOT NULL
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla documents: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla documents creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla documents
-        await Promise.all([
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS documents_name ON documents(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice documents_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS documents_company ON documents(company);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice documents_company: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Índices de documents creados.');
-                        resolve();
-                    }
-                });
-            })
-        ]);
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS documents (
+                id VARCHAR(15) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                company VARCHAR(15) NOT NULL,
+                content TEXT NOT NULL,
+                url VARCHAR(255) NOT NULL,
+                FOREIGN KEY (company) REFERENCES company(nif) ON DELETE CASCADE
+            );`,
+            `CREATE INDEX IF NOT EXISTS documents_name ON documents(name);`,
+            `CREATE INDEX IF NOT EXISTS documents_company ON documents(company);`
+        ]); 
     }
 
     //TODO crear comentarios
     async CreateTableEmployeeByDocumentAsync() {
         const db = await this.db;
 
-        // Crea la tabla employeebydocument
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS employeebydocument (
-                    id VARCHAR(15) PRIMARY KEY,
-                    employee VARCHAR(15) NOT NULL,
-                    document VARCHAR(15) NOT NULL,
-                    date DATE NOT NULL
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla employeebydocument: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla employeebydocument creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla employeebydocument
-        await Promise.all([
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employeebydocument_employee ON employeebydocument(employee);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice employeebydocument_employee: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employeebydocument_document ON employeebydocument(document);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice employeebydocument_document: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Índices de employeebydocument creados.');
-                        resolve();
-                    }
-                });
-            })
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS employeebydocument (
+                id VARCHAR(15) PRIMARY KEY,
+                employee VARCHAR(15) NOT NULL,
+                document VARCHAR(15) NOT NULL,
+                date DATE NOT NULL,
+                FOREIGN KEY (employee) REFERENCES employee(dni) ON DELETE CASCADE,
+                FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
+            );`,
+            `CREATE INDEX IF NOT EXISTS employeebydocument_employee ON employeebydocument(employee);`,
+            `CREATE INDEX IF NOT EXISTS employeebydocument_document ON employeebydocument(document);`
         ]);
     }
 }

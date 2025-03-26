@@ -41,7 +41,7 @@ export function CreateFormWindow(title, dataType, onSubmitCallback, confirmText 
 
     const contentForm = document.createElement('table');
 
-    Object.entries(dataType).filter(([_, value]) => value.insertData).forEach(([key, _]) => {
+    Object.entries(dataType).filter(([_, value]) => value.showForm).forEach(([key, _]) => {
         let trForm = document.createElement('tr');
         let tdLabel = document.createElement('td');
         let tdInput = document.createElement('td');

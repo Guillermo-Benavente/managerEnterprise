@@ -91,7 +91,8 @@ export const AddEvent = (selector, type, callback) => window.controlAPI.addEvent
  * @date 2024-10-26
  * @author guillermob
  */
-export const GetElement = (selector) => window.controlAPI.getElement(selector);
+//TODO cambiar comentario
+export const GetElement = (selector, element) => window.controlAPI.getElement(selector, element);
 
 /**
  * Crea un nuevo elemento del DOM con los atributos y contenido especificado.
