@@ -117,6 +117,40 @@ class Database {
     }
 
     /**
+     * Función genérica para ejecutar cualquier sentencia SQL.
+     * @param {object} db - La conexión a la base de datos.
+     * @param {string} sql - La sentencia SQL a ejecutar.
+     * @param {Array} params - Array de parámetros para la sentencia.
+     * @param {('run'|'get'|'all')} method - Método a utilizar:
+     *   - 'run' para INSERT, UPDATE, DELETE.
+     *   - 'get' para obtener una sola fila.
+     *   - 'all' para obtener todas las filas.
+     * @param {string} errorMsg - Prefijo del mensaje de error para identificar la operación.
+     * @param {function} [onSuccess] - Función opcional para procesar el contexto "this" en 'run' (por ejemplo, lastID o changes).
+     * @returns {Promise<any>} - Promesa que se resuelve con el resultado de la consulta o modificación.
+     */
+    async executeSQL(db, method = 'run', sql, params = [], errorMsg, onSuccess) {
+        return new Promise((resolve, reject) => {
+            try {
+                const stmt = db.prepare(sql);
+                stmt[method](...params, function (error, result) {
+                    if (error) {
+                        console.error(`${errorMsg}:`, error);
+                        reject(error);
+                    } else {
+                        // Si se define onSuccess, se ejecuta con el contexto del statement
+                        resolve(onSuccess ? onSuccess.call(this) : result);
+                    }
+                });
+                stmt.finalize();
+            } catch (error) {
+                console.error(`${errorMsg} (excepción):`, error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
      * Obtiene todos los registros de empleados de la base de datos.
      *
      * @async
@@ -131,25 +165,7 @@ class Database {
     async GetEmployees() {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM employee');
-
-                query.all((error, rows) => {
-                    if (error) {
-                        console.error('Error al obtener los empleados:', error);
-                        reject(error);
-                    } else {
-                        resolve(rows);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM employee', [], 'Error al obtener los empleados');
     }
 
     /**
@@ -167,75 +183,21 @@ class Database {
     async GetCompanies() {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM company');
-
-                query.all((error, rows) => {
-                    if (error) {
-                        console.error('Error al obtener las empresas:', error);
-                        reject(error);
-                    } else {
-                        resolve(rows);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM company', [], 'Error al obtener las empresas');
     }
 
     //TODO crear comentarios
     async GetCourses(dni) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM course WHERE employee = ?');
-
-                query.all([dni], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener los cursos:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM course WHERE employee = ?', [dni], 'Error al obtener los cursos');
     }
 
     //TODO crear comentarios
     async GetDocuments(nif) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM documents WHERE company = ?');
-
-                query.all([nif], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener los documentos:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM documents WHERE company = ?', [nif], 'Error al obtener los documentos');
     }
 
     /**
@@ -254,25 +216,7 @@ class Database {
     async GetEmployee(dni) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM employee WHERE dni = ?');
-
-                query.get([dni], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener el empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'get', 'SELECT * FROM employee WHERE dni = ?', [dni], 'Error al obtener el empleado');
     }
 
     /**
@@ -291,25 +235,7 @@ class Database {
     async GetCompany(nif) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM company WHERE nif = ?');
-
-                query.get([nif], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener la empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'get', 'SELECT * FROM company WHERE nif = ?', [nif], 'Error al obtener la empresa');
     }
 
     /**
@@ -333,28 +259,12 @@ class Database {
     async InsertEmployee(dni, name, first_surname, second_surname, discharge_date, courses) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, courses)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `);
-
-                query.run(dni, name, first_surname, second_surname, discharge_date, courses, (error) => {
-                    if (error) {
-                        console.error('Error al insertar un empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al insertar un empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', 
+            `INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, courses)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+            [dni, name, first_surname, second_surname, discharge_date, courses],
+            'Error al insertar un empleado'
+        );
     }
 
     /**
@@ -376,28 +286,12 @@ class Database {
     async InsertCompany(nif, name, telephone, registration_date) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    INSERT INTO company (nif, name, telephone, registration_date)
-                    VALUES (?, ?, ?, ?)
-                `);
-
-                query.run(nif, name, telephone, registration_date, (error) => {
-                    if (error) {
-                        console.error('Error al insertar una empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la insercion de la empresa:', error);
-                reject(error); 
-            }
-        });
+        return this.executeSQL(db, 'run',
+            `INSERT INTO company (nif, name, telephone, registration_date)
+                VALUES (?, ?, ?, ?)`,
+            [nif, name, telephone, registration_date],
+            'Error al insertar insertar una empresa'
+        );
     }
 
     //TODO crear comentarios
@@ -420,28 +314,12 @@ class Database {
                 writeStream.on('error', reject);
             });
 
-            const coursePathInserted = await new Promise((resolve, reject) => {
-                try {
-                    const query = db.prepare(`
-                        INSERT INTO course (id, name, employee, url)
-                        VALUES (?, ?, ?, ?)
-                    `);
-
-                    query.run(id, course.name, dni, coursePath, function (error) {
-                        if (error) {
-                            console.error('Error al insertar un curso:', error);
-                            reject(error);
-                        } else {
-                            resolve(id);
-                        }
-                    });
-
-                    query.finalize();
-                } catch (error) {
-                    console.error('Error al ejecutar la inserción del curso:', error);
-                    reject(error); 
-                }
-            });
+            const coursePathInserted = await this.executeSQL(db, 'run',
+                `INSERT INTO course (id, name, employee, url)
+                    VALUES (?, ?, ?, ?)`,
+                [id, course.name, dni, coursePath],
+                'Error al insertar un curso'
+            );
 
             return coursePathInserted;
         } catch (error) {
@@ -485,28 +363,12 @@ class Database {
                 writeStream.on('error', reject);
             });
 
-            const coursePathInserted = await new Promise((resolve, reject) => {
-                try {
-                    const query = db.prepare(`
-                        INSERT INTO documents (id, name, company, content, url)
-                        VALUES (?, ?, ?, ?, ?)
-                    `);
-
-                    query.run(id, document.name, nif, JSON.stringify(document.content), coursePath, function (error) {
-                        if (error) {
-                            console.error('Error al insertar un documento:', error);
-                            reject(error);
-                        } else {
-                            resolve(id);
-                        }
-                    });
-
-                    query.finalize();
-                } catch (error) {
-                    console.error('Error al ejecutar la inserción del documento:', error);
-                    reject(error); 
-                }
-            });
+            const coursePathInserted = await this.executeSQL(db, 'run',
+                `INSERT INTO documents (id, name, company, content, url)
+                    VALUES (?, ?, ?, ?, ?)`,
+                [id, document.name, nif, JSON.stringify(document.content), coursePath],
+                'Error al insertar un documento'
+            );
 
             return coursePathInserted;
         } catch (error) {
@@ -535,28 +397,12 @@ class Database {
         const db = await this.db;
         const id = employee + Date.now();
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    INSERT INTO employeebydocument (id, employee, document, date)
-                    VALUES (?, ?, ?, ?)
-                `);
-
-                query.run(id, employee, document, date, (error) => {
-                    if (error) {
-                        console.error('Error al insertar una referencia del documento del empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve(id);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al insertar una referencia del documento del empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run',
+            `INSERT INTO employeebydocument (id, employee, document, date)
+                VALUES (?, ?, ?, ?)`,
+            [id, employee, document, date],
+            'Error al insertar una referencia del documento del empleado'
+        );
     }
 
     /**
@@ -583,29 +429,13 @@ class Database {
     async UpdateEmployee(dni, name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, courses) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    UPDATE employee
-                    SET name = ?, first_surname = ?, second_surname = ?, discharge_date = ?, leave_date = ?, medical_leave_date = ?, medical_discharge_date = ?, courses = ?
-                    WHERE dni = ?
-                `);
-
-                query.run(name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, courses, dni, (error) => {
-                    if (error) {
-                        console.error('Error al actualizar un empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la actualizacion del empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', 
+            `UPDATE employee
+                SET name = ?, first_surname = ?, second_surname = ?, discharge_date = ?, leave_date = ?, medical_leave_date = ?, medical_discharge_date = ?, courses = ?
+                WHERE dni = ?`,
+            [name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, courses, dni],
+            'Error al actualizar un empleado'
+        );
     }
 
     /**
@@ -627,29 +457,13 @@ class Database {
     async UpdateCompany(nif, name, telephone, registration_date) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    UPDATE company
-                    SET name = ?, telephone = ?, registration_date = ?
-                    WHERE nif = ?
-                `);
-
-                query.run(name, telephone, registration_date, nif, (error) => {
-                    if (error) {
-                        console.error('Error al actualizar una empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la actualizacion de la empresa:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run',
+            `UPDATE company
+                SET name = ?, telephone = ?, registration_date = ?
+                WHERE nif = ?`,
+            [name, telephone, registration_date, nif],
+            'Error al actualizar una empresa'
+        );
     }
 
     /**
@@ -668,27 +482,7 @@ class Database {
     async DeleteEmployee(dni) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    DELETE FROM employee WHERE dni = ?
-                `);
-
-                query.run(dni, (error) => {
-                    if (error) {
-                        console.error('Error al eliminar un empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la eliminacion del empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', `DELETE FROM employee WHERE dni = ?`, [dni]);
     }
 
     /**
@@ -707,27 +501,14 @@ class Database {
     async DeleteCompany(nif) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const deleteCompanyStmt = db.prepare(`
-                    DELETE FROM company WHERE nif = ?
-                `);
+        return this.executeSQL(db, 'run', 'DELETE FROM company WHERE nif = ?', [nif]);
+    }
 
-                deleteCompanyStmt.run(nif, (error) => {
-                    if (error) {
-                        console.error('Error al eliminar una empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
+    //TODO Crear comentarios
+    async DeleteDocument(id) {
+        const db = await this.db;
 
-                deleteCompanyStmt.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la eliminacion de la empresa:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', 'DELETE FROM documents WHERE id = ?', [id]);
     }
 
     /**

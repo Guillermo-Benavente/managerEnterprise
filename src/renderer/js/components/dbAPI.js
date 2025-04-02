@@ -567,4 +567,7 @@ export const GetDocuments = (nif, callback) => responseDb('getDocuments', [nif],
 export const SetDocuments = (nif, documents, callback) => responseDb('insertDocuments', [nif, documents], callback, true);
 
 //TOOD crear comentarios
+export const DeleteDocument = (id, callback) => responseDb('deleteDocument', [id], callback, false);
+
+//TOOD crear comentarios
 export const SetEmployeeByDocument = (employee, document, date, callback) => responseDb('insertEmployeeByDocument', [employee, document, date], callback, false);

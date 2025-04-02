@@ -62,19 +62,15 @@ export default class Table {
 
     body(data){ data.forEach(row => { this.addRow(row); }); }
 
-    addInteractiveRow(page, message, callback){
+    addInteractiveRow(page, message, callback, backId = null){
         const table = this.dataTable;
 
         table.on('click', 'tbody tr', (event) => {
             if (event.target.classList.contains('tbl-row-del')) {
                 event.stopPropagation();
-                const dni = event.target.closest('tr').children[0].textContent;
-                Dialog('Eliminar', message, Alert.WARNING).then(result => { if (result) callback(dni); });
-            } else if (event.target.closest('tr')) {
-                const row = event.target.closest('tr');
-                const idKey = row.children[0].textContent;
-                Navigate(page, {id:idKey} );
-            }
+                Dialog('Eliminar', message, Alert.WARNING)
+                .then(result => { if (result) callback(event.target.closest('tr').id); });
+            } else if (event.target.closest('tr')) Navigate(page, {id:event.target.closest('tr').id, backId: backId});
         });
         table.on('draw.dt', () => { UploadImages(); });
         UploadImages();

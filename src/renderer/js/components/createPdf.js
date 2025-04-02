@@ -92,7 +92,7 @@ export function newPdf(content){
                 break;
         }
     });
-    return pdf.output("arraybuffer");
+    return pdf.output('arraybuffer');
     pdf.save(`${content.name || 'document'}.pdf`);
 }
 
@@ -104,7 +104,7 @@ function decodeHtmlEntities(text) {
 
 function AddText(pdf, text, x, y) {
     const parser = new DOMParser();
-    const parsedHtml = parser.parseFromString(text, "text/html");
+    const parsedHtml = parser.parseFromString(text, 'text/html');
     const elements = parsedHtml.body.childNodes;
     const pageHeight = pdf.internal.pageSize.height;
     const pageWidth = pdf.internal.pageSize.width;
@@ -114,15 +114,15 @@ function AddText(pdf, text, x, y) {
     let cursorX = x;
 
     const applyStyles = (node, baseStyle) => {
-        const tagName = node.tagName?.toLowerCase() || "";
-        let isBold = baseStyle.includes("bold");
-        let isItalic = baseStyle.includes("italic");
+        const tagName = node.tagName?.toLowerCase() || '';
+        let isBold = baseStyle.includes('bold');
+        let isItalic = baseStyle.includes('italic');
 
-        if (tagName === "b" || tagName === "strong") isBold = true;
-        if (tagName === "i" || tagName === "em") isItalic = true;
+        if (tagName === 'b' || tagName === 'strong') isBold = true;
+        if (tagName === 'i' || tagName === 'em') isItalic = true;
 
-        const combinedStyle = `${isBold ? "bold" : ""}${isItalic ? "italic" : ""}`;
-        return combinedStyle || "normal";
+        const combinedStyle = `${isBold ? 'bold' : ''}${isItalic ? 'italic' : ''}`;
+        return combinedStyle || 'normal';
     };
 
     const checkAndAddPageIfNeeded = (textHeight, y) => {
@@ -133,11 +133,11 @@ function AddText(pdf, text, x, y) {
         return { x: cursorX, y };
     };
 
-    const renderNode = (node, baseStyle = "normal") => {
+    const renderNode = (node, baseStyle = 'normal') => {
         if (node.nodeType === Node.TEXT_NODE) {
-            const words = node.textContent.split(" "); // Dividir en palabras para un control granular
+            const words = node.textContent.split(' '); // Dividir en palabras para un control granular
             words.forEach((word, index) => {
-                const wordWithSpace = index < words.length - 1 ? word + " " : word;
+                const wordWithSpace = index < words.length - 1 ? word + ' ' : word;
                 const textWidth = pdf.getTextWidth(wordWithSpace);
 
                 if (cursorX + textWidth > pageWidth - margin) {
@@ -160,8 +160,8 @@ function AddText(pdf, text, x, y) {
             const tagName = node.tagName.toLowerCase();
             const newStyle = applyStyles(node, baseStyle);
 
-            if (tagName === "a") {
-                const href = node.getAttribute("href");
+            if (tagName === 'a') {
+                const href = node.getAttribute('href');
                 const textWidth = pdf.getTextWidth(node.textContent);
 
                 if (cursorX + textWidth > pageWidth - margin) {
@@ -176,11 +176,16 @@ function AddText(pdf, text, x, y) {
                 }
 
                 // Dibujar el enlace
-                pdf.setFont(undefined, "normal");
+                pdf.setFont(undefined, 'normal');
                 pdf.setTextColor(0, 0, 255);
                 pdf.textWithLink(node.textContent, cursorX, y, { url: href });
                 cursorX += textWidth;
                 pdf.setTextColor(0, 0, 0);
+            } else if(tagName === 'span') {
+                node.childNodes.forEach(child => {
+                    child.textContent = `{${child.textContent}}`;
+                    renderNode(child, newStyle)
+                });
             } else {
                 node.childNodes.forEach(child => renderNode(child, newStyle));
             }

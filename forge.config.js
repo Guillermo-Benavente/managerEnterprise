@@ -108,6 +108,14 @@ module.exports = {
                 js: './src/preload.js',
               },
             },
+            {
+              html: './src/renderer/html/companies/documents/edit.html',
+              js: './src/renderer/js/pages/companies/documents/edit.js',
+              name: 'editdocument',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
           ],
         },
       },

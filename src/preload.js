@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('dbAPI', {
   /// TABLE METHODS DOCUMENTS ///
   getDocuments: (nif) => ipcRenderer.invoke('get-documets', nif),
   insertDocuments: (nif, documents) => ipcRenderer.invoke('insert-documents', nif, documents),
+  deleteDocument: (id) => ipcRenderer.invoke('delete-document', id),
 
   /// TABLE METHODS EMPLOYEEBYDOCUMENT///
   insertEmployeeByDocument: (employee, document, date) => ipcRenderer.invoke('insert-employee-document', employee, document, date),
@@ -39,6 +40,7 @@ contextBridge.exposeInMainWorld('controlAPI', {
   sendModalResponse: (response) => ipcRenderer.send('modal-send', response),
   dialogWindow: (type, title, message) => ipcRenderer.send('dialog-window', type, title, message),
   onDialogResponse: (callback) => ipcRenderer.on('dialog-response', (_, response) => callback(response)),
+  getPdf: (type, user, name) => ipcRenderer.invoke('get-pdf', type, user, name),
   addEvent: function (selector = document.defaultView, type, callback) {
     if (selector == null) window.addEventListener(type, callback);
     else {

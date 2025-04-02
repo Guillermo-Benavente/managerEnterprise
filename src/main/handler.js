@@ -1,4 +1,6 @@
-import { ipcMain, BrowserWindow, dialog } from 'electron';
+import { app, ipcMain, BrowserWindow, dialog } from 'electron';
+import path from 'path';
+import fs from 'fs';
 import util from './util';
 
 function AddDatabaseHandlers(db) {
@@ -169,6 +171,16 @@ function AddDatabaseHandlers(db) {
         }
     });
 
+    ipcMain.handle('delete-document', async (_, id) => {
+        try {
+            await db.DeleteDocument(id);
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar borrar el documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
     /// TABLE METHODS EMPLOYEEBYDOCUMENT///
 
     ipcMain.handle('insert-employee-document', async (_, employee, document, date) => {
@@ -281,6 +293,18 @@ function AddPathHandlers(mainWindow) {
         });
 
         mainWindow.webContents.send('dialog-response', buttons[response]);
+    });
+
+    ipcMain.handle('get-pdf', async (_, type, user, name) => {
+        const pdfPath = path.join(app.getPath('appData'), 'manager', type, user, `${name}.pdf`);
+        
+        try {
+            const pdfBuffer = fs.readFileSync(pdfPath);
+            return `data:application/pdf;base64,${pdfBuffer.toString('base64')}`;
+        } catch (error) {
+            console.error("Error cargando el PDF:", error);
+            return null;
+        }
     });
 }
 

@@ -45,6 +45,8 @@ export const Dialog = (title, message, type = 0) => {
     });
 };
 
+export const GetPdf = (type, user, name) => window.controlAPI.getPdf(type, user, name);
+
 /**
  * Añade un manejador de evento a un elemento del DOM identificado por un selector.
  * 
