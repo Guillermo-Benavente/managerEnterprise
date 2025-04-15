@@ -12,22 +12,11 @@ DOM(() => {
 
     GetCourses(employeeId, (success, data) => {
         if (success){
-            table.init(data);
-            table.addInteractiveRow('editemployees', 'Vas a eliminar un curso ¿Estás Seguro?', (id) => {
+            table.addInteractiveRowNavigation('editemployees');
+            table.addInteractiveRowDelete('Vas a eliminar un curso ¿Estás Seguro?', (id) => {
                 Delete(id, (success) => { if (success) table.deleteRow(id); });
             });
+            table.init(data);
         } 
     });
-    
-    /*AddEvent('.wininCreate', 'click', () => {
-        AddElement(CreateFormWindow('Datos del empleado', EMPLOYEE,
-            (employee) => {
-                console.log(Object.entries(employee).length);
-                SetEmployee(FormatDbEmployee(employee), (success) => {
-                    if (success) table.addRow(FormatEmployee(employee));
-                    else Dialog('Error', 'No se ha podido añadir el curso.', Alert.ERROR);
-                });
-            }
-        ,'Crear Empleado'));
-    });*/
 });

@@ -2,7 +2,7 @@
     margin-top: 20px;
     display: flex;
     justify-content: center;
-    gap: 15px;
+    align-items: center;
 }
 
 .frm {
@@ -30,7 +30,7 @@
         }
     }
 
-    input[type="submit"] { margin-top: auto; }
+    input[type="submit"] { margin-top: 5px; }
 
     td:has(input):has(span) input[type="date"] { width: 67% !important; }
 

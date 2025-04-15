@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { verbose } from 'sqlite3';
 import { join, dirname } from 'path';
 import { promises as fspromise, createWriteStream } from 'fs';
-const { mkdir } = fspromise;
+const { mkdir, rm } = fspromise;
 const sqlite = verbose();
 
 class Database {
@@ -27,91 +27,6 @@ class Database {
                     console.log('Base de datos abierta exitosamente.');
                     resolve(dbInstance);
                 }
-            });
-        });
-    }
-
-    /**
-    * Inicializa la base de datos SQLite si no ha sido creada previamente.
-    * Establece la conexión a la base de datos y verifica la existencia de las tablas requeridas
-    * ('employee', 'company' y 'course'). Si las tablas no existen, las crea junto con los índices necesarios.
-    * 
-    * @async
-    * @function InitializeDatabaseAsync
-    * @returns {Promise<void>} 
-    *          No retorna un valor explícito, pero garantiza que la base de datos esté lista para su uso.
-    * @throws {Error} 
-    *          Si ocurre algún problema durante la inicialización o la creación de tablas.
-    * 
-    * @revision 0.0.1
-    * @date 2024-11-16
-    * @author guillermob
-    */
-    async InitializeDatabaseAsync() {
-        try {
-            await this.db;
-            const checking = await this.CheckTablesExistAsync();
-            if (!checking.exists) await this.CreateTablesAsync(checking.rows);
-        } catch (error) {
-            console.error('Error durante la inicialización de la base de datos:', error);
-        }
-    }
-
-    /**
-     * Verifica si las tablas 'employee', 'company' y 'course' existen en la base de datos.
-     *
-     * @async
-     * @function CheckTablesExistAsync
-     * @returns {Promise<{exists: boolean, rows: Array}>} 
-     *          Retorna un objeto con:
-     *            - `exists`: `true` si todas las tablas existen, `false` de lo contrario.
-     *            - `rows`: Lista de las tablas que existen actualmente.
-     * @throws {Error} Si ocurre algún problema durante la consulta.
-     * 
-     * @revision 0.0.1
-     * @date 2024-11-16
-     * @author guillermob
-     */
-    async CheckTablesExistAsync() {
-        const db = await this.db;
-
-        return new Promise((resolve, reject) => {
-            const query = db.prepare(`
-                SELECT name 
-                FROM sqlite_master 
-                WHERE type='table' AND name IN ('employee', 'company', 'course', 'documents', 'employeebydocument')
-            `);
-
-            query.all((error, rows) => {
-                if (error) {
-                    console.error("Error al verificar la existencia de las tablas:", error.message);
-                    reject(error);
-                } else resolve({ exists: rows.length === 5, rows });
-            });
-
-            query.finalize();
-        });
-    }
-
-    /**
-     * Cierra la conexión a la base de datos SQLite.
-     *
-     * @async
-     * @function close
-     * @returns {Promise<string>} Retorna un mensaje de éxito si la base de datos se cierra correctamente.
-     * @throws Error si ocurre algún problema al cerrar la base de datos.
-     * 
-     * @revision 0.0.0
-     * @date 2024-10-28
-     * @author guillermob
-     */
-    async close() {
-        const db = await this.db;
-
-        return new Promise((resolve, reject) => {
-            db.close((err) => {
-                if (err) reject('Error al cerrar la base de datos: ' + err.message);
-                else resolve('Base de datos cerrada correctamente.');
             });
         });
     }
@@ -147,6 +62,84 @@ class Database {
                 console.error(`${errorMsg} (excepción):`, error);
                 reject(error);
             }
+        });
+    }
+
+    /**
+    * Inicializa la base de datos SQLite si no ha sido creada previamente.
+    * Establece la conexión a la base de datos y verifica la existencia de las tablas requeridas
+    * ('employee', 'company' y 'course'). Si las tablas no existen, las crea junto con los índices necesarios.
+    * 
+    * @async
+    * @function InitializeDatabaseAsync
+    * @returns {Promise<void>} 
+    *          No retorna un valor explícito, pero garantiza que la base de datos esté lista para su uso.
+    * @throws {Error} 
+    *          Si ocurre algún problema durante la inicialización o la creación de tablas.
+    * 
+    * @revision 0.0.1
+    * @date 2024-11-16
+    * @author guillermob
+    */
+    async InitializeDatabaseAsync() {
+        try {
+            const db = await this.db;
+            const checking = await this.CheckTablesExistAsync();
+            if (!checking.exists) await this.CreateTablesAsync(checking.rows);
+            await this.executeSQL(db, 'run', 'PRAGMA foreign_keys = ON;', [], 'Error al habilitar claves foráneas');
+        } catch (error) {
+            console.error('Error durante la inicialización de la base de datos:', error);
+        }
+    }
+
+    /**
+     * Verifica si las tablas 'employee', 'company' y 'course' existen en la base de datos.
+     *
+     * @async
+     * @function CheckTablesExistAsync
+     * @returns {Promise<{exists: boolean, rows: Array}>} 
+     *          Retorna un objeto con:
+     *            - `exists`: `true` si todas las tablas existen, `false` de lo contrario.
+     *            - `rows`: Lista de las tablas que existen actualmente.
+     * @throws {Error} Si ocurre algún problema durante la consulta.
+     * 
+     * @revision 0.0.1
+     * @date 2024-11-16
+     * @author guillermob
+     */
+    async CheckTablesExistAsync() {
+        const db = await this.db;
+        const tables = ['employee', 'company', 'course', 'documents', 'employeebydocument'];
+        const rows = await this.executeSQL(db,'all',
+            `SELECT name 
+                FROM sqlite_master 
+                WHERE type='table' AND name IN (${tables.map(() => '?').join(', ')})`,
+            tables,
+            'Error al verificar la existencia de las tablas'
+        );
+        return {exists: rows.length === tables.length, rows: rows};
+    }
+
+    /**
+     * Cierra la conexión a la base de datos SQLite.
+     *
+     * @async
+     * @function close
+     * @returns {Promise<string>} Retorna un mensaje de éxito si la base de datos se cierra correctamente.
+     * @throws Error si ocurre algún problema al cerrar la base de datos.
+     * 
+     * @revision 0.0.0
+     * @date 2024-10-28
+     * @author guillermob
+     */
+    async close() {
+        const db = await this.db;
+
+        return new Promise((resolve, reject) => {
+            db.close((err) => {
+                if (err) reject('Error al cerrar la base de datos: ' + err.message);
+                else resolve('Base de datos cerrada correctamente.');
+            });
         });
     }
 
@@ -200,6 +193,12 @@ class Database {
         return this.executeSQL(db, 'all', 'SELECT * FROM documents WHERE company = ?', [nif], 'Error al obtener los documentos');
     }
 
+    async GetEmployeesByDocument(idDoc) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'all', 'SELECT * FROM employeebydocument WHERE document = ?', [idDoc], 'Error al obtener los empleados del documento');
+    }
+
     /**
      * Obtiene un empleado de la base de datos por su DNI.
      *
@@ -236,6 +235,13 @@ class Database {
         const db = await this.db;
 
         return this.executeSQL(db, 'get', 'SELECT * FROM company WHERE nif = ?', [nif], 'Error al obtener la empresa');
+    }
+
+    //TODO crear comentarios
+    async GetDocument(id) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'get', 'SELECT * FROM documents WHERE id = ?', [id], 'Error al obtener el documento');
     }
 
     /**
@@ -314,14 +320,14 @@ class Database {
                 writeStream.on('error', reject);
             });
 
-            const coursePathInserted = await this.executeSQL(db, 'run',
+            await this.executeSQL(db, 'run',
                 `INSERT INTO course (id, name, employee, url)
                     VALUES (?, ?, ?, ?)`,
                 [id, course.name, dni, coursePath],
                 'Error al insertar un curso'
             );
 
-            return coursePathInserted;
+            return id;
         } catch (error) {
             console.error('Error al crear la ruta del curso a guardar:', error);
         }
@@ -363,14 +369,14 @@ class Database {
                 writeStream.on('error', reject);
             });
 
-            const coursePathInserted = await this.executeSQL(db, 'run',
+            await this.executeSQL(db, 'run',
                 `INSERT INTO documents (id, name, company, content, url)
                     VALUES (?, ?, ?, ?, ?)`,
                 [id, document.name, nif, JSON.stringify(document.content), coursePath],
                 'Error al insertar un documento'
             );
 
-            return coursePathInserted;
+            return id;
         } catch (error) {
             console.error('Error al crear la ruta del documento a guardar:', error);
         }
@@ -466,6 +472,65 @@ class Database {
         );
     }
 
+    //TODO Crear comentarios
+    async UpdateDocument(id, name, nif = null, content = null, buffer = null) {
+        const db = await this.db;
+
+        if (nif && buffer) {
+            const documentPath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
+            try {
+                await rm(documentPath);
+                await mkdir(dirname(documentPath), { recursive: true });
+
+                const documentBuffer = Buffer.from(buffer, 'base64');
+
+                await new Promise((resolve, reject) => {
+                    const writeStream = createWriteStream(documentPath);
+                    writeStream.write(documentBuffer);
+                    writeStream.end();
+
+                    writeStream.on('finish', resolve);
+                    writeStream.on('error', reject);
+                });
+            } catch (error) {
+                console.error('Error al guardar el archivo del documento:', error);
+                throw error;
+            }
+        }
+
+        try {
+            const result = await this.executeSQL(
+                db,
+                'run',
+                content
+                    ? `UPDATE documents SET name = ?, content = ? WHERE id = ?`
+                    : `UPDATE documents SET name = ? WHERE id = ?`,
+                content
+                    ? [name, JSON.stringify(content), id]
+                    : [name, id],
+                'Error al actualizar el documento'
+            );
+
+            return result;
+        } catch (error) {
+            console.error('Error al actualizar el documento en la base de datos:', error);
+            throw error;
+        }
+    }
+
+    //TODO Crear comentarios
+    async UpdateEmployeeByDocument(id, date) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'run',
+            `UPDATE employeebydocument
+                SET date = ?
+                WHERE id = ?`,
+            [date, id],
+            'Error al actualizar el empleado del documento'
+        );
+    }
+
     /**
      * Elimina un empleado de la base de datos.
      *
@@ -509,6 +574,13 @@ class Database {
         const db = await this.db;
 
         return this.executeSQL(db, 'run', 'DELETE FROM documents WHERE id = ?', [id]);
+    }
+
+    //TODO Crear comentarios
+    async DeleteEmployeeByDocument(id) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'run', 'DELETE FROM employeebydocument WHERE id = ?', [id]);
     }
 
     /**

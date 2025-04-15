@@ -28,4 +28,7 @@
 
     --form-selector-border-items: #013274;
     --form-selector-checked-items: #7CAFF2;
+
+    --pdf-viewer-background: rgba(0, 0, 0, 0.2);
+    --pdf-viewer-shadow: rgba(0, 0, 0, 0.7);
 }

@@ -282,6 +282,7 @@ export function FormatDbEmployee(employee) {
     };
 }
 
+//TOOD crear comentarios
 function responseDb(apiMethod, params, callback, expectsResponse = false) {
     window.dbAPI[apiMethod](...params)
         .then(response => callback?.(true, expectsResponse ? response : undefined))
@@ -564,10 +565,25 @@ export const GetCourses = (dni, callback) => responseDb('getCourses', [dni], cal
 export const GetDocuments = (nif, callback) => responseDb('getDocuments', [nif], callback, true);
 
 //TOOD crear comentarios
+export const GetDocument = (id, callback) => responseDb('getDocument', [id], callback, true);
+
+//TOOD crear comentarios
 export const SetDocuments = (nif, documents, callback) => responseDb('insertDocuments', [nif, documents], callback, true);
+
+//TOOD crear comentarios
+export const UpdateDocument = (document, callback) => responseDb('updateDocument', [document], callback, true);
 
 //TOOD crear comentarios
 export const DeleteDocument = (id, callback) => responseDb('deleteDocument', [id], callback, false);
 
 //TOOD crear comentarios
-export const SetEmployeeByDocument = (employee, document, date, callback) => responseDb('insertEmployeeByDocument', [employee, document, date], callback, false);
+export const GetEmployeesByDocument = (idDoc, callback) => responseDb('getEmployeesByDocument', [idDoc], callback, true);
+
+//TOOD crear comentarios
+export const SetEmployeeByDocument = (employee, document, date, callback) => responseDb('insertEmployeeByDocument', [employee, document, date], callback, true);
+
+//TOOD crear comentarios
+export const UpdateEmployeeByDocument = (employeeByDocument, callback) => responseDb('updateEmployeeByDocument', [employeeByDocument], callback, false);
+
+//TOOD crear comentarios
+export const DeleteEmployeeByDocument = (id, callback) => responseDb('deleteEmployeeByDocument', [id], callback, false);

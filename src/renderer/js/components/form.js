@@ -1,6 +1,6 @@
-import { CreateElement, GetElement, AddElement, SendModalResponse, Dialog } from 'Components/controlAPI.js';
+import { CreateElement, AddElement, SendModalResponse, Dialog } from 'Components/controlAPI.js';
 import FormType from 'Types/form.js';
-import Alert from 'Types/alert.js';
+import DIALOG_TYPE from 'Types/dialog.js';
 
 export default class Fieldset {
     constructor(fieldset, data, type) {
@@ -56,7 +56,7 @@ export default class Fieldset {
                     const allFilled = finalInputs.every(input => input.value.trim() !== '');
                     if (!allFilled) {
                         event.target.checked = false;
-                        Dialog('Advertencia','Por favor, llena todos los campos antes de seleccionarlo.', Alert.WARNING);
+                        Dialog('Advertencia','Por favor, llena todos los campos antes de seleccionarlo.', DIALOG_TYPE.WARNING);
                     }
                 });
             }
@@ -135,7 +135,7 @@ export function SubmitForm(form) {
             SendModalResponse(values);
             window.close();
         } catch (error) { 
-            Dialog('Error', 'No se ha podido añadir los nuevos datos.', Alert.ERROR);
+            Dialog('Error', 'No se ha podido añadir los nuevos datos.', DIALOG_TYPE.ERROR);
             console.error('Error al procesar los archivos:', error); 
         }
     });

@@ -1,6 +1,6 @@
 import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { EMPLOYEE, FormatEmployee, FormatDbEmployee, GetEmployees, SetEmployee, DeleteEmployee } from 'Components/dbAPI.js';
-import Alert from 'Types/alert.js';
+import DIALOG_TYPE from 'Types/dialog.js';
 import Table from 'Components/table.js';
 
 DOM(() => {
@@ -12,10 +12,11 @@ DOM(() => {
 
     GetEmployees((success, data) => {
         if (success){
-            table.init(FormatEmployee(data));
-            table.addInteractiveRow('editemployees', 'Vas a eliminar un empleado ¿Estás Seguro?', (dni) => {
+            table.addInteractiveRowNavigation('editemployees');
+            table.addInteractiveRowDelete('Vas a eliminar un empleado ¿Estás Seguro?', (dni) => {
                 DeleteEmployee(dni, (success) => { if (success) table.deleteRow(dni); });
             });
+            table.init(FormatEmployee(data));
         } 
     });
 
@@ -24,7 +25,7 @@ DOM(() => {
         .then((employee) => {
             SetEmployee(FormatDbEmployee(employee), (success) => {
                 if (success) table.addRow(FormatEmployee(employee));
-                else Dialog('Error', 'No se ha podido añadir al empleado.', Alert.ERROR);
+                else Dialog('Error', 'No se ha podido añadir al empleado.', DIALOG_TYPE.ERROR);
             });
         });
     });

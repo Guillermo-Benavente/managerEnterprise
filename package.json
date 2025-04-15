@@ -48,12 +48,15 @@
     "@editorjs/list": "^2.0.2",
     "@editorjs/paragraph": "^2.11.7",
     "@editorjs/table": "^2.4.3",
+    "cors": "^2.8.5",
     "datatables.net-dt": "^2.2.2",
     "electron-squirrel-startup": "^1.0.1",
+    "express": "^5.1.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "manager": "file:",
     "path-browserify": "^1.0.1",
+    "pdfjs-dist": "^5.1.91",
     "sqlite3": "^5.1.7"
   }
 }

@@ -1,5 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+let server = null;
+ipcRenderer.invoke('get-server').then(serverUrl => { server = serverUrl; });
+
 contextBridge.exposeInMainWorld('dbAPI', {
   /// TABLE METHODS EMPLOYEE ///
   getEmployees: () => ipcRenderer.invoke('get-employees'),
@@ -21,11 +24,16 @@ contextBridge.exposeInMainWorld('dbAPI', {
 
   /// TABLE METHODS DOCUMENTS ///
   getDocuments: (nif) => ipcRenderer.invoke('get-documets', nif),
+  getDocument: (id) => ipcRenderer.invoke('get-documet', id),
   insertDocuments: (nif, documents) => ipcRenderer.invoke('insert-documents', nif, documents),
+  updateDocument: (document) => ipcRenderer.invoke('update-document', document),
   deleteDocument: (id) => ipcRenderer.invoke('delete-document', id),
 
   /// TABLE METHODS EMPLOYEEBYDOCUMENT///
+  getEmployeesByDocument: (idDoc) => ipcRenderer.invoke('get-employee-document', idDoc),
   insertEmployeeByDocument: (employee, document, date) => ipcRenderer.invoke('insert-employee-document', employee, document, date),
+  updateEmployeeByDocument: (employeeByDocument) => ipcRenderer.invoke('update-employee-document', employeeByDocument),
+  deleteEmployeeByDocument: (id) => ipcRenderer.invoke('delete-employee-document', id),
 });
 
 contextBridge.exposeInMainWorld('utilAPI', {
@@ -40,7 +48,7 @@ contextBridge.exposeInMainWorld('controlAPI', {
   sendModalResponse: (response) => ipcRenderer.send('modal-send', response),
   dialogWindow: (type, title, message) => ipcRenderer.send('dialog-window', type, title, message),
   onDialogResponse: (callback) => ipcRenderer.on('dialog-response', (_, response) => callback(response)),
-  getPdf: (type, user, name) => ipcRenderer.invoke('get-pdf', type, user, name),
+  getPdfUrl: (type, user, name) => `${server}/pdf/${type}/${user}/${name}`,
   addEvent: function (selector = document.defaultView, type, callback) {
     if (selector == null) window.addEventListener(type, callback);
     else {

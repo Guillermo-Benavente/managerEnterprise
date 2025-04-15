@@ -1,5 +1,8 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import { applyPlugin } from 'jspdf-autotable';
+
+// Registra el plugin con jsPDF
+applyPlugin(jsPDF);
 
 export function newPdf(content){
     const pdf = new jsPDF();
@@ -38,9 +41,19 @@ export function newPdf(content){
                     startY: cursorY,
                     head: head,
                     body: body,
+                    theme: 'grid',
+                    styles: {
+                        lineColor: 0,
+                        textColor: 0,
+                    },
+                    headStyles: {
+                        fillColor: 50,
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
                     didParseCell: (data) => {
                         // Si detectamos HTML en la celda, lo marcamos para procesar manualmente
-                         data.cell.text = ''; // Evita que autoTable dibuje el texto
+                        data.cell.text = ''; // Evita que autoTable dibuje el texto
                     },
                     didDrawCell: (data) => {
                         const { x, y, width, height } = data.cell;
@@ -50,7 +63,7 @@ export function newPdf(content){
                         const adjustedY = y + height / 2 + 2; // Centrado vertical aproximado
 
                         AddText(pdf, data.cell.raw, adjustedX, adjustedY, width);
-                    },
+                    }
                 });
                 cursorY = pdf.lastAutoTable.finalY + 10;
                 break;
@@ -93,7 +106,6 @@ export function newPdf(content){
         }
     });
     return pdf.output('arraybuffer');
-    pdf.save(`${content.name || 'document'}.pdf`);
 }
 
 function decodeHtmlEntities(text) {
@@ -112,6 +124,7 @@ function AddText(pdf, text, x, y) {
     const margin = 10; // Margen de la página
     const lineHeight = 10; // Altura de línea estimada
     let cursorX = x;
+    let cursorY = y;
 
     const applyStyles = (node, baseStyle) => {
         const tagName = node.tagName?.toLowerCase() || '';
@@ -125,36 +138,42 @@ function AddText(pdf, text, x, y) {
         return combinedStyle || 'normal';
     };
 
-    const checkAndAddPageIfNeeded = (textHeight, y) => {
-        if (y + textHeight > pageHeight - margin) {
-            pdf.addPage();
-            return { x: margin, y: margin }; // Reiniciar posiciones en nueva página
+    const checkPositionOfText = (text, x, y) => {
+        const textWidth = pdf.getTextWidth(text || '');
+        let newX = x;
+        let newY = y;
+
+        // Verificar si el texto cabe en la línea actual
+        if (newX + textWidth > pageWidth - margin) {
+            newX = margin;
+            newY += lineHeight;
         }
-        return { x: cursorX, y };
-    };
+        
+        // Verificar si se sobrepasa el alto de la página
+        if (newY + lineHeight > pageHeight - margin) {
+            pdf.addPage();
+            newX = margin;
+            newY = margin;
+        }
+        
+        return { x: newX, y: newY, withText: textWidth };
+    }
 
     const renderNode = (node, baseStyle = 'normal') => {
         if (node.nodeType === Node.TEXT_NODE) {
-            const words = node.textContent.split(' '); // Dividir en palabras para un control granular
-            words.forEach((word, index) => {
-                const wordWithSpace = index < words.length - 1 ? word + ' ' : word;
-                const textWidth = pdf.getTextWidth(wordWithSpace);
-
-                if (cursorX + textWidth > pageWidth - margin) {
-                    // Saltar a la siguiente línea si no cabe el texto
-                    y += lineHeight;
-                    cursorX = margin;
-
-                    // Verificar si necesitamos agregar una nueva página
-                    const positions = checkAndAddPageIfNeeded(lineHeight, y);
-                    cursorX = positions.x;
-                    y = positions.y;
-                }
+            const words = node.textContent.match(/(\s+|\S+)/g) || [];
+            words.forEach((word, _) => {
+                const positions = checkPositionOfText(word, cursorX, cursorY);
+                
+                cursorX = positions.x;
+                cursorY = positions.y;
 
                 // Dibujar la palabra
                 pdf.setFont(undefined, baseStyle);
-                pdf.text(wordWithSpace, cursorX, y);
-                cursorX += textWidth;
+                pdf.text(word, cursorX, cursorY);
+                // TODO mirar como mejorar el comportamiento del espacio 
+                const addcursor = word === ' ' && baseStyle != 'normal' ? pdf.getTextWidth(' ') + positions.withText : positions.withText
+                cursorX += addcursor;
             });
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             const tagName = node.tagName.toLowerCase();
@@ -162,30 +181,21 @@ function AddText(pdf, text, x, y) {
 
             if (tagName === 'a') {
                 const href = node.getAttribute('href');
-                const textWidth = pdf.getTextWidth(node.textContent);
-
-                if (cursorX + textWidth > pageWidth - margin) {
-                    // Saltar a la siguiente línea si no cabe el enlace
-                    y += lineHeight;
-                    cursorX = margin;
-
-                    // Verificar si necesitamos agregar una nueva página
-                    const positions = checkAndAddPageIfNeeded(lineHeight, y);
-                    cursorX = positions.x;
-                    y = positions.y;
-                }
+                const positions = checkPositionOfText(node.textContent, cursorX, cursorY);
+                
+                cursorX = positions.x;
+                cursorY = positions.y;
 
                 // Dibujar el enlace
                 pdf.setFont(undefined, 'normal');
                 pdf.setTextColor(0, 0, 255);
-                pdf.textWithLink(node.textContent, cursorX, y, { url: href });
-                cursorX += textWidth;
+                pdf.textWithLink(node.textContent, cursorX, cursorY, { url: href });
+                cursorX += positions.withText;
                 pdf.setTextColor(0, 0, 0);
             } else if(tagName === 'span') {
-                node.childNodes.forEach(child => {
-                    child.textContent = `{${child.textContent}}`;
-                    renderNode(child, newStyle)
-                });
+                const child = node.firstChild;
+                child.textContent = `{${child.textContent}}`;
+                renderNode(child, newStyle);
             } else {
                 node.childNodes.forEach(child => renderNode(child, newStyle));
             }
@@ -196,5 +206,5 @@ function AddText(pdf, text, x, y) {
         renderNode(node);
     });
 
-    return y + 10; // Retornar la posición actualizada de `y`
+    return cursorY + 10; // Retornar la posición actualizada de `y`
 }

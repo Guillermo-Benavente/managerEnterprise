@@ -1,8 +1,9 @@
 import DeleteImage from 'Assets/img/delete.svg';
+import CreateImage from 'Assets/img/pdf.svg';
 import DataTable from 'datatables.net-dt';
 import { UploadImages } from 'Components/button.js';
 import { Navigate, Dialog } from 'Components/controlAPI.js';
-import Alert from 'Types/alert.js'
+import DIALOG_TYPE from 'Types/dialog.js'
 
 export default class Table {
     constructor(id, dataType, columns = null){
@@ -18,7 +19,7 @@ export default class Table {
 
         this.dataTable = new DataTable('#'+id, {
             pageLength: 4,
-            lengthMenu: [4, 8, 12, 24, 48],
+            lengthMenu: [4, 10, 20, 50],
             columnDefs: columnFormat,
             language: {
                 search: "Buscar:",
@@ -35,6 +36,14 @@ export default class Table {
                 }
             }
         });
+
+        this._interactiveRowActions = {
+            navigation: null,
+            deletion: null,
+            creation: null
+        };
+
+        this._setupInteractiveRowHandler();
     }
 
     init(data){
@@ -62,30 +71,73 @@ export default class Table {
 
     body(data){ data.forEach(row => { this.addRow(row); }); }
 
-    addInteractiveRow(page, message, callback, backId = null){
+    _setupInteractiveRowHandler() {
         const table = this.dataTable;
 
-        table.on('click', 'tbody tr', (event) => {
-            if (event.target.classList.contains('tbl-row-del')) {
-                event.stopPropagation();
-                Dialog('Eliminar', message, Alert.WARNING)
-                .then(result => { if (result) callback(event.target.closest('tr').id); });
-            } else if (event.target.closest('tr')) Navigate(page, {id:event.target.closest('tr').id, backId: backId});
+        table.on('click', 'tbody tr', async (event) => {
+            const row = event.target.closest('tr');
+            if (row) {
+                const actions = this._interactiveRowActions;
+
+                if (actions.deletion && event.target.classList.contains('tbl-row-del')) {
+                    const { message, callback } = actions.deletion;
+                    const result = await Dialog('Eliminar', message, DIALOG_TYPE.WARNING);
+                    if (result) callback(row.id);
+
+                } else if (actions.creation && event.target.classList.contains('tbl-row-create')) {
+                    const { message, callback } = actions.creation;
+                    const result = await callback(row.id);
+                    if (result) await Dialog('Información', message, DIALOG_TYPE.INFO);
+
+                } else if (actions.navigation) {
+                    const { page, backId } = actions.navigation;
+                    Navigate(page, { id: row.id, backId: backId });
+                }
+            }
         });
+
         table.on('draw.dt', () => { UploadImages(); });
-        UploadImages();
+    }
+
+    addInteractiveRowNavigation(page, backId = null) {
+        this._interactiveRowActions.navigation = { page, backId };
+    }
+
+    addInteractiveRowDelete(message, callback) {
+        this._interactiveRowActions.deletion = { message, callback };
+    }
+
+    addInteractiveRowCreate(message, callback) {
+        this._interactiveRowActions.creation = { message, callback };
+    }
+
+    _interactiveButtonsActions() {
+
+        let actions = document.createElement('div');
+
+        if (this._interactiveRowActions.creation != null) {
+            let createBtn = document.createElement('span');
+            createBtn.className = 'btn-img btn-link tbl-row-create';
+            createBtn.setAttribute('data-img', CreateImage);
+            actions.appendChild(createBtn);
+        }
+
+        if (this._interactiveRowActions.deletion != null) {
+            let deleteBtn = document.createElement('span');
+            deleteBtn.className = 'btn-img btn-link tbl-row-del';
+            deleteBtn.setAttribute('data-img', DeleteImage);
+            actions.appendChild(deleteBtn);
+        }
+
+        return actions;
     }
 
     addRow(data) {
         let tr = Object.keys(data)
             .filter(key => this.dataType[key].showTable)
             .map(key => data[key]);
-
-        let deleteBtn = document.createElement('span');
-        deleteBtn.className = 'btn-img btn-link tbl-row-del';
-        deleteBtn.setAttribute('data-img', DeleteImage);
         
-        tr.push(deleteBtn);
+        tr.push(this._interactiveButtonsActions());
 
         tr.DT_RowId = data[Object.keys(data)[0]]; 
 

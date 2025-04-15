@@ -1,3 +1,5 @@
+import VAR_INLINE  from "Types/varInline";
+
 export default class VariableInline {
     static get isInline() {
         return true;
@@ -47,8 +49,8 @@ export default class VariableInline {
         if (isWithinVariable) return;
 
         const variableSpan = document.createElement('span');
-        variableSpan.classList.add('editor-variable');
-        variableSpan.setAttribute('data-variable-key', variable.key);
+        variableSpan.classList.add(VAR_INLINE.CLASS_NAME);
+        variableSpan.setAttribute(VAR_INLINE.DATA_KEY, variable.key);
         variableSpan.contentEditable = 'false';
         variableSpan.style.backgroundColor = '#e6f2ff';
         variableSpan.style.color = '#0066cc';
@@ -62,10 +64,10 @@ export default class VariableInline {
 
     checkIfWithinVariable(node) {
         if (node.nodeType === Node.ELEMENT_NODE) {
-        return node.closest('.editor-variable') !== null;
+        return node.closest('.'+VAR_INLINE.CLASS_NAME) !== null;
         }
         return node.parentElement && 
-            node.parentElement.closest('.editor-variable') !== null;
+            node.parentElement.closest('.'+VAR_INLINE.CLASS_NAME) !== null;
     }
 
     setupKeyboardHandlers() {
@@ -95,29 +97,25 @@ export default class VariableInline {
     }
 
     findVariableElement(node) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-        return node.closest('.editor-variable');
-        }
+        if (node.nodeType === Node.ELEMENT_NODE) return node.closest('.'+VAR_INLINE.CLASS_NAME);
         return node.parentElement ? 
-            node.parentElement.closest('.editor-variable') : 
+            node.parentElement.closest('.'+VAR_INLINE.CLASS_NAME) : 
             null;
     }
 
     static get sanitize() {
-        return {
-        span: {
-            'data-variable-key': true,
+        return { span: {
+            [VAR_INLINE.DATA_KEY]: true,
             class: true,
             style: true
-        }
-        };
+        }};
     }
 
     save(blockContent) {
-        const variables = blockContent.querySelectorAll('.editor-variable');
+        const variables = blockContent.querySelectorAll('.'+VAR_INLINE.CLASS_NAME);
         return Array.from(variables).map(variable => ({
         type: 'variable',
-        key: variable.getAttribute('data-variable-key'),
+        key: variable.getAttribute(VAR_INLINE.DATA_KEY),
         content: variable.textContent
         }));
     }

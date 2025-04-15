@@ -48,6 +48,7 @@ module.exports = {
         { from: './src/renderer/css', to: 'css' },
         { from: './src/assets', to: 'assets' },
         { from: './node_modules/datatables.net-dt/css/dataTables.dataTables.css', to: 'css/module' },
+        { from: './node_modules/pdfjs-dist/build/pdf.worker.min.mjs', to: 'assets/workers' },
       ],
     }),
   ]

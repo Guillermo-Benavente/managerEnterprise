@@ -1,6 +1,5 @@
-import { app, ipcMain, BrowserWindow, dialog } from 'electron';
-import path from 'path';
-import fs from 'fs';
+import { ipcMain, BrowserWindow, dialog } from 'electron';
+import server from './server';
 import util from './util';
 
 function AddDatabaseHandlers(db) {
@@ -159,6 +158,15 @@ function AddDatabaseHandlers(db) {
         }
     });
 
+    ipcMain.handle('get-documet', async (_, id) => {
+        try { return await db.GetDocument(id); } 
+        catch (err) { 
+            console.error('Error al intentar obtener el documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+
     ipcMain.handle('insert-documents', async (_, nif, documents) => {
         try {
             return await db.InsertDocuments(
@@ -167,6 +175,22 @@ function AddDatabaseHandlers(db) {
             );
         } catch (err) {
             console.error('Error al intentar insertar los docmuentos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('update-document', async (_, document) => {
+        try {
+            await db.UpdateDocument(
+                document.id,
+                document.name, 
+                document.nif,
+                document.content,
+                document.buffer
+            );
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar actualizar el docmuento:', err);
             return { success: false, error: err.message };
         }
     });
@@ -183,6 +207,14 @@ function AddDatabaseHandlers(db) {
 
     /// TABLE METHODS EMPLOYEEBYDOCUMENT///
 
+    ipcMain.handle('get-employee-document', async (_, idDoc) => {
+        try { return await db.GetEmployeesByDocument(idDoc); }
+        catch (err) { 
+            console.error('Error al intentar obtener los empleados del documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
     ipcMain.handle('insert-employee-document', async (_, employee, document, date) => {
         try {
             return await db.InsertEmployeeByDocument(
@@ -192,6 +224,29 @@ function AddDatabaseHandlers(db) {
             );
         } catch (err) {
             console.error('Error al intentar crear la referencia entre empleado y documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('update-employee-document', async (_, employeeByDocument) => {
+        try {
+            await db.UpdateEmployeeByDocument(
+                employeeByDocument.id,
+                employeeByDocument.date
+            );
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar actualizar la empresa:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('delete-employee-document', async (_, id) => {
+        try {
+            await db.DeleteEmployeeByDocument(id);
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar borrar el empleado del documento:', err);
             return { success: false, error: err.message };
         }
     });
@@ -214,6 +269,8 @@ function AddUtilHandlers() {
 
 function AddPathHandlers(mainWindow) {
     const serverURL = 'http://localhost:3000';
+
+    ipcMain.handle('get-server', () => server.getServer());
 
     ipcMain.on('navigate', async (_, page, attr) => {
         let filePath = '';
@@ -293,18 +350,6 @@ function AddPathHandlers(mainWindow) {
         });
 
         mainWindow.webContents.send('dialog-response', buttons[response]);
-    });
-
-    ipcMain.handle('get-pdf', async (_, type, user, name) => {
-        const pdfPath = path.join(app.getPath('appData'), 'manager', type, user, `${name}.pdf`);
-        
-        try {
-            const pdfBuffer = fs.readFileSync(pdfPath);
-            return `data:application/pdf;base64,${pdfBuffer.toString('base64')}`;
-        } catch (error) {
-            console.error("Error cargando el PDF:", error);
-            return null;
-        }
     });
 }
 

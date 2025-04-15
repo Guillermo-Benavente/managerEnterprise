@@ -2,7 +2,6 @@
 @import url('../styles/header.css');
 
 .body {
-    position: relative;
     display: flex;
     justify-content: space-between;
     height: calc(100vh - 126px);

@@ -1,6 +1,7 @@
 import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { COMPANY, GetCompanies, SetCompany, DeleteCompany } from 'Components/dbAPI.js';
 import Table from 'Components/table.js';
+import DIALOG_TYPE from 'Types/dialog.js';
 
 DOM(() => {
     const idTable = 'tblCompanies';
@@ -11,10 +12,11 @@ DOM(() => {
 
     GetCompanies((success, data) => {
         if (success){
-            table.init(data);
-            table.addInteractiveRow('editcompanies', 'Vas a eliminar una empresa ¿Estás Seguro?', (nif) => {
+            table.addInteractiveRowNavigation('editcompanies');
+            table.addInteractiveRowDelete('Vas a eliminar una empresa ¿Estás Seguro?', (nif) => {
                 DeleteCompany(nif, (success) => { if (success) table.deleteRow(nif); });
             });
+            table.init(data);
         }
     });
 
@@ -23,7 +25,7 @@ DOM(() => {
         .then((company) => {
             SetCompany(company, (success) => {
                 if (success) table.addRow(company);
-                else Dialog('Error', 'No se ha podido añadir a la empresa.', Alert.ERROR);
+                else Dialog('Error', 'No se ha podido añadir a la empresa.', DIALOG_TYPE.ERROR);
             });
         });
     });
