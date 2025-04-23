@@ -85,6 +85,14 @@ module.exports = {
               },
             },
             {
+              html: './src/renderer/html/employees/course/view.html',
+              js: './src/renderer/js/pages/employees/course/view.js',
+              name: 'viewcourse',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
               html: './src/renderer/html/companies.html',
               js: './src/renderer/js/pages/companies.js',
               name: 'companies',

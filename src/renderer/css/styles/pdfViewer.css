@@ -15,3 +15,5 @@
 
     canvas { box-shadow: 0px 4px 10px var(--pdf-viewer-shadow) }
 }
+
+.pdfViewer.onlyPdf { height: calc(100vh - 141px);}

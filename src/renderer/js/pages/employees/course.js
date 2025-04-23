@@ -7,17 +7,17 @@ DOM(async() => {
     const employeeId = new URLSearchParams(window.location.search).get('id');
 
     registerBackHandler(employeeId);
-    const table = initTable();
+    const table = initTable(employeeId);
     await loadCourses(employeeId, table);
 });
 
-function initTable() {
+function initTable(employeeId) {
     const id = 'tblCourses';
     const table = new Table(id, COURSE, [
         { width: "100px", targets: 1 }
     ]);
 
-    table.addInteractiveRowNavigation('editemployees');
+    table.addInteractiveRowNavigation('viewcourse', employeeId);
     table.addInteractiveRowDelete('Vas a eliminar un curso ¿Estás Seguro?', async(id) => {
         try {
             await Delete(id)

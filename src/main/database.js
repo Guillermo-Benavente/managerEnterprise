@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { verbose } from 'sqlite3';
 import { join } from 'path';
 import { promises as fspromise } from 'fs';
-import { SaveFile } from './FileWriter.js';
+import { SaveFile } from './fileWriter.js';
 const { rm } = fspromise;
 const sqlite = verbose();
 

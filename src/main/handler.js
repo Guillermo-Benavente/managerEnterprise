@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow, dialog } from 'electron';
 import server from './server';
 import util from './util';
-import { SaveFile } from './FileWriter';
+import { SaveFile } from './fileWriter';
 
 function AddDatabaseHandlers(db) {
     /// TABLE METHODS EMPLOYED ///
@@ -292,7 +292,7 @@ function AddPathHandlers(mainWindow) {
             parent: parentWindow,
             modal: true,
             show: false,
-            //resizable: false,
+            resizable: false,
             webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
