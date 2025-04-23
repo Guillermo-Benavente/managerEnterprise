@@ -678,7 +678,7 @@ class Database {
             `CREATE TABLE IF NOT EXISTS course (
                 id VARCHAR(15) PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
-                employee VARCHAR(15) NOT NULL,
+                employee VARCHAR(9) NOT NULL,
                 url VARCHAR(255) NOT NULL,
                 FOREIGN KEY (employee) REFERENCES employee(dni) ON DELETE CASCADE
             );`,

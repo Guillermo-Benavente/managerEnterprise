@@ -169,6 +169,12 @@ export function CreateForm(data, dataType, onSubmitCallback, confirmText = null)
             input = document.createElement('span');
             input.className = 'frmFile';
 
+            const inputHidden = document.createElement('input');
+            inputHidden.name = key;
+            inputHidden.id = key;
+            inputHidden.type = 'hidden';
+            inputHidden.value = (value != '' && value != null) ? value : '0';
+
             const text = document.createElement('span');
             text.textContent = value;
 
@@ -178,6 +184,7 @@ export function CreateForm(data, dataType, onSubmitCallback, confirmText = null)
 
             input.appendChild(text);
             input.appendChild(button);
+            input.appendChild(inputHidden);
         } else {
             input = document.createElement('input');
             input.name = key;
