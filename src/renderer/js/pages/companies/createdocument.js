@@ -3,27 +3,58 @@ import { SetDocuments, SetEmployeeByDocument, GetDocument, UpdateDocument } from
 import { newPdf } from 'Components/createPdf.js'
 import VariableInline from 'Components/editor/variableInline.js'
 import DIALOG_TYPE from 'Types/dialog.js';
+import VAR_INLINE_NAME from 'Types/varInlineName';
 import EditorJS from '@editorjs/editorjs';
 import Header from  '@editorjs/header' ; 
 import List from  '@editorjs/list' ;
 import Image from "@editorjs/image";
 import Table from "@editorjs/table";
 import Paragraph from '@editorjs/paragraph';
-import VAR_INLINE_NAME from 'Types/varInlineName';
 
 
-DOM(() => {
+DOM(async() => {
     const companyId = new URLSearchParams(window.location.search).get('id');
     const documentId = new URLSearchParams(window.location.search).get('documentId');
 
-    const tools = {
+    registerBackHandler(documentId, companyId);
+    try {
+        const document = await GetDocument(documentId);
+        const editor = await init(document, configEditorTools());
+        registerCreateHandler(documentId, document, companyId, editor);
+    } catch (error) {
+        console.error('Error al obtener el documento:', error);
+        Dialog('Error', 'No se ha podido cargar el documento.', DIALOG_TYPE.ERROR);
+    }
+    
+});
+
+async function init(document, tools) {
+    let content = null;
+
+    if (document) content = JSON.parse(document.content);
+
+    const editor = new EditorJS({
+        holder: 'edt',
+        spellcheck: false,
+        tools,
+        placeholder: 'Escribe tu contenido aquí...',
+        autofocus: true,
+        onReady: () => { if (content) editor.render(content); }
+    });
+
+    return editor;
+}
+
+function configEditorTools() {
+    return {
         variable: {
             class: VariableInline,
             config: {
                 variables: [
                 { key: VAR_INLINE_NAME.EMPLOYEE_NAME, label: 'Nombre del Empleado' },
                 { key: VAR_INLINE_NAME.COMPANY_NAME, label: 'Nombre de la Empresa' },
-                { key: VAR_INLINE_NAME.EMPLOYEE_SIGNATURE, label: 'Firma del empleado' }
+                { key: VAR_INLINE_NAME.EMPLOYEE_SIGNATURE, label: 'Firma del empleado' },
+                { key: VAR_INLINE_NAME.DOCUMENT_DATE, label: 'Fecha del documento' }
                 ]
             }
         },
@@ -86,87 +117,67 @@ DOM(() => {
             }
         }
     };
-    let editor;
+}
 
-    if(documentId) {
-        AddEvent('.pgBack', 'click', () => { Navigate('editdocument', {id:documentId, backId: companyId}); });
-        
-        GetDocument(documentId, (success, data) => {
-            if(success){
-                editor = new EditorJS({
-                    holder: 'edt',
-                    spellcheck: false,
-                    tools: tools,
-                    placeholder: 'Escribe tu contenido aquí...',
-                    autofocus: true,
-                    onReady: () => editor.render(JSON.parse(data.content))
-                });
+function registerCreateHandler(documentId, document, companyId, editor) {
+    if (document) {
+        AddEvent('.wininCreate', 'click', async() => {
+            try {
+                const outputData = await editor.save();
 
-                AddEvent('.wininCreate', 'click', () => {
-                    editor.save().then((outputData) => {
-                        let document = { 
-                            id: documentId, 
-                            nif: companyId, 
-                            name: data.name, 
-                            content: outputData,
-                            buffer: newPdf(outputData)
-                        };
+                let documentUpdate = { 
+                    id: documentId, 
+                    nif: companyId, 
+                    name: document.name, 
+                    content: outputData,
+                    buffer: newPdf(outputData)
+                };
 
-                        UpdateDocument(document, (success) => {
-                            if(success){
-                                Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DIALOG_TYPE.INFO);
-                                Navigate('editdocument', {id:documentId, backId: companyId});
-                            } else Dialog('Error', 'No se ha podido actualizar el documento.', DIALOG_TYPE.ERROR);
-                        });
-                    }).catch((error) => {
-                        console.log('Saving failed: ', error)
-                    });
-                });
+                await UpdateDocument(documentUpdate);
+
+                Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DIALOG_TYPE.INFO);
+                Navigate('editdocument', {id:documentId, backId: companyId});
+            } catch (error) {
+                console.error('Error al actualizar el documento:', error);
+                Dialog('Error', 'No se ha podido actualizar el documento.', DIALOG_TYPE.ERROR);
             }
         });
-    } 
-    else {
-        AddEvent('.pgBack', 'click', () => { Navigate('editcompanies', {id:companyId}); });
-
-        editor = new EditorJS({
-            holder: 'edt',
-            spellcheck: false,
-            tools: tools,
-            placeholder: 'Escribe tu contenido aquí...',
-            autofocus: true
-        });
-
+    } else {
         AddEvent('.wininCreate', 'click', () => { 
             Modal('formdocument', { modeEdit: false })
-            .then((documentData) => {
-                editor.save().then((outputData) => {
+            .then(async(documentData) => {
+                try {
+                    const outputData = await editor.save();
                     let document = { 
                         name: documentData.data.name,
-                        conent: outputData,
+                        content: outputData,
                         buffer: newPdf(outputData)
                     };
+                    const documents = await SetDocuments(companyId, [document]);
 
-                    SetDocuments(companyId, [document], (success, documents) => {
-                        if (success) {
-                            if (documentData.selector != null) {
-                                Object.keys(documentData.selector).forEach((employeeId) => {
-                                    if (documentData.selector[employeeId].toLowerCase() === 'on') {
-                                        const dateKey = Object.keys(documentData.selector).find(key => key.startsWith(employeeId) && key !== employeeId);
-                                        const date = dateKey ? documentData.selector[dateKey] : null;
-                                        SetEmployeeByDocument(employeeId, documents[0], date, (success) => {
-                                            if(!success)
-                                                Dialog('Error', 'No se ha podido guardar las referencias al usuario. Cree de nuevo las referencias en el documento.', DIALOG_TYPE.ERROR);
-                                        });
-                                    }
+                    if (documentData.selector != null) {
+                        Object.keys(documentData.selector).forEach((employeeId) => {
+                            if (documentData.selector[employeeId].toLowerCase() === 'on') {
+                                const dateKey = Object.keys(documentData.selector).find(key => key.startsWith(employeeId) && key !== employeeId);
+                                const date = dateKey ? documentData.selector[dateKey] : null;
+                                SetEmployeeByDocument(employeeId, documents[0], date, (success) => {
+                                    if(!success)
+                                        Dialog('Error', 'No se ha podido guardar las referencias al usuario. Cree de nuevo las referencias en el documento.', DIALOG_TYPE.ERROR);
                                 });
                             }
-                            Navigate('editcompanies', {id:companyId});
-                        } else Dialog('Error', 'No se ha podido guardar el documento.', DIALOG_TYPE.ERROR);
-                    });
-                }).catch((error) => {
-                    console.log('Saving failed: ', error)
-                });
+                        });
+                    }
+                    Navigate('editcompanies', {id:companyId});
+                } catch (error) {
+                    console.error('Error al guardar el documento:', error);
+                    Dialog('Error', 'No se ha podido guardar el documento.', DIALOG_TYPE.ERROR);
+                }
             });
         });
     }
-});
+}
+
+function registerBackHandler(documentId, companyId) {
+    if(documentId) AddEvent('.pgBack', 'click', () => { Navigate('editdocument', {id:documentId, backId: companyId}); });
+    else AddEvent('.pgBack', 'click', () => { Navigate('editcompanies', {id:companyId}); });
+}

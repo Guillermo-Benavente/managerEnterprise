@@ -6,9 +6,14 @@ import DIALOG_TYPE from 'Types/dialog.js';
 DOM(() => {
     const documentId = new URLSearchParams(window.location.search).get('id');
     const companyId = new URLSearchParams(window.location.search).get('backId');
-    AddEvent('.pgBack', 'click', () => { Navigate('editcompanies', {id:companyId}); });
-    AddEvent('.pgEdit', 'click', () => { Navigate('createdocument', {id:companyId, documentId: documentId}); });
 
+    registerBackHandler(companyId);
+    registerEditHandler(companyId, documentId);
+    init(companyId, documentId);
+    registerCreateHandler(documentId);
+});
+
+function init(companyId, documentId){
     const url = GetPdf('documents', companyId, documentId);
     const pdfContainer = document.querySelector('.pdfContainer');
 
@@ -28,24 +33,30 @@ DOM(() => {
             });
         }
     });
+}
 
+function registerCreateHandler(documentId) {
     AddEvent('.wininCreate', 'click', () => { 
         Modal('formdocument', { modeEdit: true, documentId: documentId})
         .then(async (documentData) => {
             const tasks = [];
 
-            GetDocument(documentId, (success, data) => {
-                if(success && documentData.data.name != data.name) {
-                    const document = { 
+            try {
+                const document = await GetDocument(documentId);
+                if(documentData.data.name != document.name) {
+                    const documentUpdate = { 
                         id: documentId,
                         name: documentData.data.name
                     };
 
-                    tasks.push(new Promise(resolve => {
-                        UpdateDocument(document, success => resolve(success));
+                    tasks.push(new Promise(async(resolve) => {
+                        await UpdateDocument(documentUpdate);
+                        resolve(true);
                     }));
                 }
-            });
+            } catch (error) {
+                console.error('Error al actualizar el documento:', error);
+            }
 
             Object.keys(documentData.selector).forEach((key) => {
                 const value = documentData.selector[key];
@@ -54,17 +65,32 @@ DOM(() => {
 
                 if (value?.toLowerCase?.() === 'on') {
                     if (docId) {
-                        tasks.push(new Promise(resolve => {
-                            UpdateEmployeeByDocument({ id: docId, date }, success => resolve(success));
+                        tasks.push(new Promise(async(resolve) => {
+                            try {
+                                await UpdateEmployeeByDocument({ id: docId, date});
+                                resolve(true);
+                            } catch (error) {
+                                console.error('Error al actualizar la referencia del empleado:', error);
+                            }
                         }));
                     } else {
-                        tasks.push(new Promise(resolve => {
-                            SetEmployeeByDocument(key, documentId, date, success => resolve(success));
+                        tasks.push(new Promise(async(resolve) => {
+                            try {
+                                await SetEmployeeByDocument(key, documentId, date);
+                                resolve(true);
+                            } catch (error) {
+                                console.error('Error al crear la referencia del empleado:', error);
+                            }
                         }));
                     }
                 } else if (key.endsWith('docId-data-id') && !documentData.selector[key.slice(0, -13)]) {
-                    tasks.push(new Promise(resolve => {
-                        DeleteEmployeeByDocument(value, success => resolve(success));
+                    tasks.push(new Promise(async(resolve) => {
+                        try {
+                            await DeleteEmployeeByDocument(value);
+                            resolve(true);
+                        } catch (error) {
+                            console.error('Error al eliminar la referencia del empleado:', error);
+                        }
                     }));
                 }
             });
@@ -76,4 +102,12 @@ DOM(() => {
             else Dialog('Error', 'Algunos cambios no se han podido aplicar.', DIALOG_TYPE.ERROR);
         });
     });
-});
+}
+
+function registerEditHandler(companyId, documentId) {
+    AddEvent('.pgEdit', 'click', () => { Navigate('createdocument', {id:companyId, documentId: documentId}); });
+}
+
+function registerBackHandler(companyId) {
+    AddEvent('.pgBack', 'click', () => { Navigate('editcompanies', {id:companyId}); });
+}

@@ -1,5 +1,3 @@
-// @ts-check
-
 /**
  * Objeto que define variables en línea para identificar entidades específicas dentro de los datos.
  *

@@ -5,6 +5,10 @@
     align-items: center;
 }
 
+.frm-cnt2 {
+    margin-top: 10px;
+}
+
 .frm {
     color: var(--secondary-color);
     background-color: var(--secondary-background-color);

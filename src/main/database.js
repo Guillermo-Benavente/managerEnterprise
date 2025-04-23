@@ -1,8 +1,9 @@
 import { app } from 'electron';
 import { verbose } from 'sqlite3';
-import { join, dirname } from 'path';
-import { promises as fspromise, createWriteStream } from 'fs';
-const { mkdir, rm } = fspromise;
+import { join } from 'path';
+import { promises as fspromise } from 'fs';
+import { SaveFile } from './FileWriter.js';
+const { rm } = fspromise;
 const sqlite = verbose();
 
 class Database {
@@ -307,18 +308,7 @@ class Database {
         const coursePath = join(app.getPath('userData'), 'courses', dni, `${id}.pdf`);
 
         try {
-            await mkdir(dirname(coursePath), { recursive: true });
-
-            const courseBuffer = Buffer.from(course.data, 'base64');
-
-            await new Promise((resolve, reject) => {
-                const writeStream = createWriteStream(coursePath);
-                writeStream.write(courseBuffer);
-                writeStream.end();
-
-                writeStream.on('finish', resolve);
-                writeStream.on('error', reject);
-            });
+            await SaveFile(coursePath, course.data);
 
             await this.executeSQL(db, 'run',
                 `INSERT INTO course (id, name, employee, url)
@@ -353,26 +343,15 @@ class Database {
     async InsertDocument(nif, document) {
         const db = await this.db;
         const id = nif + Date.now();
-        const coursePath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
+        const documentPath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
 
         try {
-            await mkdir(dirname(coursePath), { recursive: true });
-
-            const courseBuffer = Buffer.from(document.buffer, 'base64');
-
-            await new Promise((resolve, reject) => {
-                const writeStream = createWriteStream(coursePath);
-                writeStream.write(courseBuffer);
-                writeStream.end();
-
-                writeStream.on('finish', resolve);
-                writeStream.on('error', reject);
-            });
+            await SaveFile(documentPath, document.buffer);
 
             await this.executeSQL(db, 'run',
                 `INSERT INTO documents (id, name, company, content, url)
                     VALUES (?, ?, ?, ?, ?)`,
-                [id, document.name, nif, JSON.stringify(document.content), coursePath],
+                [id, document.name, nif, JSON.stringify(document.content), documentPath],
                 'Error al insertar un documento'
             );
 
@@ -480,18 +459,7 @@ class Database {
             const documentPath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
             try {
                 await rm(documentPath);
-                await mkdir(dirname(documentPath), { recursive: true });
-
-                const documentBuffer = Buffer.from(buffer, 'base64');
-
-                await new Promise((resolve, reject) => {
-                    const writeStream = createWriteStream(documentPath);
-                    writeStream.write(documentBuffer);
-                    writeStream.end();
-
-                    writeStream.on('finish', resolve);
-                    writeStream.on('error', reject);
-                });
+                await SaveFile(documentPath, buffer);
             } catch (error) {
                 console.error('Error al guardar el archivo del documento:', error);
                 throw error;

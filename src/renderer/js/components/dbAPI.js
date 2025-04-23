@@ -262,7 +262,7 @@ function FormatSingleEmployee(employee) {
         medical_leave_date: employee.medical_leave_date,
         medical_discharge_date: employee.medical_discharge_date,
         courses: employee.courses
-    }
+    };
 
     return newFormatEmployee;
 }
@@ -283,13 +283,13 @@ export function FormatDbEmployee(employee) {
 }
 
 //TOOD crear comentarios
-function responseDb(apiMethod, params, callback, expectsResponse = false) {
-    window.dbAPI[apiMethod](...params)
-        .then(response => callback?.(true, expectsResponse ? response : undefined))
-        .catch(error => {
-            console.error(`Error en ${apiMethod}:`, error);
-            callback?.(false, error);
-        });
+async function responseDb(apiMethod, params = []) {
+  try {
+    return await window.dbAPI[apiMethod](...params);
+  } catch (error) {
+    console.error(`Error en ${apiMethod}:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -320,7 +320,7 @@ function responseDb(apiMethod, params, callback, expectsResponse = false) {
  * @author guillermob
  */
 //TODO cambiar comentarios
-export const GetEmployees = (callback) => responseDb('getEmployees', [], callback, true);
+export const GetEmployees = () => responseDb('getEmployees', []);
 
 /**
  * Obtiene los datos de un empleado de la base de datos usando la API `window.dbAPI.getEmployee(dni)`
@@ -351,7 +351,7 @@ export const GetEmployees = (callback) => responseDb('getEmployees', [], callbac
  * @author guillermob
  */
 //TODO cambiar comentarios
-export const GetEmployee = (dni, callback) => responseDb('getEmployee', [dni], callback, true);
+export const GetEmployee = (dni) => responseDb('getEmployee', [dni]);
 
 /**
  * Inserta un nuevo empleado en la base de datos usando la API `window.dbAPI.insertEmployee(employee)`
@@ -382,20 +382,18 @@ export const GetEmployee = (dni, callback) => responseDb('getEmployee', [dni], c
  * @author guillermob
  */
 //TODO cambiar comentarios
-export function SetEmployee(employee, callback) {
-    window.dbAPI.insertCourses(employee.dni, employee.courses)
-        .then(courses => {
-            employee.courses = courses.length;
-            return window.dbAPI.insertEmployee(employee);
-        })
-        .then(result => {
-            if (typeof callback === 'function' && result.success) callback(true);
-            else if (typeof callback === 'function') callback(false, result.error); 
-        })
-        .catch(error => {
-            console.error('Error setEmployee:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
+export async function SetEmployee(employee) {
+  try {
+    const courses = await responseDb('insertCourses', [employee.dni, employee.courses]);
+    employee.courses = courses.length;
+
+    await responseDb('insertEmployee', [employee]);
+
+    return true;
+  } catch (error) {
+    console.error('Error en SetEmployee:', error);
+    if (typeof callback === 'function') callback(false, error);
+  }
 }
 
 /**
@@ -426,7 +424,7 @@ export function SetEmployee(employee, callback) {
  * @date 2024-10-28
  * @author guillermob
  */
-export const UpdateEmployee = (employee, callback) => responseDb('updateEmployee', [employee], callback, false);
+export const UpdateEmployee = (employee) => responseDb('updateEmployee', [employee]);
 
 /**
  * Elimina un empleado de la base de datos usando la API `window.dbAPI.deleteEmployee(dni)`
@@ -456,7 +454,7 @@ export const UpdateEmployee = (employee, callback) => responseDb('updateEmployee
  * @date 2024-11-05
  * @author guillermob
  */
-export const DeleteEmployee = (dni, callback) => responseDb('deleteEmployee', [dni], callback, false);
+export const DeleteEmployee = (dni) => responseDb('deleteEmployee', [dni]);
 
 /**
  * Obtiene una lista de empresas desde la API `window.dbAPI.getCompanies()` y ejecuta un callback con el resultado.
@@ -489,7 +487,7 @@ export const DeleteEmployee = (dni, callback) => responseDb('deleteEmployee', [d
  * @date 2024-10-28
  * @author guillermob
  */
-export const GetCompanies = (callback) => responseDb('getCompanies', [], callback, true);
+export const GetCompanies = () => responseDb('getCompanies', []);
 
 /**
  * Obtiene los datos de una empresa específica desde la API `window.dbAPI.getCompany(nif)` y ejecuta un callback con el resultado.
@@ -520,7 +518,7 @@ export const GetCompanies = (callback) => responseDb('getCompanies', [], callbac
  * @date 2024-10-28
  * @author guillermob
  */
-export const GetCompany = (nif, callback) => responseDb('getCompany', [nif], callback, true);
+export const GetCompany = (nif) => responseDb('getCompany', [nif]);
 
 /**
  * Inserta una empresa en la base de datos mediante la API `window.dbAPI.insertCompany(company)` y ejecuta un callback con el resultado.
@@ -550,40 +548,40 @@ export const GetCompany = (nif, callback) => responseDb('getCompany', [nif], cal
  * @date 2024-10-28
  * @author guillermob
  */
-export const SetCompany = (company, callback) => responseDb('insertCompany', [company], callback, false);
+export const SetCompany = (company) => responseDb('insertCompany', [company]);
 
 //TOOD crear comentarios
-export const UpdateCompany = (company, callback) => responseDb('updateCompany', [company], callback, false);
+export const UpdateCompany = (company) => responseDb('updateCompany', [company]);
 
 //TOOD crear comentarios
-export const DeleteCompany = (nif, callback) => responseDb('deleteCompany', [nif], callback, false);
+export const DeleteCompany = (nif) => responseDb('deleteCompany', [nif]);
 
 //TOOD crear comentarios
-export const GetCourses = (dni, callback) => responseDb('getCourses', [dni], callback, true);
+export const GetCourses = (dni) => responseDb('getCourses', [dni]);
 
 //TOOD crear comentarios
-export const GetDocuments = (nif, callback) => responseDb('getDocuments', [nif], callback, true);
+export const GetDocuments = (nif) => responseDb('getDocuments', [nif]);
 
 //TOOD crear comentarios
-export const GetDocument = (id, callback) => responseDb('getDocument', [id], callback, true);
+export const GetDocument = (id) => responseDb('getDocument', [id]);
 
 //TOOD crear comentarios
-export const SetDocuments = (nif, documents, callback) => responseDb('insertDocuments', [nif, documents], callback, true);
+export const SetDocuments = (nif, documents) => responseDb('insertDocuments', [nif, documents]);
 
 //TOOD crear comentarios
-export const UpdateDocument = (document, callback) => responseDb('updateDocument', [document], callback, true);
+export const UpdateDocument = (document) => responseDb('updateDocument', [document]);
 
 //TOOD crear comentarios
-export const DeleteDocument = (id, callback) => responseDb('deleteDocument', [id], callback, false);
+export const DeleteDocument = (id) => responseDb('deleteDocument', [id]);
 
 //TOOD crear comentarios
-export const GetEmployeesByDocument = (idDoc, callback) => responseDb('getEmployeesByDocument', [idDoc], callback, true);
+export const GetEmployeesByDocument = (idDoc) => responseDb('getEmployeesByDocument', [idDoc]);
 
 //TOOD crear comentarios
-export const SetEmployeeByDocument = (employee, document, date, callback) => responseDb('insertEmployeeByDocument', [employee, document, date], callback, true);
+export const SetEmployeeByDocument = (employee, document, date) => responseDb('insertEmployeeByDocument', [employee, document, date]);
 
 //TOOD crear comentarios
-export const UpdateEmployeeByDocument = (employeeByDocument, callback) => responseDb('updateEmployeeByDocument', [employeeByDocument], callback, false);
+export const UpdateEmployeeByDocument = (employeeByDocument) => responseDb('updateEmployeeByDocument', [employeeByDocument]);
 
 //TOOD crear comentarios
-export const DeleteEmployeeByDocument = (id, callback) => responseDb('deleteEmployeeByDocument', [id], callback, false);
+export const DeleteEmployeeByDocument = (id) => responseDb('deleteEmployeeByDocument', [id]);

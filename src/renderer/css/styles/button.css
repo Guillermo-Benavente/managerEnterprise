@@ -10,11 +10,14 @@
     -webkit-user-select: none;
     margin: 2px;
     text-align: center;
-    transition: all .3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     &:hover {
         scale: .95;
     }
+}
+
+.btn {
+    transition: all .3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .btn-img {

@@ -192,6 +192,15 @@ export const Dialog = (title, message, type = 0) => {
     });
 };
 
+// TODO crear comentario
+export const SaveDialog = (title, documentName) => window.controlAPI.saveDialog({ title, defaultPath: documentName + '.pdf',filters: [{ name: 'PDF', extensions: ['pdf'] }]});
+
+// TODO crear comentario
+export const OpenDialog = (title) => window.controlAPI.openDialog({ title, properties: ['openDirectory', 'createDirectory']});
+
+//TODO crear comantario
+export const SaveFile = (filePath, data) => window.controlAPI.saveFile(filePath, data);
+
 /**
  * Obtiene la URL de un archivo PDF específico en el servidor.
  * 

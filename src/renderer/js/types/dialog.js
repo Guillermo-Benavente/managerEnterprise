@@ -1,5 +1,3 @@
-// @ts-check
-
 /**
  * Objeto que define los tipos de diálogos disponibles.
  * 

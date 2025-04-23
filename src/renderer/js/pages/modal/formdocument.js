@@ -2,36 +2,54 @@ import { DOM, GetElement, CreateElement, AddElement, SendModalResponse, Dialog} 
 import { DOCUMENT, DOCUMENTBYEMPLOYEES, EMPLOYEE, FormatEmployee, GetEmployees, GetEmployeesByDocument, GetDocument } from 'Components/dbAPI.js';
 import DIALOG_TYPE from 'Types/dialog.js';
 import Fieldset from 'Components/form.js';
-import FormType from 'Types/form.js';
+import FORM_TYPE from 'Types/form.js';
 
-DOM(() => {
+DOM(async() => {
     const { modeEdit, documentId } = Object.fromEntries(new URLSearchParams(window.location.search));
 
-    const form = GetElement('form');
+    init();
+    if(modeEdit == 'true') loadDocument(documentId);
+    submitForm();
+});
 
-    new Fieldset(GetElement('.document'), DOCUMENT, FormType.NORMAL).init();
-    GetEmployees((success, data) => {
-        if (success) new Fieldset(GetElement('.employees'), {object: [DOCUMENTBYEMPLOYEES, EMPLOYEE], data: FormatEmployee(data)}, FormType.SELECTOR).init();
-    });
+async function init() {
+    try {
+        const employees = await GetEmployees();
 
-    if(modeEdit == 'true') {
-        GetDocument(documentId, (success, data) => {if (success) GetElement(`input[name='name']`).value = data.name;});
+        new Fieldset(GetElement('.document'), DOCUMENT, FORM_TYPE.NORMAL).init();
+        new Fieldset(GetElement('.employees'), {object: [DOCUMENTBYEMPLOYEES, EMPLOYEE], data: FormatEmployee(employees)}, FORM_TYPE.SELECTOR).init();
 
-        GetEmployeesByDocument( documentId, (success, data) => {
-            if (success) {
-                data.forEach((employeeByDocument) => {
-                    const inputCheck = GetElement(`input[name='${employeeByDocument.employee}']`);
-                    const inputDate = GetElement(`input[name='${employeeByDocument.employee}date']`);
-                    const hiddenInput = CreateElement('input', { type: 'hidden', name: `${employeeByDocument.employee}docId` });
-                    inputCheck.checked = true;
-                    hiddenInput.setAttribute('data-id', employeeByDocument.id);
-                    inputDate.value = employeeByDocument.date;
-
-                    AddElement(hiddenInput, GetElement('.employees'));
-                });
-            }
-        });
+        GetElement('button[type=button]').addEventListener('click', () => window.close());
+    } catch (error) {
+        console.error('Error al inicializar el formulario:', error);
+        Dialog('Error', 'No se ha podido cargar la información.', DIALOG_TYPE.ERROR);    
     }
+}
+
+async function loadDocument(documentId) {
+    try {
+        const document = await GetDocument(documentId);
+        const employeesByDocument = await GetEmployeesByDocument(documentId);
+
+        GetElement(`input[name='name']`).value = document.name;
+
+        employeesByDocument.forEach((employeeByDocument) => {
+            const hiddenInput = CreateElement('input', { type: 'hidden', name: `${employeeByDocument.employee}docId` });
+            hiddenInput.setAttribute('data-id', employeeByDocument.id);
+
+            AddElement(hiddenInput, GetElement('.employees'));
+
+            GetElement(`input[name='${employeeByDocument.employee}']`).checked = true;
+            GetElement(`input[name='${employeeByDocument.employee}date']`).value = employeeByDocument.date;            
+        });
+    } catch (error) {
+        console.error('Error al cargar el documento:', error);
+        Dialog('Error', 'No se ha podido cargar la información del documento.', DIALOG_TYPE.ERROR);    
+    }
+}
+
+function submitForm() {
+    const form = GetElement('form');
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -56,6 +74,4 @@ DOM(() => {
             console.error('Error al procesar los archivos:', error); 
         }
     });
-
-    GetElement('button[type=button]').addEventListener('click', () => window.close());
-});
+}

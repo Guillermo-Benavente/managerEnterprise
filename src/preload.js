@@ -48,6 +48,9 @@ contextBridge.exposeInMainWorld('controlAPI', {
   sendModalResponse: (response) => ipcRenderer.send('modal-send', response),
   dialogWindow: (type, title, message) => ipcRenderer.send('dialog-window', type, title, message),
   onDialogResponse: (callback) => ipcRenderer.on('dialog-response', (_, response) => callback(response)),
+  saveDialog: (options) => ipcRenderer.invoke('save-dialog', options),
+  openDialog: (options) => ipcRenderer.invoke('open-dialog', options),
+  saveFile: (filePath, data) => ipcRenderer.invoke('save-file', filePath, data),
   getPdfUrl: (type, user, name) => `${server}/pdf/${type}/${user}/${name}`,
   addEvent: function (selector = document.defaultView, type, callback) {
     if (selector == null) window.addEventListener(type, callback);

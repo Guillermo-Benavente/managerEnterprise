@@ -1,6 +1,7 @@
 import { ipcMain, BrowserWindow, dialog } from 'electron';
 import server from './server';
 import util from './util';
+import { SaveFile } from './FileWriter';
 
 function AddDatabaseHandlers(db) {
     /// TABLE METHODS EMPLOYED ///
@@ -350,6 +351,28 @@ function AddPathHandlers(mainWindow) {
         });
 
         mainWindow.webContents.send('dialog-response', buttons[response]);
+    });
+
+    ipcMain.handle('save-dialog', async (event, options) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        const { canceled, filePath } = await dialog.showSaveDialog(win, options);
+        return canceled ? null : filePath;
+    });
+
+    ipcMain.handle('open-dialog', async (event, options) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        const { canceled, filePaths } = await dialog.showOpenDialog(win, options);
+        return canceled || filePaths.length === 0 ? null : filePaths[0];
+    });
+
+    ipcMain.handle('save-file', async (_, filePath, base64Data) => {
+        try {
+            await SaveFile(filePath, base64Data);
+            return { success: true };
+        } catch (error) {
+            console.error('Error al modificar el SVG:', error);
+            return { success: false, error: error.message };
+        }
     });
 }
 

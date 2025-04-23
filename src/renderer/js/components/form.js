@@ -141,40 +141,6 @@ export function SubmitForm(form) {
     });
 }
 
-
-
-export function CreateInputs(object, fieldset, form) {
-    Object.keys(object).filter(key => object[key].showForm).forEach(key => {
-        const label = CreateElement('label', { for: key }, 
-            object[key].name.toLowerCase().replace(/./, c => c.toUpperCase())
-        );
-
-        AddElement(label, fieldset);
-
-        const inputForm = CreateElement('input', { name: key, id: key, type: object[key].type });
-
-        if (object[key].type == 'file') {
-            form.enctype = 'multipart/form-data';
-            inputForm.accept = object[key].accept;
-            inputForm.multiple = true;
-            inputForm.style = 'display: none';
-
-            const contentInputFile = CreateElement('label', { for: key, class: 'btn btn-primary' });
-            const textInputFile = CreateElement('span', {}, 'Añadir archivos');
-
-            inputForm.addEventListener('change', (event) => {
-                const files = event.target.files;
-                const text = files.length > 0
-                    ? `${files.length} archivo(s)`
-                    : 'Añadir archivos';
-                textInputFile.textContent = text;
-            });
-
-            AddElement(AddElement([textInputFile, inputForm], contentInputFile), fieldset);
-        } else AddElement(inputForm, fieldset);
-    });
-}
-
 export function CreateForm(data, dataType, onSubmitCallback, confirmText = null) {
     const form = document.createElement('form');
     form.className = 'frm';
