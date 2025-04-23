@@ -2,6 +2,7 @@ import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js
 import { COMPANY, GetCompanies, SetCompany, DeleteCompany } from 'Components/dbAPI.js';
 import Table from 'Components/table.js';
 import DIALOG_TYPE from 'Types/dialog.js';
+import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
 
 DOM(async() => {
     registerBackHandler();
@@ -16,7 +17,7 @@ function initTable() {
         { width: "100px", targets: 4 }
     ]);
 
-    table.addInteractiveRowNavigation('editcompanies');
+    table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.EDIT_COMPANY);
     table.addInteractiveRowDelete('Vas a eliminar una empresa ¿Estás Seguro?', async(nif) => {
         try {
             await DeleteCompany(nif)
@@ -55,5 +56,5 @@ function registerCreateHandler(table) {
 }
 
 function registerBackHandler() {
-    AddEvent('.pgBack', 'click', () => { Navigate('main_window'); });
+    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.MAIN); });
 }

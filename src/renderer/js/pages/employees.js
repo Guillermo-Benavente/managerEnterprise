@@ -1,7 +1,8 @@
 import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
 import { EMPLOYEE, FormatEmployee, FormatDbEmployee, GetEmployees, SetEmployee, DeleteEmployee } from 'Components/dbAPI.js';
-import DIALOG_TYPE from 'Types/dialog.js';
 import Table from 'Components/table.js';
+import DIALOG_TYPE from 'Types/dialog.js';
+import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
 
 DOM(async() => {
     registerBackHandler();
@@ -18,7 +19,7 @@ function initTable() {
         { width: "100px", targets: 8 }
     ]);
 
-    table.addInteractiveRowNavigation('editemployees');
+    table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.EDIT_EMPLOYEE);
     table.addInteractiveRowDelete('Vas a eliminar un empleado ¿Estás Seguro?', async(dni) => {
         try {
             await DeleteEmployee(dni)
@@ -57,5 +58,5 @@ function registerCreateHandler(table) {
 }
 
 function registerBackHandler() {
-    AddEvent('.pgBack', 'click', () => { Navigate('main_window'); });
+    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.MAIN); });
 }

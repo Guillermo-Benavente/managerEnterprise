@@ -1,5 +1,6 @@
 import { AddEvent, DOM, GetPdf, Navigate } from "Components/controlAPI";
 import * as pdfjsLib from 'pdfjs-dist';
+import ENTRY_POINTS_TYPE from "Types/entryPoints.js";
 
 DOM(() =>{
     const courseId = new URLSearchParams(window.location.search).get('id');
@@ -32,5 +33,5 @@ function init(courseId, employeeId) {
 }
 
 function registerBackHandler(employeeId) {
-    AddEvent('.pgBack', 'click', () => { Navigate('courseemployees', {id:employeeId} ); });
+    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.COURSES, {id:employeeId} ); });
 }

@@ -1,11 +1,12 @@
 import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog, SaveDialog, OpenDialog, SaveFile } from 'Components/controlAPI.js';
 import { COMPANY, DOCUMENT, GetCompany, UpdateCompany, GetDocuments, DeleteDocument, GetDocument, GetEmployeesByDocument, GetEmployee, FormatEmployee } from 'Components/dbAPI.js';
 import { CreateForm } from 'Components/form.js';
-import DIALOG_TYPE from 'Types/dialog.js';
+import { newPdf } from 'Components/createPdf';
 import Table from 'Components/table.js';
+import DIALOG_TYPE from 'Types/dialog.js';
 import VAR_INLINE from 'Types/varInline';
 import VAR_INLINE_NAME from 'Types/varInlineName';
-import { newPdf } from 'Components/createPdf';
+import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
 
 DOM(async() => {
     const companyId = new URLSearchParams(window.location.search).get('id');
@@ -23,7 +24,7 @@ function initTable(companyId) {
         { width: "100px", targets: 1 }
     ]);
 
-    table.addInteractiveRowNavigation('editdocument', companyId);
+    table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.EDIT_DOCUMENT, companyId);
     table.addInteractiveRowDelete('Vas a eliminar un documento ¿Estás Seguro?', async(id) => {
         try {
             await DeleteDocument(id)
@@ -44,7 +45,7 @@ async function loadCompany(companyId) {
             async(company) => {
                 try {
                     await UpdateCompany(company);
-                    Dialog('Información', 'Información actualizada.', DIALOG_TYPE.INFO).then(() => { Navigate('companies'); });
+                    Dialog('Información', 'Información actualizada.', DIALOG_TYPE.INFO).then(() => { Navigate(ENTRY_POINTS_TYPE.COMPANIES); });
                 } catch (error) {
                     console.error('Error al actualizar la empresa:', error);
                     Dialog('Error', 'No se pudo actualizar la informacion con éxito.', DIALOG_TYPE.ERROR);
@@ -123,9 +124,9 @@ async function loadDocuments(companyId, table) {
 }
 
 function registerCreateHandler(companyId) {
-    AddEvent('.pgCreateDocument', 'click', () => { Navigate('createdocument', {id:companyId}); });
+    AddEvent('.pgCreateDocument', 'click', () => { Navigate(ENTRY_POINTS_TYPE.DOCUMENTS, {id:companyId}); });
 }
 
 function registerBackHandler() {
-    AddEvent('.pgBack', 'click', () => { Navigate('companies'); });
+    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.COMPANIES); });
 }
