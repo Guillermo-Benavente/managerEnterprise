@@ -384,10 +384,11 @@ export const GetEmployee = (dni) => responseDb('getEmployee', [dni]);
 //TODO cambiar comentarios
 export async function SetEmployee(employee) {
   try {
-    const courses = await responseDb('insertCourses', [employee.dni, employee.courses]);
-    employee.courses = courses.length;
+    const courses = employee.courses
+    employee.courses = employee.courses.length;
 
     await responseDb('insertEmployee', [employee]);
+    await responseDb('insertCourses', [employee.dni, courses]);
 
     return true;
   } catch (error) {
