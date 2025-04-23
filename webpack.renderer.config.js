@@ -32,10 +32,14 @@ module.exports = {
       'Styles': path.resolve(__dirname, './src/renderer/css/styles'),
       'PagesCSS': path.resolve(__dirname, './src/renderer/css/pages'),
       'Assets': path.resolve(__dirname, './src/assets'),
+      'Dictionary': path.resolve(__dirname, './public/dictionary'),
     },
     fallback: {
       "fs": false,
-      "path": require.resolve("path-browserify")
+      "path": require.resolve("path-browserify"),
+      crypto: require.resolve("crypto-browserify"),
+      vm: require.resolve("vm-browserify"),
+      stream: require.resolve("stream-browserify")
     }
   },
   plugins: [
@@ -44,6 +48,7 @@ module.exports = {
         { from: './src/renderer/css', to: 'css' },
         { from: './src/assets', to: 'assets' },
         { from: './node_modules/datatables.net-dt/css/dataTables.dataTables.css', to: 'css/module' },
+        { from: './node_modules/pdfjs-dist/build/pdf.worker.min.mjs', to: 'assets/workers' },
       ],
     }),
   ]

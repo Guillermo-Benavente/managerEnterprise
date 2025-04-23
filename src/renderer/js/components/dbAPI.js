@@ -2,25 +2,28 @@ export const EMPLOYEE = {
     'dni': {
         'name':'dni',
         'type':'text',
-        'insertData':true,
+        'identifier':true,
+        'showForm':true,
         'showTable':true
     },
     'name': {
         'name':'nombre',
         'type':'text',
-        'insertData':true,
-        'showTable':true
+        'showForm':true,
+        'showTable':true,
+        'showFormSelectorText':true
     },
     'surnames': {
         'name':'apellidos',
         'type':'text',
-        'insertData':true,
-        'showTable':true
+        'showForm':true,
+        'showTable':true,
+        'showFormSelectorText':true
     },
     'discharge_date': {
         'name':'alta',
         'type':'date',
-        'insertData':true,
+        'showForm':true,
         'showTable':true
     },
     'leave_date': {
@@ -42,41 +45,35 @@ export const EMPLOYEE = {
         'name':'cursos',
         'type':'file',
         'accept':'.pdf',
-        'insertData':true,
+        'showForm':true,
         'showTable':true
     }
 }
 
-export const COMPANY_TYPES = { 
-    'nif': 'text',
-    'name': 'text',
-    'telephone': 'number',
-    'registration_date':'date'
-};
 //[{ 'nif': '','nombre': '','teléfono': '','email': '','domicilio fiscal':''}];
 export const COMPANY = { 
     'nif': {
         'name':'nif',
         'type':'string',
-        'insertData':true,
+        'showForm':true,
         'showTable':true
     },
     'name': {
         'name':'nombre',
         'type':'string',
-        'insertData':true,
+        'showForm':true,
         'showTable':true
     },
     'telephone': {
         'name':'teléfono',
         'type':'string',
-        'insertData':true,
+        'showForm':true,
         'showTable':true
     },
     'registration_date':{
         'name':'fecha de registro',
         'type':'date',
-        'insertData':true,
+        'showForm':true,
         'showTable':true
     }
 };
@@ -95,12 +92,65 @@ export const COURSE = {
     'employee':{
         'name':'empleado',
         'type':'string',
+        'refrence':true,
         'showTable':false
     },
     'url':{
         'name':'dirección',
         'type':'string',
         'showTable':false
+    }
+}
+
+export const DOCUMENT = {
+    'id': {
+        'name':'id',
+        'type':'string',
+        'showTable':false
+    },
+    'name':{
+        'name':'nombre',
+        'type':'string',
+        'showForm':true,
+        'showTable':true
+    },
+    'company':{
+        'name':'empresa',
+        'type':'string',
+        'refrence':true,
+        'showTable':false
+    },
+    'content':{
+        'name':'contenido',
+        'type':'string',
+        'showTable':false
+    },
+    'url':{
+        'name':'dirección',
+        'type':'string',
+        'showTable':false
+    }
+}
+
+export const DOCUMENTBYEMPLOYEES = {
+    'id': {
+        'name':'id',
+        'type':'string'
+    },
+    'employee':{
+        'name':'empleado',
+        'type':'string',
+        'refrence':true
+    },
+    'document':{
+        'name':'documento',
+        'type':'string',
+        'refrence':true
+    },
+    'date':{
+        'name':'fecha',
+        'type':'date',
+        'showForm':true
     }
 }
 
@@ -212,7 +262,7 @@ function FormatSingleEmployee(employee) {
         medical_leave_date: employee.medical_leave_date,
         medical_discharge_date: employee.medical_discharge_date,
         courses: employee.courses
-    }
+    };
 
     return newFormatEmployee;
 }
@@ -230,6 +280,16 @@ export function FormatDbEmployee(employee) {
         discharge_date: employee.discharge_date,
         courses: employee.courses
     };
+}
+
+//TOOD crear comentarios
+async function responseDb(apiMethod, params = []) {
+  try {
+    return await window.dbAPI[apiMethod](...params);
+  } catch (error) {
+    console.error(`Error en ${apiMethod}:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -259,16 +319,8 @@ export function FormatDbEmployee(employee) {
  * @date 2024-11-05
  * @author guillermob
  */
-export function GetEmployees(callback) {
-    window.dbAPI.getEmployees()
-        .then(employee => {
-            if (typeof callback === 'function') callback(true, employee);
-        })
-        .catch(error => {
-            console.error('Error getEmployees:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+//TODO cambiar comentarios
+export const GetEmployees = () => responseDb('getEmployees', []);
 
 /**
  * Obtiene los datos de un empleado de la base de datos usando la API `window.dbAPI.getEmployee(dni)`
@@ -298,16 +350,8 @@ export function GetEmployees(callback) {
  * @date 2024-11-05
  * @author guillermob
  */
-export function GetEmployee(dni, callback) {
-    window.dbAPI.getEmployee(dni)
-        .then(employee => {
-            if (typeof callback === 'function') callback(true, employee);
-        })
-        .catch(error => {
-            console.error('Error getEmployee:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+//TODO cambiar comentarios
+export const GetEmployee = (dni) => responseDb('getEmployee', [dni]);
 
 /**
  * Inserta un nuevo empleado en la base de datos usando la API `window.dbAPI.insertEmployee(employee)`
@@ -338,18 +382,18 @@ export function GetEmployee(dni, callback) {
  * @author guillermob
  */
 //TODO cambiar comentarios
-export function SetEmployee(employee, callback) {
-    
-    window.dbAPI.insertCourses(employee.dni, employee.courses)
-        .then(courses => {
-            employee.courses = courses.length;
-            return window.dbAPI.insertEmployee(employee);
-        })
-        .then(() => { if (typeof callback === 'function') callback(true); })
-        .catch(error => {
-            console.error('Error setEmployee:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
+export async function SetEmployee(employee) {
+  try {
+    const courses = await responseDb('insertCourses', [employee.dni, employee.courses]);
+    employee.courses = courses.length;
+
+    await responseDb('insertEmployee', [employee]);
+
+    return true;
+  } catch (error) {
+    console.error('Error en SetEmployee:', error);
+    if (typeof callback === 'function') callback(false, error);
+  }
 }
 
 /**
@@ -380,16 +424,7 @@ export function SetEmployee(employee, callback) {
  * @date 2024-10-28
  * @author guillermob
  */
-export function UpdateEmployee(employee, callback) {
-    window.dbAPI.updateEmployee(employee)
-        .then(() => {
-            if (typeof callback === 'function') callback(true);
-        })
-        .catch(error => {
-            console.error('Error updateEmployee:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+export const UpdateEmployee = (employee) => responseDb('updateEmployee', [employee]);
 
 /**
  * Elimina un empleado de la base de datos usando la API `window.dbAPI.deleteEmployee(dni)`
@@ -419,16 +454,7 @@ export function UpdateEmployee(employee, callback) {
  * @date 2024-11-05
  * @author guillermob
  */
-export function DeleteEmployee(dni, callback) {
-    window.dbAPI.deleteEmployee(dni)
-        .then(() => {
-            if (typeof callback === 'function') callback(true);
-        })
-        .catch(error => {
-            console.error('Error deleteEmployee:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+export const DeleteEmployee = (dni) => responseDb('deleteEmployee', [dni]);
 
 /**
  * Obtiene una lista de empresas desde la API `window.dbAPI.getCompanies()` y ejecuta un callback con el resultado.
@@ -461,16 +487,7 @@ export function DeleteEmployee(dni, callback) {
  * @date 2024-10-28
  * @author guillermob
  */
-export function GetCompanies(callback) {
-    window.dbAPI.getCompanies()
-    .then(companies => {
-        if (typeof callback === 'function') callback(true, companies);
-    })
-    .catch(error => {
-        console.error('Error getCompanies:', error);
-        if (typeof callback === 'function') callback(false, error);
-    });
-}
+export const GetCompanies = () => responseDb('getCompanies', []);
 
 /**
  * Obtiene los datos de una empresa específica desde la API `window.dbAPI.getCompany(nif)` y ejecuta un callback con el resultado.
@@ -501,16 +518,7 @@ export function GetCompanies(callback) {
  * @date 2024-10-28
  * @author guillermob
  */
-export function GetCompany(nif, callback) {
-    window.dbAPI.getCompany(nif)
-        .then(company => {
-            if (typeof callback === 'function') callback(true, company);
-        })
-        .catch(error => {
-            console.error('Error getCompanies:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+export const GetCompany = (nif) => responseDb('getCompany', [nif]);
 
 /**
  * Inserta una empresa en la base de datos mediante la API `window.dbAPI.insertCompany(company)` y ejecuta un callback con el resultado.
@@ -540,49 +548,40 @@ export function GetCompany(nif, callback) {
  * @date 2024-10-28
  * @author guillermob
  */
-export function SetCompany(company, callback) {
-    window.dbAPI.insertCompany(company)
-        .then(() => {
-            if (typeof callback === 'function') callback(true);
-        })
-        .catch(error => {
-            console.error('Error setCompany:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+export const SetCompany = (company) => responseDb('insertCompany', [company]);
 
-//TODO añadir comentarios
-export function UpdateCompany(employee, callback) {
-    window.dbAPI.updateCompany(employee)
-        .then(() => {
-            if (typeof callback === 'function') callback(true);
-        })
-        .catch(error => {
-            console.error('Error updateCompany:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+//TOOD crear comentarios
+export const UpdateCompany = (company) => responseDb('updateCompany', [company]);
 
-//TODO añadir comentarios
-export function DeleteCompany(nif, callback) {
-    window.dbAPI.deleteCompany(nif)
-        .then(() => {
-            if (typeof callback === 'function') callback(true);
-        })
-        .catch(error => {
-            console.error('Error deleteCompany:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+//TOOD crear comentarios
+export const DeleteCompany = (nif) => responseDb('deleteCompany', [nif]);
 
-//TODO añadir comentarios
-export function GetCourses(dni, callback) {
-    window.dbAPI.getCourses(dni)
-        .then(course => {
-            if (typeof callback === 'function') callback(true, course);
-        })
-        .catch(error => {
-            console.error('Error getCourses:', error);
-            if (typeof callback === 'function') callback(false, error);
-        });
-}
+//TOOD crear comentarios
+export const GetCourses = (dni) => responseDb('getCourses', [dni]);
+
+//TOOD crear comentarios
+export const GetDocuments = (nif) => responseDb('getDocuments', [nif]);
+
+//TOOD crear comentarios
+export const GetDocument = (id) => responseDb('getDocument', [id]);
+
+//TOOD crear comentarios
+export const SetDocuments = (nif, documents) => responseDb('insertDocuments', [nif, documents]);
+
+//TOOD crear comentarios
+export const UpdateDocument = (document) => responseDb('updateDocument', [document]);
+
+//TOOD crear comentarios
+export const DeleteDocument = (id) => responseDb('deleteDocument', [id]);
+
+//TOOD crear comentarios
+export const GetEmployeesByDocument = (idDoc) => responseDb('getEmployeesByDocument', [idDoc]);
+
+//TOOD crear comentarios
+export const SetEmployeeByDocument = (employee, document, date) => responseDb('insertEmployeeByDocument', [employee, document, date]);
+
+//TOOD crear comentarios
+export const UpdateEmployeeByDocument = (employeeByDocument) => responseDb('updateEmployeeByDocument', [employeeByDocument]);
+
+//TOOD crear comentarios
+export const DeleteEmployeeByDocument = (id) => responseDb('deleteEmployeeByDocument', [id]);

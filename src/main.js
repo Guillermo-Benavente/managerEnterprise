@@ -2,12 +2,14 @@ import { app, BrowserWindow } from 'electron';
 import started from 'electron-squirrel-startup';
 import Database from './main/database.js';
 import handler from './main/handler.js';
+import server from './main/server.js';
 
 if (started) {
   app.quit();
 }
 
 const Db = new Database();
+let serverInstance;
 
 const createWindow = async () => {
   const mainWindow = new BrowserWindow({
@@ -19,7 +21,6 @@ const createWindow = async () => {
       nodeIntegration: false,
       contextIsolation: true,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      
     }
   })
 
@@ -34,7 +35,13 @@ const createWindow = async () => {
 
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     details.responseHeaders['Content-Security-Policy'] = [
-      "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none';"
+      `default-src 'self'; 
+       frame-src 'self' ${server.getServer()}; 
+       style-src 'self' 'unsafe-inline'; 
+       script-src 'self'; 
+       object-src 'self' ${server.getServer()}; 
+       img-src 'self' data:; 
+       connect-src 'self' ${server.getServer()}`
     ];
     callback({ cancel: false, responseHeaders: details.responseHeaders });
   });
@@ -44,10 +51,13 @@ const createWindow = async () => {
   //mainWindow.webContents.openDevTools();
 }
 
+app.disableHardwareAcceleration();
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  serverInstance = await server.startServer();
   createWindow();
 
   // On OS X it's common to re-create a window in the app when the
@@ -66,6 +76,9 @@ app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
     try {
       const dbMessage = await Db.close();
+      serverInstance.close(() => {
+          console.log('Servidor Express cerrado.');
+      });
       console.log(dbMessage);
       app.quit();
     } catch (err) {

@@ -1,8 +1,9 @@
 import { app } from 'electron';
 import { verbose } from 'sqlite3';
-import { join, dirname } from 'path';
-import { promises as fspromise, createWriteStream } from 'fs';
-const { mkdir } = fspromise;
+import { join } from 'path';
+import { promises as fspromise } from 'fs';
+import { SaveFile } from './FileWriter.js';
+const { rm } = fspromise;
 const sqlite = verbose();
 
 class Database {
@@ -32,6 +33,40 @@ class Database {
     }
 
     /**
+     * Función genérica para ejecutar cualquier sentencia SQL.
+     * @param {object} db - La conexión a la base de datos.
+     * @param {string} sql - La sentencia SQL a ejecutar.
+     * @param {Array} params - Array de parámetros para la sentencia.
+     * @param {('run'|'get'|'all')} method - Método a utilizar:
+     *   - 'run' para INSERT, UPDATE, DELETE.
+     *   - 'get' para obtener una sola fila.
+     *   - 'all' para obtener todas las filas.
+     * @param {string} errorMsg - Prefijo del mensaje de error para identificar la operación.
+     * @param {function} [onSuccess] - Función opcional para procesar el contexto "this" en 'run' (por ejemplo, lastID o changes).
+     * @returns {Promise<any>} - Promesa que se resuelve con el resultado de la consulta o modificación.
+     */
+    async executeSQL(db, method = 'run', sql, params = [], errorMsg, onSuccess) {
+        return new Promise((resolve, reject) => {
+            try {
+                const stmt = db.prepare(sql);
+                stmt[method](...params, function (error, result) {
+                    if (error) {
+                        console.error(`${errorMsg}:`, error);
+                        reject(error);
+                    } else {
+                        // Si se define onSuccess, se ejecuta con el contexto del statement
+                        resolve(onSuccess ? onSuccess.call(this) : result);
+                    }
+                });
+                stmt.finalize();
+            } catch (error) {
+                console.error(`${errorMsg} (excepción):`, error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
     * Inicializa la base de datos SQLite si no ha sido creada previamente.
     * Establece la conexión a la base de datos y verifica la existencia de las tablas requeridas
     * ('employee', 'company' y 'course'). Si las tablas no existen, las crea junto con los índices necesarios.
@@ -49,9 +84,10 @@ class Database {
     */
     async InitializeDatabaseAsync() {
         try {
-            await this.db;
+            const db = await this.db;
             const checking = await this.CheckTablesExistAsync();
             if (!checking.exists) await this.CreateTablesAsync(checking.rows);
+            await this.executeSQL(db, 'run', 'PRAGMA foreign_keys = ON;', [], 'Error al habilitar claves foráneas');
         } catch (error) {
             console.error('Error durante la inicialización de la base de datos:', error);
         }
@@ -74,23 +110,15 @@ class Database {
      */
     async CheckTablesExistAsync() {
         const db = await this.db;
-
-        return new Promise((resolve, reject) => {
-            const query = db.prepare(`
-                SELECT name 
+        const tables = ['employee', 'company', 'course', 'documents', 'employeebydocument'];
+        const rows = await this.executeSQL(db,'all',
+            `SELECT name 
                 FROM sqlite_master 
-                WHERE type='table' AND name IN ('employee', 'company', 'course')
-            `);
-
-            query.all((error, rows) => {
-                if (error) {
-                    console.error("Error al verificar la existencia de las tablas:", error.message);
-                    reject(error);
-                } else resolve({ exists: rows.length === 3, rows });
-            });
-
-            query.finalize();
-        });
+                WHERE type='table' AND name IN (${tables.map(() => '?').join(', ')})`,
+            tables,
+            'Error al verificar la existencia de las tablas'
+        );
+        return {exists: rows.length === tables.length, rows: rows};
     }
 
     /**
@@ -131,25 +159,7 @@ class Database {
     async GetEmployees() {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM employee');
-
-                query.all((error, rows) => {
-                    if (error) {
-                        console.error('Error al obtener los empleados:', error);
-                        reject(error);
-                    } else {
-                        resolve(rows);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM employee', [], 'Error al obtener los empleados');
     }
 
     /**
@@ -167,50 +177,27 @@ class Database {
     async GetCompanies() {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM company');
-
-                query.all((error, rows) => {
-                    if (error) {
-                        console.error('Error al obtener las empresas:', error);
-                        reject(error);
-                    } else {
-                        resolve(rows);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM company', [], 'Error al obtener las empresas');
     }
 
     //TODO crear comentarios
     async GetCourses(dni) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM course WHERE employee = ?');
+        return this.executeSQL(db, 'all', 'SELECT * FROM course WHERE employee = ?', [dni], 'Error al obtener los cursos');
+    }
 
-                query.all([dni], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener los cursos:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
+    //TODO crear comentarios
+    async GetDocuments(nif) {
+        const db = await this.db;
 
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'all', 'SELECT * FROM documents WHERE company = ?', [nif], 'Error al obtener los documentos');
+    }
+
+    async GetEmployeesByDocument(idDoc) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'all', 'SELECT * FROM employeebydocument WHERE document = ?', [idDoc], 'Error al obtener los empleados del documento');
     }
 
     /**
@@ -229,25 +216,7 @@ class Database {
     async GetEmployee(dni) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM employee WHERE dni = ?');
-
-                query.get([dni], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener el empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'get', 'SELECT * FROM employee WHERE dni = ?', [dni], 'Error al obtener el empleado');
     }
 
     /**
@@ -266,25 +235,14 @@ class Database {
     async GetCompany(nif) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare('SELECT * FROM company WHERE nif = ?');
+        return this.executeSQL(db, 'get', 'SELECT * FROM company WHERE nif = ?', [nif], 'Error al obtener la empresa');
+    }
 
-                query.get([nif], (error, row) => {
-                    if (error) {
-                        console.error('Error al obtener la empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve(row);
-                    }
-                });
+    //TODO crear comentarios
+    async GetDocument(id) {
+        const db = await this.db;
 
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la consulta:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'get', 'SELECT * FROM documents WHERE id = ?', [id], 'Error al obtener el documento');
     }
 
     /**
@@ -308,28 +266,12 @@ class Database {
     async InsertEmployee(dni, name, first_surname, second_surname, discharge_date, courses) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, courses)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `);
-
-                query.run(dni, name, first_surname, second_surname, discharge_date, courses, (error) => {
-                    if (error) {
-                        console.error('Error al insertar un empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al insertar un empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', 
+            `INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, courses)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+            [dni, name, first_surname, second_surname, discharge_date, courses],
+            'Error al insertar un empleado'
+        );
     }
 
     /**
@@ -351,28 +293,12 @@ class Database {
     async InsertCompany(nif, name, telephone, registration_date) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    INSERT INTO company (nif, name, telephone, registration_date)
-                    VALUES (?, ?, ?, ?)
-                `);
-
-                query.run(nif, name, telephone, registration_date, (error) => {
-                    if (error) {
-                        console.error('Error al insertar una empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la insercion de la empresa:', error);
-                reject(error); 
-            }
-        });
+        return this.executeSQL(db, 'run',
+            `INSERT INTO company (nif, name, telephone, registration_date)
+                VALUES (?, ?, ?, ?)`,
+            [nif, name, telephone, registration_date],
+            'Error al insertar insertar una empresa'
+        );
     }
 
     //TODO crear comentarios
@@ -382,43 +308,16 @@ class Database {
         const coursePath = join(app.getPath('userData'), 'courses', dni, `${id}.pdf`);
 
         try {
-            await mkdir(dirname(coursePath), { recursive: true });
+            await SaveFile(coursePath, course.data);
 
-            const courseBuffer = Buffer.from(course.data, 'base64');
+            await this.executeSQL(db, 'run',
+                `INSERT INTO course (id, name, employee, url)
+                    VALUES (?, ?, ?, ?)`,
+                [id, course.name, dni, coursePath],
+                'Error al insertar un curso'
+            );
 
-            await new Promise((resolve, reject) => {
-                const writeStream = createWriteStream(coursePath);
-                writeStream.write(courseBuffer);
-                writeStream.end();
-
-                writeStream.on('finish', resolve);
-                writeStream.on('error', reject);
-            });
-
-            const coursePathInserted = await new Promise((resolve, reject) => {
-                try {
-                    const query = db.prepare(`
-                        INSERT INTO course (id, name, employee, url)
-                        VALUES (?, ?, ?, ?)
-                    `);
-
-                    query.run(id, course.name, dni, coursePath, function (error) {
-                        if (error) {
-                            console.error('Error al insertar un curso:', error);
-                            reject(error);
-                        } else {
-                            resolve(coursePath);
-                        }
-                    });
-
-                    query.finalize();
-                } catch (error) {
-                    console.error('Error al ejecutar la inserción del curso:', error);
-                    reject(error); 
-                }
-            });
-
-            return coursePathInserted;
+            return id;
         } catch (error) {
             console.error('Error al crear la ruta del curso a guardar:', error);
         }
@@ -433,13 +332,62 @@ class Database {
                 const result = await this.InsertCourse(dni, course);
                 results.push(result);
             }
-
-            console.info('Todos los cursos se han procesado correctamente.');
             return results;
         } catch (error) {
             console.error('Error al procesar los cursos:', error);
             throw error;
         }
+    }
+
+    //TODO crear comentarios
+    async InsertDocument(nif, document) {
+        const db = await this.db;
+        const id = nif + Date.now();
+        const documentPath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
+
+        try {
+            await SaveFile(documentPath, document.buffer);
+
+            await this.executeSQL(db, 'run',
+                `INSERT INTO documents (id, name, company, content, url)
+                    VALUES (?, ?, ?, ?, ?)`,
+                [id, document.name, nif, JSON.stringify(document.content), documentPath],
+                'Error al insertar un documento'
+            );
+
+            return id;
+        } catch (error) {
+            console.error('Error al crear la ruta del documento a guardar:', error);
+        }
+    }
+
+    //TODO crear comentarios
+    async InsertDocuments(nif, documents) {
+        try {
+            const results = [];
+
+            for (const document of documents) {
+                const result = await this.InsertDocument(nif, document);
+                results.push(result);
+            }
+            return results;
+        } catch (error) {
+            console.error('Error al procesar los documentos:', error);
+            throw error;
+        }
+    }
+
+    //TODO crear comentarios
+    async InsertEmployeeByDocument(employee, document, date) {
+        const db = await this.db;
+        const id = employee + Date.now();
+
+        return this.executeSQL(db, 'run',
+            `INSERT INTO employeebydocument (id, employee, document, date)
+                VALUES (?, ?, ?, ?)`,
+            [id, employee, document, date],
+            'Error al insertar una referencia del documento del empleado'
+        );
     }
 
     /**
@@ -466,29 +414,13 @@ class Database {
     async UpdateEmployee(dni, name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, courses) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    UPDATE employee
-                    SET name = ?, first_surname = ?, second_surname = ?, discharge_date = ?, leave_date = ?, medical_leave_date = ?, medical_discharge_date = ?, courses = ?
-                    WHERE dni = ?
-                `);
-
-                query.run(name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, courses, dni, (error) => {
-                    if (error) {
-                        console.error('Error al actualizar un empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la actualizacion del empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', 
+            `UPDATE employee
+                SET name = ?, first_surname = ?, second_surname = ?, discharge_date = ?, leave_date = ?, medical_leave_date = ?, medical_discharge_date = ?, courses = ?
+                WHERE dni = ?`,
+            [name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, courses, dni],
+            'Error al actualizar un empleado'
+        );
     }
 
     /**
@@ -510,29 +442,61 @@ class Database {
     async UpdateCompany(nif, name, telephone, registration_date) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
+        return this.executeSQL(db, 'run',
+            `UPDATE company
+                SET name = ?, telephone = ?, registration_date = ?
+                WHERE nif = ?`,
+            [name, telephone, registration_date, nif],
+            'Error al actualizar una empresa'
+        );
+    }
+
+    //TODO Crear comentarios
+    async UpdateDocument(id, name, nif = null, content = null, buffer = null) {
+        const db = await this.db;
+
+        if (nif && buffer) {
+            const documentPath = join(app.getPath('userData'), 'documents', nif, `${id}.pdf`);
             try {
-                const query = db.prepare(`
-                    UPDATE company
-                    SET name = ?, telephone = ?, registration_date = ?
-                    WHERE nif = ?
-                `);
-
-                query.run(name, telephone, registration_date, nif, (error) => {
-                    if (error) {
-                        console.error('Error al actualizar una empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
+                await rm(documentPath);
+                await SaveFile(documentPath, buffer);
             } catch (error) {
-                console.error('Error al ejecutar la actualizacion de la empresa:', error);
-                reject(error);
+                console.error('Error al guardar el archivo del documento:', error);
+                throw error;
             }
-        });
+        }
+
+        try {
+            const result = await this.executeSQL(
+                db,
+                'run',
+                content
+                    ? `UPDATE documents SET name = ?, content = ? WHERE id = ?`
+                    : `UPDATE documents SET name = ? WHERE id = ?`,
+                content
+                    ? [name, JSON.stringify(content), id]
+                    : [name, id],
+                'Error al actualizar el documento'
+            );
+
+            return result;
+        } catch (error) {
+            console.error('Error al actualizar el documento en la base de datos:', error);
+            throw error;
+        }
+    }
+
+    //TODO Crear comentarios
+    async UpdateEmployeeByDocument(id, date) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'run',
+            `UPDATE employeebydocument
+                SET date = ?
+                WHERE id = ?`,
+            [date, id],
+            'Error al actualizar el empleado del documento'
+        );
     }
 
     /**
@@ -551,27 +515,7 @@ class Database {
     async DeleteEmployee(dni) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const query = db.prepare(`
-                    DELETE FROM employee WHERE dni = ?
-                `);
-
-                query.run(dni, (error) => {
-                    if (error) {
-                        console.error('Error al eliminar un empleado:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-
-                query.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la eliminacion del empleado:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', `DELETE FROM employee WHERE dni = ?`, [dni]);
     }
 
     /**
@@ -590,27 +534,21 @@ class Database {
     async DeleteCompany(nif) {
         const db = await this.db;
 
-        return new Promise((resolve, reject) => {
-            try {
-                const deleteCompanyStmt = db.prepare(`
-                    DELETE FROM company WHERE nif = ?
-                `);
+        return this.executeSQL(db, 'run', 'DELETE FROM company WHERE nif = ?', [nif]);
+    }
 
-                deleteCompanyStmt.run(nif, (error) => {
-                    if (error) {
-                        console.error('Error al eliminar una empresa:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
+    //TODO Crear comentarios
+    async DeleteDocument(id) {
+        const db = await this.db;
 
-                deleteCompanyStmt.finalize();
-            } catch (error) {
-                console.error('Error al ejecutar la eliminacion de la empresa:', error);
-                reject(error);
-            }
-        });
+        return this.executeSQL(db, 'run', 'DELETE FROM documents WHERE id = ?', [id]);
+    }
+
+    //TODO Crear comentarios
+    async DeleteEmployeeByDocument(id) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'run', 'DELETE FROM employeebydocument WHERE id = ?', [id]);
     }
 
     /**
@@ -622,21 +560,41 @@ class Database {
      * @returns {Promise<void>} No retorna un valor explícito, pero crea las tablas necesarias.
      */
     async CreateTablesAsync(rows) {
-        const existingTables = rows.map(row => row.name);
+        const existingTables = new Set(rows.map(row => row.name));
 
-        if (!existingTables.includes('employee')) {
-            console.log("Creando tabla 'employee'...");
-            await this.CreateTableEmployeeAsync();
+        const tablesToCreate = {
+            employee: this.CreateTableEmployeeAsync,
+            company: this.CreateTableCompanyAsync,
+            course: this.CreateTableCourseAsync,
+            documents: this.CreateTableDocumentsAsync,
+            employeebydocument: this.CreateTableEmployeeByDocumentAsync
+        };
+
+        for (const [tableName, createMethod] of Object.entries(tablesToCreate)) {
+            if (!existingTables.has(tableName)) {
+                console.log(`Creando tabla '${tableName}'...`);
+                await createMethod.call(this);
+            }
         }
-        if (!existingTables.includes('company')) {
-            console.log("Creando tabla 'company'...");
-            await this.CreateTableCompanyAsync();
-        }
-        if (!existingTables.includes('course')) {
-            console.log("Creando tabla 'course'...");
-            await this.CreateTableCourseAsync();
-        } 
     }
+
+    //TODO Crear comentarios
+    async CreatePromisesTable(db, consults){
+        await new Promise((resolve, reject) => {
+            db.run(consults[0], (err) => err ? reject(err) : resolve());
+        });
+
+        if (consults.length > 1) {
+            await Promise.all(
+                consults.slice(1).map(consult =>
+                    new Promise((resolve, reject) => {
+                        db.run(consult, (err) => err ? reject(err) : resolve());
+                    })
+                )
+            );
+        }
+    }
+
 
     /**
      * Crea la tabla `employee` en la base de datos junto con sus índices si aún no existen.
@@ -650,73 +608,25 @@ class Database {
      * @date 2024-10-28
      * @author guillermob
      */
+    //TODO modificar
     async CreateTableEmployeeAsync() {
         const db = await this.db;
 
-        // Crea la tabla employee
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS employee (
-                    dni VARCHAR(9) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    first_surname VARCHAR(100) NOT NULL,
-                    second_surname VARCHAR(100),
-                    discharge_date DATE NOT NULL,
-                    leave_date DATE,
-                    medical_leave_date DATE,
-                    medical_discharge_date DATE,
-                    courses VARCHAR(100)
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla employee: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla employee creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla employee
-        await Promise.all([
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employee_name ON employee(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice employee_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employee_first_surname ON employee(first_surname);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice employee_first_surname: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS employee_second_surname ON employee(second_surname);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice employee_second_surname: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Indices de employee creados.');
-                        resolve();
-                    }
-                });
-            })
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS employee (
+                dni VARCHAR(9) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                first_surname VARCHAR(100) NOT NULL,
+                second_surname VARCHAR(100),
+                discharge_date DATE NOT NULL,
+                leave_date DATE,
+                medical_leave_date DATE,
+                medical_discharge_date DATE,
+                courses VARCHAR(100)
+            );`,
+            `CREATE INDEX IF NOT EXISTS employee_name ON employee(name);`,
+            `CREATE INDEX IF NOT EXISTS employee_first_surname ON employee(first_surname);`,
+            `CREATE INDEX IF NOT EXISTS employee_second_surname ON employee(second_surname);`
         ]);
     }
 
@@ -732,56 +642,19 @@ class Database {
      * @date 2024-10-28
      * @author guillermob
      */
+    //TODO modificar
     async CreateTableCompanyAsync() {
         const db = await this.db;
 
-        // Crea la tabla company
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS company (
-                    nif VARCHAR(15) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    telephone VARCHAR(15) NOT NULL,
-                    registration_date DATE
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla company: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla company creada.');
-                    resolve();
-                }
-            });
-        });
-
-        // Crea los índices para la tabla company
-        await Promise.all([
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS company_name ON company(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice company_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS company_telephone ON company(telephone);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el indice company_telephone: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Indices de company creados.');
-                        resolve();
-                    }
-                });
-            })
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS company (
+                nif VARCHAR(15) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                telephone VARCHAR(15) NOT NULL,
+                registration_date DATE
+            );`,
+            `CREATE INDEX IF NOT EXISTS company_name ON company(name);`,
+            `CREATE INDEX IF NOT EXISTS company_telephone ON company(telephone);`
         ]);
     }
 
@@ -797,56 +670,56 @@ class Database {
      * @date 2024-11-16
      * @author guillermob
      */
+    //TODO modificar
     async CreateTableCourseAsync() {
         const db = await this.db;
 
-        // Crea la tabla course
-        await new Promise((resolve, reject) => {
-            db.run(`
-                CREATE TABLE IF NOT EXISTS course (
-                    id VARCHAR(15) PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    employee VARCHAR(15) NOT NULL,
-                    url VARCHAR(255) NOT NULL
-                );
-            `, (err) => {
-                if (err) {
-                    console.error('Error al crear la tabla course: ' + err.message);
-                    reject(err);
-                } else {
-                    console.log('Tabla course creada.');
-                    resolve();
-                }
-            });
-        });
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS course (
+                id VARCHAR(15) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                employee VARCHAR(15) NOT NULL,
+                url VARCHAR(255) NOT NULL,
+                FOREIGN KEY (employee) REFERENCES employee(dni) ON DELETE CASCADE
+            );`,
+            `CREATE INDEX IF NOT EXISTS course_name ON course(name);`,
+            `CREATE INDEX IF NOT EXISTS course_employee ON course(employee);`
+        ]);
+    }
 
-        // Crea los índices para la tabla course
-        await Promise.all([
-                new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS course_name ON course(name);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice course_name: ' + err.message);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-            new Promise((resolve, reject) => {
-                db.run(`
-                    CREATE INDEX IF NOT EXISTS course_employee ON course(employee);
-                `, (err) => {
-                    if (err) {
-                        console.error('Error al crear el índice course_employee: ' + err.message);
-                        reject(err);
-                    } else {
-                        console.log('Indices de course creados.');
-                        resolve();
-                    }
-                });
-            })
+    //TODO crear comentarios
+    async CreateTableDocumentsAsync() {
+        const db = await this.db;
+
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS documents (
+                id VARCHAR(15) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                company VARCHAR(15) NOT NULL,
+                content TEXT NOT NULL,
+                url VARCHAR(255) NOT NULL,
+                FOREIGN KEY (company) REFERENCES company(nif) ON DELETE CASCADE
+            );`,
+            `CREATE INDEX IF NOT EXISTS documents_name ON documents(name);`,
+            `CREATE INDEX IF NOT EXISTS documents_company ON documents(company);`
+        ]); 
+    }
+
+    //TODO crear comentarios
+    async CreateTableEmployeeByDocumentAsync() {
+        const db = await this.db;
+
+        await this.CreatePromisesTable(db, [
+            `CREATE TABLE IF NOT EXISTS employeebydocument (
+                id VARCHAR(15) PRIMARY KEY,
+                employee VARCHAR(15) NOT NULL,
+                document VARCHAR(15) NOT NULL,
+                date DATE NOT NULL,
+                FOREIGN KEY (employee) REFERENCES employee(dni) ON DELETE CASCADE,
+                FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
+            );`,
+            `CREATE INDEX IF NOT EXISTS employeebydocument_employee ON employeebydocument(employee);`,
+            `CREATE INDEX IF NOT EXISTS employeebydocument_document ON employeebydocument(document);`
         ]);
     }
 }

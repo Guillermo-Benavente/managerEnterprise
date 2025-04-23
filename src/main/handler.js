@@ -1,7 +1,7 @@
-import { ipcMain } from 'electron';
+import { ipcMain, BrowserWindow, dialog } from 'electron';
+import server from './server';
 import util from './util';
-import path from 'path';
-import { access } from 'fs/promises';
+import { SaveFile } from './FileWriter';
 
 function AddDatabaseHandlers(db) {
     /// TABLE METHODS EMPLOYED ///
@@ -149,6 +149,109 @@ function AddDatabaseHandlers(db) {
         }
     });
 
+    /// TABLE METHODS DOCUMENTS ///
+
+    ipcMain.handle('get-documets', async (_, nif) => {
+        try { return await db.GetDocuments(nif); } 
+        catch (err) { 
+            console.error('Error al intentar obtener los documentos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('get-documet', async (_, id) => {
+        try { return await db.GetDocument(id); } 
+        catch (err) { 
+            console.error('Error al intentar obtener el documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+
+    ipcMain.handle('insert-documents', async (_, nif, documents) => {
+        try {
+            return await db.InsertDocuments(
+                nif, 
+                documents
+            );
+        } catch (err) {
+            console.error('Error al intentar insertar los docmuentos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('update-document', async (_, document) => {
+        try {
+            await db.UpdateDocument(
+                document.id,
+                document.name, 
+                document.nif,
+                document.content,
+                document.buffer
+            );
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar actualizar el docmuento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('delete-document', async (_, id) => {
+        try {
+            await db.DeleteDocument(id);
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar borrar el documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    /// TABLE METHODS EMPLOYEEBYDOCUMENT///
+
+    ipcMain.handle('get-employee-document', async (_, idDoc) => {
+        try { return await db.GetEmployeesByDocument(idDoc); }
+        catch (err) { 
+            console.error('Error al intentar obtener los empleados del documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('insert-employee-document', async (_, employee, document, date) => {
+        try {
+            return await db.InsertEmployeeByDocument(
+                employee, 
+                document,
+                date
+            );
+        } catch (err) {
+            console.error('Error al intentar crear la referencia entre empleado y documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('update-employee-document', async (_, employeeByDocument) => {
+        try {
+            await db.UpdateEmployeeByDocument(
+                employeeByDocument.id,
+                employeeByDocument.date
+            );
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar actualizar la empresa:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('delete-employee-document', async (_, id) => {
+        try {
+            await db.DeleteEmployeeByDocument(id);
+            return { success: true };
+        } catch (err) {
+            console.error('Error al intentar borrar el empleado del documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
     console.log('Cargado los handlers de Database correctamente.');
 }
 
@@ -166,17 +269,110 @@ function AddUtilHandlers() {
 }
 
 function AddPathHandlers(mainWindow) {
+    const serverURL = 'http://localhost:3000';
+
+    ipcMain.handle('get-server', () => server.getServer());
+
     ipcMain.on('navigate', async (_, page, attr) => {
         let filePath = '';
-        const serverURL = 'http://localhost:3000';
-
         if (page != '') filePath = `${serverURL}/${page}/index.html`;
-        console.log(attr)
         if (attr && typeof attr === 'object')
             filePath += `?${new URLSearchParams(attr).toString()}`;
-
-        console.log(filePath);
         if (filePath != '') mainWindow.loadURL(filePath);
+    });
+
+    ipcMain.on('modal-window', async (_, page, attr) => {
+        let filePath = '';
+
+        const parentWindow = BrowserWindow.getFocusedWindow() || mainWindow;
+
+        let modal = new BrowserWindow({
+            width: 800,
+            height: 600,
+            parent: parentWindow,
+            modal: true,
+            show: false,
+            //resizable: false,
+            webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            }
+        });
+
+        if (page != '') filePath = `${serverURL}/${page}/index.html`;
+        if (attr && typeof attr === 'object')
+            filePath += `?${new URLSearchParams(attr).toString()}`;
+        if (filePath != '') modal.loadURL(filePath);
+        
+        modal.once('ready-to-show', () => {
+            modal.webContents.executeJavaScript(`
+                new Promise(resolve => {
+                    const body = document.body;
+                    const width = body.scrollWidth;
+                    const height = body.scrollHeight;
+                    resolve({ width, height });
+                });
+            `).then(size => {
+                const newWidth = Math.min(size.width + 85, 800);
+                const newHeight = Math.min(size.height + 85, 600);
+                const { width: screenWidth, height: screenHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+                const newX = Math.round((screenWidth - newWidth) / 2);
+                const newY = Math.round((screenHeight - newHeight) / 2);
+                modal.setBounds({ x: Math.round(newX), y: Math.round(newY), width: newWidth, height: newHeight });
+            });
+
+            modal.show();
+        });
+        ipcMain.on('modal-send', (_, data) => {
+            parentWindow.webContents.send('modal-response', data);
+        });
+
+        modal.on('closed', () => { modal = null; });
+    });
+
+    ipcMain.on('dialog-window', async (_, type, title, message) => {
+        const options = {
+            question: { buttons: ['Yes', 'No', 'Cancel'], defaultId: 1 },
+            warning: { buttons: ['OK', 'Cancel'], defaultId: 0 },
+            error: { buttons: ['Close'], defaultId: 0 },
+            info: { buttons: ['OK', 'Más información'], defaultId: 0 }
+        };
+
+        const { buttons, defaultId } = options[type] || { buttons: ['OK'], defaultId: 0 };
+
+        const response = dialog.showMessageBoxSync(mainWindow, {
+            type: type,
+            title: title,
+            message: message,
+            buttons: buttons,
+            defaultId: defaultId,
+            modal: true
+        });
+
+        mainWindow.webContents.send('dialog-response', buttons[response]);
+    });
+
+    ipcMain.handle('save-dialog', async (event, options) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        const { canceled, filePath } = await dialog.showSaveDialog(win, options);
+        return canceled ? null : filePath;
+    });
+
+    ipcMain.handle('open-dialog', async (event, options) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        const { canceled, filePaths } = await dialog.showOpenDialog(win, options);
+        return canceled || filePaths.length === 0 ? null : filePaths[0];
+    });
+
+    ipcMain.handle('save-file', async (_, filePath, base64Data) => {
+        try {
+            await SaveFile(filePath, base64Data);
+            return { success: true };
+        } catch (error) {
+            console.error('Error al modificar el SVG:', error);
+            return { success: false, error: error.message };
+        }
     });
 }
 

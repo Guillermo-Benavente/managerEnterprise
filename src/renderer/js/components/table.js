@@ -1,9 +1,9 @@
 import DeleteImage from 'Assets/img/delete.svg';
+import CreateImage from 'Assets/img/pdf.svg';
 import DataTable from 'datatables.net-dt';
 import { UploadImages } from 'Components/button.js';
-import { AddElement, Navigate } from 'Components/controlAPI.js';
-import { AlertWindow } from 'Components/window.js';
-import Alert from 'Types/alert.js'
+import { Navigate, Dialog } from 'Components/controlAPI.js';
+import DIALOG_TYPE from 'Types/dialog.js'
 
 export default class Table {
     constructor(id, dataType, columns = null){
@@ -19,12 +19,12 @@ export default class Table {
 
         this.dataTable = new DataTable('#'+id, {
             pageLength: 4,
-            lengthMenu: [4, 8, 12, 24, 48],
+            lengthMenu: [4, 10, 20, 50],
             columnDefs: columnFormat,
             language: {
                 search: "Buscar:",
                 lengthMenu: "Mostrar _MENU_ registros por página",
-                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                info: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
                 infoEmpty: "No hay registros disponibles",
                 infoFiltered: "(filtrado de _MAX_ registros en total)",
                 loadingRecords: "Cargando...",
@@ -36,6 +36,14 @@ export default class Table {
                 }
             }
         });
+
+        this._interactiveRowActions = {
+            navigation: null,
+            deletion: null,
+            creation: null
+        };
+
+        this._setupInteractiveRowHandler();
     }
 
     init(data){
@@ -47,12 +55,10 @@ export default class Table {
         let header = document.createElement('thead');
         let row = document.createElement('tr');
 
-        Object.keys(this.dataType).forEach(key => { 
-            if(this.dataType[key].showTable){
-                let th = document.createElement('th');
-                th.textContent = this.dataType[key].name.charAt(0).toUpperCase() + this.dataType[key].name.slice(1);
-                row.appendChild(th);
-            }
+        Object.keys(this.dataType).filter(key => this.dataType[key].showTable).forEach(key => { 
+            let th = document.createElement('th');
+            th.textContent = this.dataType[key].name.charAt(0).toUpperCase() + this.dataType[key].name.slice(1);
+            row.appendChild(th);
         });
         let actions = document.createElement('th');
         actions.textContent = 'Acciones';
@@ -65,34 +71,73 @@ export default class Table {
 
     body(data){ data.forEach(row => { this.addRow(row); }); }
 
-    addInteractiveRow(page, message, callback){
+    _setupInteractiveRowHandler() {
         const table = this.dataTable;
 
-        table.on('click', 'tbody tr', (event) => {
-            if (event.target.classList.contains('tbl-row-del')) {
-                event.stopPropagation();
-                const dni = event.target.closest('tr').children[0].textContent;
-                AddElement(AlertWindow(Alert.WARNING, message, (success) => { if (success) callback(dni); }));
-            } else if (event.target.closest('tr')) {
-                const row = event.target.closest('tr');
-                const idKey = row.children[0].textContent;
-                Navigate(page, {id:idKey} );
+        table.on('click', 'tbody tr', async (event) => {
+            const row = event.target.closest('tr');
+            if (row) {
+                const actions = this._interactiveRowActions;
+
+                if (actions.deletion && event.target.classList.contains('tbl-row-del')) {
+                    const { message, callback } = actions.deletion;
+                    const result = await Dialog('Eliminar', message, DIALOG_TYPE.WARNING);
+                    if (result) callback(row.id);
+
+                } else if (actions.creation && event.target.classList.contains('tbl-row-create')) {
+                    const { message, callback } = actions.creation;
+                    const result = await callback(row.id);
+                    if (result) await Dialog('Información', message, DIALOG_TYPE.INFO);
+
+                } else if (actions.navigation) {
+                    const { page, backId } = actions.navigation;
+                    Navigate(page, { id: row.id, backId: backId });
+                }
             }
         });
+
         table.on('draw.dt', () => { UploadImages(); });
-        UploadImages();
+    }
+
+    addInteractiveRowNavigation(page, backId = null) {
+        this._interactiveRowActions.navigation = { page, backId };
+    }
+
+    addInteractiveRowDelete(message, callback) {
+        this._interactiveRowActions.deletion = { message, callback };
+    }
+
+    addInteractiveRowCreate(message, callback) {
+        this._interactiveRowActions.creation = { message, callback };
+    }
+
+    _interactiveButtonsActions() {
+
+        let actions = document.createElement('div');
+
+        if (this._interactiveRowActions.creation != null) {
+            let createBtn = document.createElement('span');
+            createBtn.className = 'btn-img btn-link tbl-row-create';
+            createBtn.setAttribute('data-img', CreateImage);
+            actions.appendChild(createBtn);
+        }
+
+        if (this._interactiveRowActions.deletion != null) {
+            let deleteBtn = document.createElement('span');
+            deleteBtn.className = 'btn-img btn-link tbl-row-del';
+            deleteBtn.setAttribute('data-img', DeleteImage);
+            actions.appendChild(deleteBtn);
+        }
+
+        return actions;
     }
 
     addRow(data) {
         let tr = Object.keys(data)
             .filter(key => this.dataType[key].showTable)
             .map(key => data[key]);
-
-        let deleteBtn = document.createElement('span');
-        deleteBtn.className = 'btn-img btn-link tbl-row-del';
-        deleteBtn.setAttribute('data-img', DeleteImage);
         
-        tr.push(deleteBtn);
+        tr.push(this._interactiveButtonsActions());
 
         tr.DT_RowId = data[Object.keys(data)[0]]; 
 

@@ -2,7 +2,11 @@
     margin-top: 20px;
     display: flex;
     justify-content: center;
-    gap: 15px;
+    align-items: center;
+}
+
+.frm-cnt2 {
+    margin-top: 10px;
 }
 
 .frm {
@@ -30,7 +34,7 @@
         }
     }
 
-    input[type="submit"] { margin-top: auto; }
+    input[type="submit"] { margin-top: 5px; }
 
     td:has(input):has(span) input[type="date"] { width: 67% !important; }
 
@@ -44,6 +48,36 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+}
+
+form > fieldset.selector{
+    div{
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 150px;
+        user-select: none;
+        -webkit-user-select: none;
+        border: 1px solid var(--form-selector-border-items);
+        border-radius: 5px;
+        transition: background-color 0.5s ease;
+
+        * { margin: 5px 5px 5px 0; }
+
+        label { 
+            flex-grow: 1;
+            padding: 5px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+    }
+
+    div:has(input[type="checkbox"]:checked) {
+        background-color: var(--form-selector-checked-items);
     }
 }
 

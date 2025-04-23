@@ -45,6 +45,22 @@ module.exports = {
               },
             },
             {
+              html: './src/renderer/html/modal/form.html',
+              js: './src/renderer/js/pages/modal/form.js',
+              name: 'form',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
+              html: './src/renderer/html/modal/formdocument.html',
+              js: './src/renderer/js/pages/modal/formdocument.js',
+              name: 'formdocument',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
               html: './src/renderer/html/employees.html',
               js: './src/renderer/js/pages/employees.js',
               name: 'employees',
@@ -80,6 +96,22 @@ module.exports = {
               html: './src/renderer/html/companies/edit.html',
               js: './src/renderer/js/pages/companies/edit.js',
               name: 'editcompanies',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
+              html: './src/renderer/html/companies/createdocument.html',
+              js: './src/renderer/js/pages/companies/createdocument.js',
+              name: 'createdocument',
+              preload: {
+                js: './src/preload.js',
+              },
+            },
+            {
+              html: './src/renderer/html/companies/documents/edit.html',
+              js: './src/renderer/js/pages/companies/documents/edit.js',
+              name: 'editdocument',
               preload: {
                 js: './src/preload.js',
               },
