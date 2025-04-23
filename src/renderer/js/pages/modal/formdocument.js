@@ -1,7 +1,7 @@
 import { DOM, GetElement, CreateElement, AddElement, SendModalResponse, Dialog} from 'Components/controlAPI.js';
 import { DOCUMENT, DOCUMENTBYEMPLOYEES, EMPLOYEE, FormatEmployee, GetEmployees, GetEmployeesByDocument, GetDocument } from 'Components/dbAPI.js';
-import DIALOG_TYPE from 'Types/dialog.js';
 import Fieldset from 'Components/form.js';
+import DIALOG_TYPE from 'Types/dialog.js';
 import FORM_TYPE from 'Types/form.js';
 
 DOM(async() => {

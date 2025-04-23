@@ -4,6 +4,7 @@ import { newPdf } from 'Components/createPdf.js'
 import VariableInline from 'Components/editor/variableInline.js'
 import DIALOG_TYPE from 'Types/dialog.js';
 import VAR_INLINE_NAME from 'Types/varInlineName';
+import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
 import EditorJS from '@editorjs/editorjs';
 import Header from  '@editorjs/header' ; 
 import List from  '@editorjs/list' ;
@@ -178,6 +179,6 @@ function registerCreateHandler(documentId, document, companyId, editor) {
 }
 
 function registerBackHandler(documentId, companyId) {
-    if(documentId) AddEvent('.pgBack', 'click', () => { Navigate('editdocument', {id:documentId, backId: companyId}); });
-    else AddEvent('.pgBack', 'click', () => { Navigate('editcompanies', {id:companyId}); });
+    if(documentId) AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_DOCUMENT, {id:documentId, backId: companyId}); });
+    else AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_COMPANY, {id:companyId}); });
 }

@@ -1,7 +1,8 @@
 import { DOM, AddEvent, Navigate, Dialog } from 'Components/controlAPI.js';
 import { COURSE, GetCourses } from 'Components/dbAPI.js';
-import DIALOG_TYPE from 'Types/dialog.js';
 import Table from 'Components/table.js';
+import DIALOG_TYPE from 'Types/dialog.js';
+import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
 
 DOM(async() => {
     const employeeId = new URLSearchParams(window.location.search).get('id');
@@ -17,7 +18,7 @@ function initTable(employeeId) {
         { width: "100px", targets: 1 }
     ]);
 
-    table.addInteractiveRowNavigation('viewcourse', employeeId);
+    table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.VIEW_COURSE, employeeId);
     table.addInteractiveRowDelete('Vas a eliminar un curso ¿Estás Seguro?', async(id) => {
         try {
             await Delete(id)
@@ -42,5 +43,5 @@ async function loadCourses(employeeId, table) {
 }
 
 function registerBackHandler(employeeId) {
-    AddEvent('.pgBack', 'click', () => { Navigate('editemployees', {id:employeeId} ); });
+    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_EMPLOYEE, {id:employeeId} ); });
 }

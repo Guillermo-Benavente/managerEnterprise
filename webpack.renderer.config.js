@@ -28,7 +28,7 @@ module.exports = {
   resolve: {
     alias: {
       'Components': path.resolve(__dirname, './src/renderer/js/components'),
-      'Types': path.resolve(__dirname, './src/renderer/js/types'),
+      'Types': path.resolve(__dirname, './src/types'),
       'Styles': path.resolve(__dirname, './src/renderer/css/styles'),
       'PagesCSS': path.resolve(__dirname, './src/renderer/css/pages'),
       'Assets': path.resolve(__dirname, './src/assets'),

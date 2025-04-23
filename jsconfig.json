@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "paths": {
       "Components/*": ["src/renderer/js/components/*"],
-      "Types/*": ["src/renderer/js/types/*"],
+      "Types/*": ["src/types/*"],
       "Styles/*": ["src/renderer/css/styles/*"],
       "PagesCSS/*": ["src/renderer/css/pages/*"],
       "Assets/*": ["src/assets/*"],

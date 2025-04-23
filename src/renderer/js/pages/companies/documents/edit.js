@@ -2,6 +2,7 @@ import { DOM, AddEvent, Navigate, Modal, GetPdf, Dialog } from 'Components/contr
 import { SetEmployeeByDocument, UpdateEmployeeByDocument, DeleteEmployeeByDocument, GetDocument, UpdateDocument } from 'Components/dbAPI';
 import * as pdfjsLib from 'pdfjs-dist';
 import DIALOG_TYPE from 'Types/dialog.js';
+import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
 
 DOM(() => {
     const documentId = new URLSearchParams(window.location.search).get('id');
@@ -105,9 +106,9 @@ function registerCreateHandler(documentId) {
 }
 
 function registerEditHandler(companyId, documentId) {
-    AddEvent('.pgEdit', 'click', () => { Navigate('createdocument', {id:companyId, documentId: documentId}); });
+    AddEvent('.pgEdit', 'click', () => { Navigate(ENTRY_POINTS_TYPE.DOCUMENTS, {id:companyId, documentId: documentId}); });
 }
 
 function registerBackHandler(companyId) {
-    AddEvent('.pgBack', 'click', () => { Navigate('editcompanies', {id:companyId}); });
+    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_COMPANY, {id:companyId}); });
 }
