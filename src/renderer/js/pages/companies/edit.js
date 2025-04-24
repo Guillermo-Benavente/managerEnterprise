@@ -78,8 +78,9 @@ async function loadDocuments(companyId, table) {
                         const company = await GetCompany(documentData.company);
 
                         const employeeName = employee.name+ ' ' + employee.surnames;
+                        const copyContent = structuredClone(content);
 
-                        content.blocks.forEach((block) => {
+                        copyContent.blocks.forEach((block) => {
                             if (typeof block.data.text === 'string') {
                                 const parser = new DOMParser();
                                 const doc = parser.parseFromString(block.data.text, 'text/html');
@@ -108,7 +109,7 @@ async function loadDocuments(companyId, table) {
                         if (employeesData.length > 1) 
                             fileName = `${savePath}/${documentData.name}/${employeeName.replace(/\s+/g, '_').toLowerCase()}.pdf`;
 
-                        SaveFile(fileName, newPdf(content));
+                        SaveFile(fileName, newPdf(copyContent));
                     }
                 }
             } catch (err) {
