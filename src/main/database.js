@@ -538,6 +538,13 @@ class Database {
     }
 
     //TODO Crear comentarios
+    async DeleteCourse(id) {
+        const db = await this.db;
+
+        return this.executeSQL(db, 'run', 'DELETE FROM course WHERE id = ?', [id]);
+    }
+
+    //TODO Crear comentarios
     async DeleteDocument(id) {
         const db = await this.db;
 
@@ -622,7 +629,7 @@ class Database {
                 leave_date DATE,
                 medical_leave_date DATE,
                 medical_discharge_date DATE,
-                courses VARCHAR(100)
+                courses INTEGER DEFAULT 0
             );`,
             `CREATE INDEX IF NOT EXISTS employee_name ON employee(name);`,
             `CREATE INDEX IF NOT EXISTS employee_first_surname ON employee(first_surname);`,

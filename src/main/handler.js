@@ -144,7 +144,16 @@ function AddDatabaseHandlers(db) {
                 courses
             );
         } catch (err) {
-            console.error('Error al intentar insertar los cusrsos:', err);
+            console.error('Error al intentar insertar los cursos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('delete-course', async (_, id) => {
+        try {
+            return await db.DeleteCourse(id);
+        } catch (err) {
+            console.error('Error al intentar eliminar el curso:', err);
             return { success: false, error: err.message };
         }
     });

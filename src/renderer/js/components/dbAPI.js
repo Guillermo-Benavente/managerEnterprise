@@ -78,6 +78,15 @@ export const COMPANY = {
     }
 };
 
+export const COURSES = {
+    'courses': {
+        'name':'cursos',
+        'type':'file',
+        'accept':'.pdf',
+        'showForm':true
+    }
+}
+
 export const COURSE = {
     'id': {
         'name':'id',
@@ -282,6 +291,15 @@ export function FormatDbEmployee(employee) {
     };
 }
 
+export function FormatCourse(id, course) {
+    return {
+        id: id,
+        name: course.name,
+        employee: null,
+        url: null
+    };
+}
+
 //TOOD crear comentarios
 async function responseDb(apiMethod, params = []) {
   try {
@@ -456,6 +474,12 @@ export const UpdateEmployee = (employee) => responseDb('updateEmployee', [employ
  * @author guillermob
  */
 export const DeleteEmployee = (dni) => responseDb('deleteEmployee', [dni]);
+
+//TODO crear comentarios
+export const SetCourses = (dni, courses) => responseDb('insertCourses', [dni, courses]);
+
+//TODO crear comentarios
+export const DeleteCourse = (id) => responseDb('deleteCourse', [id]);
 
 /**
  * Obtiene una lista de empresas desde la API `window.dbAPI.getCompanies()` y ejecuta un callback con el resultado.
