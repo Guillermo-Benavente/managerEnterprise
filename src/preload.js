@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('dbAPI', {
   /// TABLE METHODS COURSES ///
   getCourses: (dni) => ipcRenderer.invoke('get-courses', dni),
   insertCourses: (dni, courses) => ipcRenderer.invoke('insert-courses', dni, courses),
+  deleteCourse: (id) => ipcRenderer.invoke('delete-course', id),
 
   /// TABLE METHODS DOCUMENTS ///
   getDocuments: (nif) => ipcRenderer.invoke('get-documets', nif),

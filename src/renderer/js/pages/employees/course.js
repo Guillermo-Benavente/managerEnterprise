@@ -1,5 +1,5 @@
-import { DOM, AddEvent, Navigate, Dialog } from 'Components/controlAPI.js';
-import { COURSE, GetCourses } from 'Components/dbAPI.js';
+import { DOM, AddEvent, Navigate, Dialog, Modal } from 'Components/controlAPI.js';
+import { COURSE, COURSES, DeleteCourse, FormatCourse, GetCourses, GetEmployee, SetCourses, UpdateEmployee } from 'Components/dbAPI.js';
 import Table from 'Components/table.js';
 import DIALOG_TYPE from 'Types/dialog.js';
 import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
@@ -10,6 +10,7 @@ DOM(async() => {
     registerBackHandler(employeeId);
     const table = initTable(employeeId);
     await loadCourses(employeeId, table);
+    registerCreateHandler(employeeId, table);
 });
 
 function initTable(employeeId) {
@@ -21,8 +22,9 @@ function initTable(employeeId) {
     table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.VIEW_COURSE, employeeId);
     table.addInteractiveRowDelete('Vas a eliminar un curso ¿Estás Seguro?', async(id) => {
         try {
-            await Delete(id)
+            await DeleteCourse(id);
             table.deleteRow(id);
+            updateEmployeeCourses(employeeId, -1);
         } catch (error) {
             console.error('Error al eliminar el curso:', error);
             Dialog('Error', 'No se ha podido eliminar el curso.', DIALOG_TYPE.ERROR);
@@ -42,6 +44,40 @@ async function loadCourses(employeeId, table) {
     }
 }
 
+function registerCreateHandler(employeeId, table) {
+    AddEvent('.wininCreate', 'click', () => {
+        Modal('form', { title: 'Nuevos cursos', dataType: JSON.stringify(COURSES) })
+        .then(async(model) => {
+            try {
+                const courses = model.courses;
+                const idCourses = await SetCourses(employeeId, courses);
+
+                const formatCourses = courses.map((value, index) => FormatCourse(idCourses[index], value));
+
+                if (formatCourses.length === 1) table.addRow(formatCourses[0]);
+                else formatCourses.forEach(course => {
+                    table.addRow(course);
+                });
+                updateEmployeeCourses(employeeId, formatCourses.length);
+            } catch (error) {
+                console.error('Error al abrir el modal:', error);
+                Dialog('Error', 'No se han podido añadir los cursos.', DIALOG_TYPE.ERROR);       
+            }
+        });
+    });
+}
+
 function registerBackHandler(employeeId) {
     AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_EMPLOYEE, {id:employeeId} ); });
+}
+
+async function updateEmployeeCourses(employeeId, courses) {
+    try {
+        const employee = await GetEmployee(employeeId);
+        employee.courses += courses;
+        await UpdateEmployee(employee);
+    } catch (error) {
+        console.error('Error al abrir el modal:', error);
+        Dialog('Error', 'No se han podido actualizar los cursos en el empleado.', DIALOG_TYPE.ERROR);       
+    }
 }
