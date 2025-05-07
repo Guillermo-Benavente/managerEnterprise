@@ -1,5 +1,5 @@
 import { DOM, AddEvent, Navigate, Modal, GetPdf, Dialog } from 'Components/controlAPI.js';
-import { SetEmployeeByDocument, UpdateEmployeeByDocument, DeleteEmployeeByDocument, GetDocument, UpdateDocument } from 'Components/dbAPI';
+import { SetEmployeeByDocument, UpdateEmployeeByDocument, DeleteEmployeeByDocument, GetDocument, UpdateDocument, GetEmployeeByDocument } from 'Components/dbAPI';
 import * as pdfjsLib from 'pdfjs-dist';
 import DIALOG_TYPE from 'Types/dialog.js';
 import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
@@ -43,15 +43,14 @@ function registerCreateHandler(documentId) {
             const tasks = [];
 
             try {
-                const document = await GetDocument(documentId);
+                let document = await GetDocument(documentId);
                 if(documentData.data.name != document.name) {
-                    const documentUpdate = { 
-                        id: documentId,
-                        name: documentData.data.name
-                    };
+                    console.log(document);
+                    document.name = documentData.data.name;
+                    console.log(document);
 
                     tasks.push(new Promise(async(resolve) => {
-                        await UpdateDocument(documentUpdate);
+                        await UpdateDocument(document);
                         resolve(true);
                     }));
                 }
@@ -59,16 +58,20 @@ function registerCreateHandler(documentId) {
                 console.error('Error al actualizar el documento:', error);
             }
 
+            //TODO mejorar la legibilidad de este codigo es un caos
             Object.keys(documentData.selector).forEach((key) => {
                 const value = documentData.selector[key];
                 const date = documentData.selector[key + 'date'] || null;
-                const docId = documentData.selector[key + 'docId-data-id'];
+                const ebdId = documentData.selector[key + 'docId-data-id'];
+                console.log(key,value,date,ebdId);
 
                 if (value?.toLowerCase?.() === 'on') {
-                    if (docId) {
+                    if (ebdId) {
                         tasks.push(new Promise(async(resolve) => {
                             try {
-                                await UpdateEmployeeByDocument({ id: docId, date});
+                                const ebd = await GetEmployeeByDocument(ebdId);
+                                ebd.date = date;
+                                await UpdateEmployeeByDocument(ebd);
                                 resolve(true);
                             } catch (error) {
                                 console.error('Error al actualizar la referencia del empleado:', error);
@@ -87,6 +90,7 @@ function registerCreateHandler(documentId) {
                 } else if (key.endsWith('docId-data-id') && !documentData.selector[key.slice(0, -13)]) {
                     tasks.push(new Promise(async(resolve) => {
                         try {
+                            console.log(value);
                             await DeleteEmployeeByDocument(value);
                             resolve(true);
                         } catch (error) {

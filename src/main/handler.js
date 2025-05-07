@@ -1,13 +1,24 @@
-import { ipcMain, BrowserWindow, dialog } from 'electron';
+import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import server from './server';
 import util from './util';
 import { SaveFile } from './fileWriter';
+import { join } from 'path';
+import Employee from './database/tables/employee/Employee';
+import Company from './database/tables/company/Company';
+import Course from './database/tables/course/Course';
+import Document from './database/tables/document/Document';
+import EmployeeByDocument from './database/tables/employeeByDocument/EmployeeByDocument';
+import { promises as fspromise } from 'fs';
+const { rm } = fspromise;
 
 function AddDatabaseHandlers(db) {
     /// TABLE METHODS EMPLOYED ///
 
     ipcMain.handle('get-employees', async () => {
-        try { return await db.GetEmployees(); } 
+        try { 
+            const employees = await db.tables.employee.getAll();
+            return  employees.map(e => new Employee(e).toFrontend());
+        }
         catch (err) { 
             console.error('Error al intentar obtener los empleados:', err);
             return { success: false, error: err.message };
@@ -15,7 +26,10 @@ function AddDatabaseHandlers(db) {
     });
 
     ipcMain.handle('get-employee', async (_, dni) => {
-        try { return await db.GetEmployee(dni); } 
+        try { 
+            const employee = await db.tables.employee.getOne(dni);
+            return new Employee(employee).toFrontend();
+        }
         catch (err) { 
             console.error('Error al intentar obtener al empleado:', err);
             return { success: false, error: err.message };
@@ -24,14 +38,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('insert-employee', async (_, employee) => {
         try {
-            await db.InsertEmployee(
-                employee.dni, 
-                employee.name, 
-                employee.first_surname, 
-                employee.second_surname, 
-                employee.discharge_date, 
-                employee.courses
-            );
+            await db.tables.employee.insert(Employee.fromView(employee).toData());
             return { success: true };
         } catch (err) {
             console.error('Error al intentar insertar el empleado:', err);
@@ -41,17 +48,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('update-employee', async (_, employee) => {
         try {
-            await db.UpdateEmployee(
-                employee.dni,
-                employee.name, 
-                employee.first_surname, 
-                employee.second_surname, 
-                employee.discharge_date,
-                employee.leave_date,
-                employee.medical_leave_date,
-                employee.medical_discharge_date,
-                employee.courses
-            );
+            await db.tables.employee.update(Employee.fromView(employee).toData());
             return { success: true };
         } catch (err) {
             console.error('Error al intentar actualizar el empleado:', err);
@@ -61,7 +58,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('delete-employee', async (_, dni) => {
         try {
-            await db.DeleteEmployee(dni);
+            await db.tables.employee.delete(dni);
             return { success: true };
         } catch (err) {
             console.error('Error al intentar borrar el empleado:', err);
@@ -72,7 +69,10 @@ function AddDatabaseHandlers(db) {
     /// TABLE METHODS COMPANY ///
     
     ipcMain.handle('get-companies', async () => {
-        try { return await db.GetCompanies(); } 
+        try { 
+            const companies = await db.tables.company.getAll(); 
+            return companies.map(c => new Company(c).toFrontend());
+        } 
         catch (err) { 
             console.error('Error al intentar obtener las empresas:', err);
             return { success: false, error: err.message };
@@ -80,7 +80,10 @@ function AddDatabaseHandlers(db) {
     });
 
     ipcMain.handle('get-company', async (_, nif) => {
-        try { return await db.GetCompany(nif); } 
+        try { 
+            const company = await db.tables.company.getOne(nif); 
+            return new Company(company).toFrontend();
+        } 
         catch (err) { 
             console.error('Error al intentar obtener al empleado:', err);
             return { success: false, error: err.message };
@@ -89,12 +92,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('insert-company', async (_, company) => {
         try {
-            await db.InsertCompany(
-                company.nif, 
-                company.name, 
-                company.telephone, 
-                company.registration_date
-            );
+            await db.tables.company.insert(Company.fromView(company).toData());
             return { success: true };
         } catch (err) {
             console.error('Error al intentar insertar la empresa:', err);
@@ -104,12 +102,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('update-company', async (_, company) => {
         try {
-            await db.UpdateCompany(
-                company.nif, 
-                company.name, 
-                company.telephone, 
-                company.registration_date
-            );
+            await db.tables.company.update(Company.fromView(company).toData());
             return { success: true };
         } catch (err) {
             console.error('Error al intentar actualizar la empresa:', err);
@@ -119,7 +112,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('delete-company', async (_, nif) => {
         try {
-            await db.DeleteCompany(nif);
+            await db.tables.company.delete(nif);
             return { success: true };
         } catch (err) {
             console.error('Error al intentar borrar la empresa:', err);
@@ -130,7 +123,21 @@ function AddDatabaseHandlers(db) {
     /// TABLE METHODS COURSES ///
 
     ipcMain.handle('get-courses', async (_, dni) => {
-        try { return await db.GetCourses(dni); } 
+        try { 
+            const courses = await db.tables.course.getAll(dni);
+            return courses.map(c => new Course(c).toFrontend());
+        } 
+        catch (err) { 
+            console.error('Error al intentar obtener los cursos:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
+    ipcMain.handle('get-course', async (_, id) => {
+        try { 
+            const course = await db.tables.course.getOne(id);
+            return new Course(course).toFrontend();
+        } 
         catch (err) { 
             console.error('Error al intentar obtener los cursos:', err);
             return { success: false, error: err.message };
@@ -139,10 +146,21 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('insert-courses', async (_, dni, courses) => {
         try {
-            return await db.InsertCourses(
-                dni, 
-                courses
+            const formatCourses = await Promise.all(
+                courses.map(async (course, index) => {
+                    try {
+                        course.id = dni + Date.now() + index;
+                        course.employee = dni;
+                        course.url = join(app.getPath('userData'), 'courses', dni, `${course.id}.pdf`);
+                        await SaveFile(course.url, course.data);
+                        const formatCourse = Course.fromView(course).toData();
+                        return formatCourse;
+                    } catch (error) {
+                        console.error(`Error al procesar curso:`, error);
+                    }
+                })
             );
+            return await db.tables.course.insert(formatCourses);
         } catch (err) {
             console.error('Error al intentar insertar los cursos:', err);
             return { success: false, error: err.message };
@@ -151,7 +169,7 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('delete-course', async (_, id) => {
         try {
-            return await db.DeleteCourse(id);
+            return await db.tables.course.delete(id);
         } catch (err) {
             console.error('Error al intentar eliminar el curso:', err);
             return { success: false, error: err.message };
@@ -161,7 +179,10 @@ function AddDatabaseHandlers(db) {
     /// TABLE METHODS DOCUMENTS ///
 
     ipcMain.handle('get-documets', async (_, nif) => {
-        try { return await db.GetDocuments(nif); } 
+        try { 
+            const document = await db.tables.document.getAll(nif);
+            return document.map(d => new Document(d).toFrontend());
+        } 
         catch (err) { 
             console.error('Error al intentar obtener los documentos:', err);
             return { success: false, error: err.message };
@@ -169,7 +190,10 @@ function AddDatabaseHandlers(db) {
     });
 
     ipcMain.handle('get-documet', async (_, id) => {
-        try { return await db.GetDocument(id); } 
+        try { 
+            const document = await db.tables.document.getOne(id); 
+            return new Document(document).toFrontend();
+        } 
         catch (err) { 
             console.error('Error al intentar obtener el documento:', err);
             return { success: false, error: err.message };
@@ -179,10 +203,21 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('insert-documents', async (_, nif, documents) => {
         try {
-            return await db.InsertDocuments(
-                nif, 
-                documents
+            const formatDocuments = await Promise.all(
+                documents.map(async (document, index) => {
+                    try {
+                        document.id = nif + Date.now() + index;
+                        document.company = nif;
+                        document.url = join(app.getPath('userData'), 'documents', nif, `${document.id}.pdf`);
+                        await SaveFile(document.url, document.buffer);
+                        const formatDocument = Document.fromView(document).toData();
+                        return formatDocument;
+                    } catch (error) {
+                        console.error(`Error al procesar el documento:`, error);
+                    }
+                })
             );
+            return await db.tables.document.insert(formatDocuments);
         } catch (err) {
             console.error('Error al intentar insertar los docmuentos:', err);
             return { success: false, error: err.message };
@@ -191,23 +226,21 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('update-document', async (_, document) => {
         try {
-            await db.UpdateDocument(
-                document.id,
-                document.name, 
-                document.nif,
-                document.content,
-                document.buffer
-            );
+            if (document.company && document.buffer) {
+                await rm(document.url);
+                await SaveFile(document.url, document.buffer);
+            }
+            await db.tables.document.update(Document.fromView(document).toData());
             return { success: true };
         } catch (err) {
-            console.error('Error al intentar actualizar el docmuento:', err);
+            console.error('Error al intentar actualizar el documento:', err);
             return { success: false, error: err.message };
         }
     });
 
     ipcMain.handle('delete-document', async (_, id) => {
         try {
-            await db.DeleteDocument(id);
+            await db.tables.document.delete(id);
             return { success: true };
         } catch (err) {
             console.error('Error al intentar borrar el documento:', err);
@@ -217,21 +250,33 @@ function AddDatabaseHandlers(db) {
 
     /// TABLE METHODS EMPLOYEEBYDOCUMENT///
 
-    ipcMain.handle('get-employee-document', async (_, idDoc) => {
-        try { return await db.GetEmployeesByDocument(idDoc); }
+    ipcMain.handle('get-employees-document', async (_, idDoc) => {
+        try { 
+            const employeesByDocument = await db.tables.employeeByDocument.getAll(idDoc);
+            return employeesByDocument.map(ebd => new EmployeeByDocument(ebd).toFrontend());
+        }
         catch (err) { 
             console.error('Error al intentar obtener los empleados del documento:', err);
             return { success: false, error: err.message };
         }
     });
 
+    ipcMain.handle('get-employee-document', async (_, id) => {
+        try { 
+            const employeeByDocument = await db.tables.employeeByDocument.getOne(id);
+            return new EmployeeByDocument(employeeByDocument).toFrontend();
+        }
+        catch (err) { 
+            console.error('Error al intentar obtener el empleado del documento:', err);
+            return { success: false, error: err.message };
+        }
+    });
+
     ipcMain.handle('insert-employee-document', async (_, employee, document, date) => {
         try {
-            return await db.InsertEmployeeByDocument(
-                employee, 
-                document,
-                date
-            );
+            const id = employee + Date.now();
+            const ebd = EmployeeByDocument.fromView({id, employee, document, date}).toData();
+            return await db.tables.employeeByDocument.insert(ebd);
         } catch (err) {
             console.error('Error al intentar crear la referencia entre empleado y documento:', err);
             return { success: false, error: err.message };
@@ -240,20 +285,17 @@ function AddDatabaseHandlers(db) {
 
     ipcMain.handle('update-employee-document', async (_, employeeByDocument) => {
         try {
-            await db.UpdateEmployeeByDocument(
-                employeeByDocument.id,
-                employeeByDocument.date
-            );
+            await db.tables.employeeByDocument.update(EmployeeByDocument.fromView(employeeByDocument).toData());
             return { success: true };
         } catch (err) {
-            console.error('Error al intentar actualizar la empresa:', err);
+            console.error('Error al intentar actualizar la referencia entre empleado y documento:', err);
             return { success: false, error: err.message };
         }
     });
 
     ipcMain.handle('delete-employee-document', async (_, id) => {
         try {
-            await db.DeleteEmployeeByDocument(id);
+            await db.tables.employeeByDocument.delete(id);
             return { success: true };
         } catch (err) {
             console.error('Error al intentar borrar el empleado del documento:', err);

@@ -6,21 +6,36 @@ import { Navigate, Dialog } from 'Components/controlAPI.js';
 import DIALOG_TYPE from 'Types/dialog.js'
 
 export default class Table {
-    constructor(id, dataType, columns = null){
-        let columnFormat = [];
-        
+    constructor(id, dataType, columnsDefs = null){
         this.id = id;
         this.dataType = dataType;
         document.getElementById(this.id).appendChild(this.header());
 
-        if (columns) columns.forEach(column => {
-            columnFormat.push({ width: column.width, targets: column.targets });
-        });
+        const columns = [
+            ...Object.entries(dataType)
+                .filter(([, meta]) => meta.showTable)
+                .map(([key, meta]) => {
+                    let columnConfig = {
+                        title: meta.name.charAt(0).toUpperCase() + meta.name.slice(1),
+                        data: key,
+                        visible: true
+                    };
+                    if (columnsDefs != null && columnsDefs[key]) columnConfig.width = columnsDefs[key];
+                    
+                    return columnConfig;
+                }),
+            {
+                title:    'Acciones',
+                data:     'actions',
+                orderable:false,
+                width: columnsDefs != null && columnsDefs['actions'] ? ccolumnsDefs['actions'] : '125px'
+            }
+        ];
 
         this.dataTable = new DataTable('#'+id, {
             pageLength: 4,
             lengthMenu: [4, 10, 20, 50],
-            columnDefs: columnFormat,
+            columns: columns,
             language: {
                 search: "Buscar:",
                 lengthMenu: "Mostrar _MENU_ registros por página",
@@ -55,11 +70,14 @@ export default class Table {
         let header = document.createElement('thead');
         let row = document.createElement('tr');
 
-        Object.keys(this.dataType).filter(key => this.dataType[key].showTable).forEach(key => { 
-            let th = document.createElement('th');
-            th.textContent = this.dataType[key].name.charAt(0).toUpperCase() + this.dataType[key].name.slice(1);
+        Object.entries(this.dataType)
+        .filter(([, meta]) => meta.showTable)
+        .forEach(([, meta]) => {
+            const th = document.createElement('th');
+            th.textContent = meta.name.charAt(0).toUpperCase() + meta.name.slice(1);
             row.appendChild(th);
         });
+
         let actions = document.createElement('th');
         actions.textContent = 'Acciones';
 
@@ -133,15 +151,17 @@ export default class Table {
     }
 
     addRow(data) {
-        let tr = Object.keys(data)
-            .filter(key => this.dataType[key].showTable)
-            .map(key => data[key]);
+        let row = Object.keys(this.dataType)
+        .filter(key => this.dataType[key].showTable)
+        .reduce((o, key) => {
+            o[key] = data[key] !== undefined ? data[key] : '';
+            return o;
+        }, {});
         
-        tr.push(this._interactiveButtonsActions());
+        row.actions = this._interactiveButtonsActions();
+        row.DT_RowId = data[Object.keys(data)[0]]; 
 
-        tr.DT_RowId = data[Object.keys(data)[0]]; 
-
-        this.dataTable.row.add(tr).draw(false);
+        this.dataTable.row.add(row).draw(false);
     }
 
     deleteRow(id) {
