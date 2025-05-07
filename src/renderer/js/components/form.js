@@ -1,6 +1,7 @@
 import { CreateElement, AddElement, SendModalResponse, Dialog } from 'Components/controlAPI.js';
 import FormType from 'Types/form.js';
 import DIALOG_TYPE from 'Types/dialog.js';
+import { formatDateForInput } from 'Components/time.js';
 
 export default class Fieldset {
     constructor(fieldset, data, type) {
@@ -190,7 +191,8 @@ export function CreateForm(data, dataType, onSubmitCallback, confirmText = null)
             input.name = key;
             input.id = key;
             input.type = dataType[key].type;
-            input.value = value;
+            if (dataType[key].type === 'date' && value) input.value = formatDateForInput(value);
+            else input.value = value !== null && value !== undefined ? value : '';
         }
 
         contentLabel.appendChild(label);

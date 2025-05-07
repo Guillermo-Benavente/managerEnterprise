@@ -13,9 +13,7 @@ DOM(async() => {
 
 function initTable() {
     const id = 'tblCompanies';
-    const table = new Table(id, COMPANY, [
-        { width: "100px", targets: 4 }
-    ]);
+    const table = new Table(id, COMPANY);
 
     table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.EDIT_COMPANY);
     table.addInteractiveRowDelete('Vas a eliminar una empresa ¿Estás Seguro?', async(nif) => {

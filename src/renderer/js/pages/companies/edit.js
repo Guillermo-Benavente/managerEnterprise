@@ -1,5 +1,5 @@
 import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog, SaveDialog, OpenDialog, SaveFile } from 'Components/controlAPI.js';
-import { COMPANY, DOCUMENT, GetCompany, UpdateCompany, GetDocuments, DeleteDocument, GetDocument, GetEmployeesByDocument, GetEmployee, FormatEmployee } from 'Components/dbAPI.js';
+import { COMPANY, DOCUMENT, GetCompany, UpdateCompany, GetDocuments, DeleteDocument, GetDocument, GetEmployeesByDocument, GetEmployee } from 'Components/dbAPI.js';
 import { CreateForm } from 'Components/form.js';
 import { newPdf } from 'Components/createPdf';
 import Table from 'Components/table.js';
@@ -20,9 +20,7 @@ DOM(async() => {
 
 function initTable(companyId) {
     const id = 'tblDocuments';
-    const table = new Table(id, DOCUMENT, [
-        { width: "100px", targets: 1 }
-    ]);
+    const table = new Table(id, DOCUMENT);
 
     table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.EDIT_DOCUMENT, companyId);
     table.addInteractiveRowDelete('Vas a eliminar un documento ¿Estás Seguro?', async(id) => {
@@ -71,14 +69,12 @@ async function loadDocuments(companyId, table) {
                 else savePath = await SaveDialog('Guardar PDF', documentData.name);
 
                 if (savePath != null) {
-                    const content = JSON.parse(documentData.content);
-
                     for (const ebd of employeesData) {
-                        const employee = FormatEmployee(await GetEmployee(ebd.employee));
+                        const employee = await GetEmployee(ebd.employee);
                         const company = await GetCompany(documentData.company);
 
                         const employeeName = employee.name+ ' ' + employee.surnames;
-                        const copyContent = structuredClone(content);
+                        const copyContent = structuredClone(documentData.content);
 
                         copyContent.blocks.forEach((block) => {
                             if (typeof block.data.text === 'string') {

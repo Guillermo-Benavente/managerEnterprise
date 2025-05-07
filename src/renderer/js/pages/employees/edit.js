@@ -1,5 +1,5 @@
 import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog } from 'Components/controlAPI.js';
-import { EMPLOYEE, FormatEmployee, FormatDbEmployee, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
+import { EMPLOYEE, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
 import { CreateForm } from 'Components/form.js';
 import DIALOG_TYPE from 'Types/dialog.js';
 import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
@@ -15,10 +15,10 @@ async function init(employeeId){
     try {
         const employee = await GetEmployee(employeeId);
 
-        AddElement(CreateForm(FormatEmployee(employee), EMPLOYEE, 
+        AddElement(CreateForm(employee, EMPLOYEE, 
             async(employee) => {
                 try {
-                    await UpdateEmployee(FormatDbEmployee(employee));
+                    await UpdateEmployee(employee);
                     Dialog('Información', 'Información actualizada.', DIALOG_TYPE.INFO).then(() => { Navigate(ENTRY_POINTS_TYPE.EMPLOYEES); });
                 } catch (error) {
                     console.error('Error al abrir el modal:', error);

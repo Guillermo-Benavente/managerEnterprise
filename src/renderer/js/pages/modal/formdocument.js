@@ -1,6 +1,7 @@
 import { DOM, GetElement, CreateElement, AddElement, SendModalResponse, Dialog} from 'Components/controlAPI.js';
-import { DOCUMENT, DOCUMENTBYEMPLOYEES, EMPLOYEE, FormatEmployee, GetEmployees, GetEmployeesByDocument, GetDocument } from 'Components/dbAPI.js';
+import { DOCUMENT, DOCUMENTBYEMPLOYEES, EMPLOYEE, GetEmployees, GetEmployeesByDocument, GetDocument } from 'Components/dbAPI.js';
 import Fieldset from 'Components/form.js';
+import { formatDateForInput } from 'Components/time';
 import DIALOG_TYPE from 'Types/dialog.js';
 import FORM_TYPE from 'Types/form.js';
 
@@ -17,7 +18,7 @@ async function init() {
         const employees = await GetEmployees();
 
         new Fieldset(GetElement('.document'), DOCUMENT, FORM_TYPE.NORMAL).init();
-        new Fieldset(GetElement('.employees'), {object: [DOCUMENTBYEMPLOYEES, EMPLOYEE], data: FormatEmployee(employees)}, FORM_TYPE.SELECTOR).init();
+        new Fieldset(GetElement('.employees'), {object: [DOCUMENTBYEMPLOYEES, EMPLOYEE], data: employees}, FORM_TYPE.SELECTOR).init();
 
         GetElement('button[type=button]').addEventListener('click', () => window.close());
     } catch (error) {
@@ -40,7 +41,7 @@ async function loadDocument(documentId) {
             AddElement(hiddenInput, GetElement('.employees'));
 
             GetElement(`input[name='${employeeByDocument.employee}']`).checked = true;
-            GetElement(`input[name='${employeeByDocument.employee}date']`).value = employeeByDocument.date;            
+            GetElement(`input[name='${employeeByDocument.employee}date']`).value = formatDateForInput(employeeByDocument.date);            
         });
     } catch (error) {
         console.error('Error al cargar el documento:', error);

@@ -163,143 +163,6 @@ export const DOCUMENTBYEMPLOYEES = {
     }
 }
 
-/**
- * Formatea uno o varios empleados, estructurando sus datos de forma más legible.
- * 
- * @param {Object|Array<Object>} employeeOrArray Un solo objeto de empleado o un array de objetos empleados a formatear.
- *                                               Cada objeto debe tener las propiedades requeridas por `formatSingleEmployee`.
- * 
- * @returns {Object|Array<Object>} Si se recibe un solo empleado, retorna un objeto con sus datos formateados.
- *                                 Si se recibe un array de empleados, retorna un array de objetos con los datos de cada empleado formateados.
- * 
- * @example
- * // Ejemplo de uso con un solo empleado:
- * const formattedEmployee = FormatEmployee({
- *     dni: '12345678A',
- *     name: 'Juan',
- *     first_surname: 'Pérez',
- *     second_surname: 'Gómez',
- *     discharge_date: new Date('2022-01-01'),
- *     leave_date: null,
- *     medical_leave_date: null,
- *     medical_discharge_date: null,
- *     courses: [{ title: 'Curso de Seguridad' }]
- * });
- * console.log(formattedEmployee.surnames); // "Pérez Gómez"
- * 
- * @example
- * // Ejemplo de uso con varios empleados:
- * const formattedEmployees = FormatEmployee([
- *     { dni: '12345678A', name: 'Juan', first_surname: 'Pérez', second_surname: 'Gómez', ... },
- *     { dni: '87654321B', name: 'María', first_surname: 'López', second_surname: 'Martínez', ... }
- * ]);
- * console.log(formattedEmployees[0].surnames); // "Pérez Gómez"
- * 
- * @revision 0.0.0
- * @date 2024-11-05
- * @author guillermob
- */
-export function FormatEmployee(employeeOrArray) {
-    if (Array.isArray(employeeOrArray)) return employeeOrArray.map(employee => FormatSingleEmployee(employee));
-    else return FormatSingleEmployee(employeeOrArray);
-}
-
-/**
- * Formatea los datos de un empleado para estructurarlos de forma más legible.
- * 
- * @param {Object} employee Objeto que representa los datos originales del empleado.
- *                           Este objeto debe contener las siguientes propiedades:
- *                           - `dni` (string): Identificador único del empleado.
- *                           - `name` (string): Nombre del empleado.
- *                           - `first_surname` (string): Primer apellido del empleado.
- *                           - `second_surname` (string): Segundo apellido del empleado.
- *                           - `discharge_date` (Date): Fecha de alta del empleado.
- *                           - `leave_date` (Date): Fecha de baja del empleado.
- *                           - `medical_leave_date` (Date): Fecha de baja médica.
- *                           - `medical_discharge_date` (Date): Fecha de alta médica.
- *                           - `courses` (Array<Object>): Lista de cursos completados por el empleado.
- * 
- * @returns {Object} Un nuevo objeto con los datos formateados del empleado:
- *                   - `dni` (string): Identificador único del empleado.
- *                   - `name` (string): Nombre del empleado.
- *                   - `surnames` (string): Apellidos completos concatenados.
- *                   - `discharge_date` (Date): Fecha de alta del empleado.
- *                   - `leave_date` (Date): Fecha de baja del empleado.
- *                   - `medical_leave_date` (Date): Fecha de baja médica.
- *                   - `medical_discharge_date` (Date): Fecha de alta médica.
- *                   - `courses` (Array<Object>): Lista de cursos completados por el empleado.
- * 
- * @example
- * // Ejemplo de uso:
- * const formattedEmployee = formatSingleEmployee({
- *     dni: '12345678A',
- *     name: 'Juan',
- *     first_surname: 'Pérez',
- *     second_surname: 'Gómez',
- *     discharge_date: new Date('2022-01-01'),
- *     leave_date: null,
- *     medical_leave_date: null,
- *     medical_discharge_date: null,
- *     courses: [{ title: 'Curso de Seguridad' }]
- * });
- * console.log(formattedEmployee.surnames); // "Pérez Gómez"
- * 
- * @revision 0.0.0
- * @date 2024-11-05
- * @author guillermob
- */
-//TODO Actualizar comentario
-function FormatSingleEmployee(employee) {
-
-    let newFormatEmployee;
-
-    if(Object.entries(employee).length === 5) newFormatEmployee = {
-        dni: employee.dni,
-        name: employee.name,
-        surnames: employee.surnames,
-        discharge_date: employee.discharge_date,
-        leave_date: null,
-        medical_leave_date: null,
-        medical_discharge_date: null,
-        courses: employee.courses.length
-    }; else newFormatEmployee = {
-        dni: employee.dni,
-        name: employee.name,
-        surnames: employee.first_surname + ' ' + employee.second_surname,
-        discharge_date: employee.discharge_date,
-        leave_date: employee.leave_date,
-        medical_leave_date: employee.medical_leave_date,
-        medical_discharge_date: employee.medical_discharge_date,
-        courses: employee.courses
-    };
-
-    return newFormatEmployee;
-}
-
-//TOOD crear comentarios
-export function FormatDbEmployee(employee) {
-
-    let surnamesArray = employee.surnames.split(" ");
-
-    return {
-        dni: employee.dni,
-        name: employee.name,
-        first_surname: surnamesArray[0],
-        second_surname: surnamesArray[1] || '',
-        discharge_date: employee.discharge_date,
-        courses: employee.courses
-    };
-}
-
-export function FormatCourse(id, course) {
-    return {
-        id: id,
-        name: course.name,
-        employee: null,
-        url: null
-    };
-}
-
 //TOOD crear comentarios
 async function responseDb(apiMethod, params = []) {
   try {
@@ -585,6 +448,9 @@ export const DeleteCompany = (nif) => responseDb('deleteCompany', [nif]);
 export const GetCourses = (dni) => responseDb('getCourses', [dni]);
 
 //TOOD crear comentarios
+export const GetCourse = (id) => responseDb('getCourse', [id]);
+
+//TOOD crear comentarios
 export const GetDocuments = (nif) => responseDb('getDocuments', [nif]);
 
 //TOOD crear comentarios
@@ -601,6 +467,9 @@ export const DeleteDocument = (id) => responseDb('deleteDocument', [id]);
 
 //TOOD crear comentarios
 export const GetEmployeesByDocument = (idDoc) => responseDb('getEmployeesByDocument', [idDoc]);
+
+//TOOD crear comentarios
+export const GetEmployeeByDocument = (id) => responseDb('getEmployeeByDocument', [id]);
 
 //TOOD crear comentarios
 export const SetEmployeeByDocument = (employee, document, date) => responseDb('insertEmployeeByDocument', [employee, document, date]);

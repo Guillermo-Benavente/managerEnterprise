@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import started from 'electron-squirrel-startup';
-import Database from './main/database.js';
+import Database from './main/database/Database';
 import handler from './main/handler.js';
 import server from './main/server.js';
 

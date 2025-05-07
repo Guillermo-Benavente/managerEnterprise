@@ -19,7 +19,7 @@ DOM(async() => {
 
     registerBackHandler(documentId, companyId);
     try {
-        const document = await GetDocument(documentId);
+        const document = documentId ? await GetDocument(documentId) : null;
         const editor = await init(document, configEditorTools());
         registerCreateHandler(documentId, document, companyId, editor);
     } catch (error) {
@@ -30,17 +30,13 @@ DOM(async() => {
 });
 
 async function init(document, tools) {
-    let content = null;
-
-    if (document) content = JSON.parse(document.content);
-
     const editor = new EditorJS({
         holder: 'edt',
         spellcheck: false,
         tools,
         placeholder: 'Escribe tu contenido aquí...',
         autofocus: true,
-        onReady: () => { if (content) editor.render(content); }
+        onReady: () => { if (document) editor.render(document.content); }
     });
 
     return editor;
@@ -126,12 +122,13 @@ function registerCreateHandler(documentId, document, companyId, editor) {
             try {
                 const outputData = await editor.save();
 
-                let documentUpdate = { 
+                const documentUpdate = { 
                     id: documentId, 
-                    nif: companyId, 
+                    company: companyId, 
                     name: document.name, 
                     content: outputData,
-                    buffer: newPdf(outputData)
+                    url: document.url,
+                    buffer: newPdf(outputData),
                 };
 
                 await UpdateDocument(documentUpdate);

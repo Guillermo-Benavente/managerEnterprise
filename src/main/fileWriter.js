@@ -15,6 +15,7 @@ export async function SaveFile(filePath, base64Data) {
             stream.on('finish', resolve);
             stream.on('error', reject);
         });
+        return buffer;
     } catch (error) {
         console.error('Error al guardar el archivo:', error);
     }

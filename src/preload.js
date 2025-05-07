@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('dbAPI', {
 
   /// TABLE METHODS COURSES ///
   getCourses: (dni) => ipcRenderer.invoke('get-courses', dni),
+  getCourse: (id) => ipcRenderer.invoke('get-course', id),
   insertCourses: (dni, courses) => ipcRenderer.invoke('insert-courses', dni, courses),
   deleteCourse: (id) => ipcRenderer.invoke('delete-course', id),
 
@@ -31,7 +32,8 @@ contextBridge.exposeInMainWorld('dbAPI', {
   deleteDocument: (id) => ipcRenderer.invoke('delete-document', id),
 
   /// TABLE METHODS EMPLOYEEBYDOCUMENT///
-  getEmployeesByDocument: (idDoc) => ipcRenderer.invoke('get-employee-document', idDoc),
+  getEmployeesByDocument: (idDoc) => ipcRenderer.invoke('get-employees-document', idDoc),
+  getEmployeeByDocument: (id) => ipcRenderer.invoke('get-employee-document', id),
   insertEmployeeByDocument: (employee, document, date) => ipcRenderer.invoke('insert-employee-document', employee, document, date),
   updateEmployeeByDocument: (employeeByDocument) => ipcRenderer.invoke('update-employee-document', employeeByDocument),
   deleteEmployeeByDocument: (id) => ipcRenderer.invoke('delete-employee-document', id),

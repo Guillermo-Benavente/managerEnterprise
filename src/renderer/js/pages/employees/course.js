@@ -1,5 +1,5 @@
 import { DOM, AddEvent, Navigate, Dialog, Modal } from 'Components/controlAPI.js';
-import { COURSE, COURSES, DeleteCourse, FormatCourse, GetCourses, GetEmployee, SetCourses, UpdateEmployee } from 'Components/dbAPI.js';
+import { COURSE, COURSES, DeleteCourse, GetCourse, GetCourses, GetEmployee, SetCourses, UpdateEmployee } from 'Components/dbAPI.js';
 import Table from 'Components/table.js';
 import DIALOG_TYPE from 'Types/dialog.js';
 import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
@@ -15,16 +15,14 @@ DOM(async() => {
 
 function initTable(employeeId) {
     const id = 'tblCourses';
-    const table = new Table(id, COURSE, [
-        { width: "100px", targets: 1 }
-    ]);
+    const table = new Table(id, COURSE);
 
     table.addInteractiveRowNavigation(ENTRY_POINTS_TYPE.VIEW_COURSE, employeeId);
     table.addInteractiveRowDelete('Vas a eliminar un curso ¿Estás Seguro?', async(id) => {
         try {
             await DeleteCourse(id);
             table.deleteRow(id);
-            updateEmployeeCourses(employeeId, -1);
+            await updateEmployeeCourses(employeeId, -1);
         } catch (error) {
             console.error('Error al eliminar el curso:', error);
             Dialog('Error', 'No se ha podido eliminar el curso.', DIALOG_TYPE.ERROR);
@@ -49,16 +47,12 @@ function registerCreateHandler(employeeId, table) {
         Modal('form', { title: 'Nuevos cursos', dataType: JSON.stringify(COURSES) })
         .then(async(model) => {
             try {
-                const courses = model.courses;
-                const idCourses = await SetCourses(employeeId, courses);
+                const idCourses = await SetCourses(employeeId, model.courses);
+                const courses = await Promise.all(idCourses.map(id => GetCourse(id)));
+                
+                courses.forEach(course => { table.addRow(course); });
 
-                const formatCourses = courses.map((value, index) => FormatCourse(idCourses[index], value));
-
-                if (formatCourses.length === 1) table.addRow(formatCourses[0]);
-                else formatCourses.forEach(course => {
-                    table.addRow(course);
-                });
-                updateEmployeeCourses(employeeId, formatCourses.length);
+                await updateEmployeeCourses(employeeId, courses.length);
             } catch (error) {
                 console.error('Error al abrir el modal:', error);
                 Dialog('Error', 'No se han podido añadir los cursos.', DIALOG_TYPE.ERROR);       
