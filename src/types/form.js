@@ -5,19 +5,19 @@
  * Estos valores se usan para determinar el comportamiento y estilo de los formularios en la aplicación.
  * 
  * Los valores disponibles son:
- * - `FORM_TYPE.NONE`: Representa un formulario sin tipo específico.
- * - `FORM_TYPE.NORMAL`: Este tipo de formulario solamente representara el campo asociado al esqueleto consecuente.
- * - `FORM_TYPE.SELECTOR`: Este tipo de formulario creara un selector.
+ * - `FromType.NONE`: Representa un formulario sin tipo específico.
+ * - `FromType.NORMAL`: Este tipo de formulario solamente representara el campo asociado al esqueleto consecuente.
+ * - `FromType.SELECTOR`: Este tipo de formulario creara un selector.
  * 
  * @readonly
  * @revision 0.0.0
  * @date 2025-04-21
  * @author guillermob
  */
-const FORM_TYPE = Object.freeze({
+const FromType = Object.freeze({
   NONE: 0,
   NORMAL: 1,
   SELECTOR: 2,
 });
 
-export default FORM_TYPE;
+export default FromType;

@@ -1,8 +1,12 @@
 import { DOM, AddEvent, Navigate, Modal, GetPdf, Dialog } from 'Components/controlAPI.js';
-import { SetEmployeeByDocument, UpdateEmployeeByDocument, DeleteEmployeeByDocument, GetDocument, UpdateDocument, GetEmployeeByDocument } from 'Components/dbAPI';
+import dbAPI, { keys } from 'Components/dbAPI';
 import * as pdfjsLib from 'pdfjs-dist';
-import DIALOG_TYPE from 'Types/dialog.js';
-import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
+import TableName from 'Types/handler/TableName.js';
+import DialogType from 'Types/dialog.js';
+import EntryPointsType from 'Types/entryPoints.js';
+
+const docKeys = keys(TableName.DOCUMENT);
+const ebdKeys = keys(TableName.EMPLOYEEBYDOCUMENT);
 
 DOM(() => {
     const documentId = new URLSearchParams(window.location.search).get('id');
@@ -43,14 +47,12 @@ function registerCreateHandler(documentId) {
             const tasks = [];
 
             try {
-                let document = await GetDocument(documentId);
+                let document = await dbAPI[docKeys.GETONE](documentId);
                 if(documentData.data.name != document.name) {
-                    console.log(document);
                     document.name = documentData.data.name;
-                    console.log(document);
 
                     tasks.push(new Promise(async(resolve) => {
-                        await UpdateDocument(document);
+                        await dbAPI[docKeys.UPDATE](document);
                         resolve(true);
                     }));
                 }
@@ -63,15 +65,14 @@ function registerCreateHandler(documentId) {
                 const value = documentData.selector[key];
                 const date = documentData.selector[key + 'date'] || null;
                 const ebdId = documentData.selector[key + 'docId-data-id'];
-                console.log(key,value,date,ebdId);
 
                 if (value?.toLowerCase?.() === 'on') {
                     if (ebdId) {
                         tasks.push(new Promise(async(resolve) => {
                             try {
-                                const ebd = await GetEmployeeByDocument(ebdId);
+                                const ebd = await dbAPI[ebdKeys.GETONE](ebdId);
                                 ebd.date = date;
-                                await UpdateEmployeeByDocument(ebd);
+                                await dbAPI[ebdKeys.UPDATE](ebd);
                                 resolve(true);
                             } catch (error) {
                                 console.error('Error al actualizar la referencia del empleado:', error);
@@ -80,7 +81,7 @@ function registerCreateHandler(documentId) {
                     } else {
                         tasks.push(new Promise(async(resolve) => {
                             try {
-                                await SetEmployeeByDocument(key, documentId, date);
+                                await dbAPI[ebdKeys.INSERT](key, documentId, date);
                                 resolve(true);
                             } catch (error) {
                                 console.error('Error al crear la referencia del empleado:', error);
@@ -90,8 +91,7 @@ function registerCreateHandler(documentId) {
                 } else if (key.endsWith('docId-data-id') && !documentData.selector[key.slice(0, -13)]) {
                     tasks.push(new Promise(async(resolve) => {
                         try {
-                            console.log(value);
-                            await DeleteEmployeeByDocument(value);
+                            await dbAPI[ebdKeys.DELETE](value);
                             resolve(true);
                         } catch (error) {
                             console.error('Error al eliminar la referencia del empleado:', error);
@@ -103,16 +103,16 @@ function registerCreateHandler(documentId) {
             const results = await Promise.all(tasks);
             const allSuccess = results.every(success => success);
 
-            if (allSuccess) Dialog('Información', 'Todos los cambios se han guardado correctamente.', DIALOG_TYPE.INFO);
-            else Dialog('Error', 'Algunos cambios no se han podido aplicar.', DIALOG_TYPE.ERROR);
+            if (allSuccess) Dialog('Información', 'Todos los cambios se han guardado correctamente.', DialogType.INFO);
+            else Dialog('Error', 'Algunos cambios no se han podido aplicar.', DialogType.ERROR);
         });
     });
 }
 
 function registerEditHandler(companyId, documentId) {
-    AddEvent('.pgEdit', 'click', () => { Navigate(ENTRY_POINTS_TYPE.DOCUMENTS, {id:companyId, documentId: documentId}); });
+    AddEvent('.pgEdit', 'click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId, documentId: documentId}); });
 }
 
 function registerBackHandler(companyId) {
-    AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_COMPANY, {id:companyId}); });
+    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); });
 }

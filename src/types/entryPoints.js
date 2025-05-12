@@ -6,25 +6,25 @@
  * Se utiliza para controlar flujos de navegación y renderizado condicional.
  * 
  * Los valores disponibles son:
- * - `ENTRY_POINTS_TYPE.NONE`: Sin punto de entrada definido.
- * - `ENTRY_POINTS_TYPE.MAIN`: Ventana principal.
- * - `ENTRY_POINTS_TYPE.FORM`: Formulario genérico.
- * - `ENTRY_POINTS_TYPE.FORM_DOCUMENT`: Formulario asociado a documentos.
- * - `ENTRY_POINTS_TYPE.EMPLOYEES`: Listado de empleados.
- * - `ENTRY_POINTS_TYPE.EDIT_EMPLOYEE`: Edición de empleados.
- * - `ENTRY_POINTS_TYPE.COURSES`: Listado de cursos.
- * - `ENTRY_POINTS_TYPE.VIEW_COURSE`: Visualización de un curso.
- * - `ENTRY_POINTS_TYPE.COMPANIES`: Listado de compañías.
- * - `ENTRY_POINTS_TYPE.EDIT_COMPANY`: Edición de compañías.
- * - `ENTRY_POINTS_TYPE.DOCUMENTS`: Creación de documentos.
- * - `ENTRY_POINTS_TYPE.EDIT_DOCUMENT`: Edición de documentos.
+ * - `EntryPointsType.NONE`: Sin punto de entrada definido.
+ * - `EntryPointsType.MAIN`: Ventana principal.
+ * - `EntryPointsType.FORM`: Formulario genérico.
+ * - `EntryPointsType.FORM_DOCUMENT`: Formulario asociado a documentos.
+ * - `EntryPointsType.EMPLOYEES`: Listado de empleados.
+ * - `EntryPointsType.EDIT_EMPLOYEE`: Edición de empleados.
+ * - `EntryPointsType.COURSES`: Listado de cursos.
+ * - `EntryPointsType.VIEW_COURSE`: Visualización de un curso.
+ * - `EntryPointsType.COMPANIES`: Listado de compañías.
+ * - `EntryPointsType.EDIT_COMPANY`: Edición de compañías.
+ * - `EntryPointsType.DOCUMENTS`: Creación de documentos.
+ * - `EntryPointsType.EDIT_DOCUMENT`: Edición de documentos.
  * 
  * @readonly
  * @revision 0.0.0
  * @date 2025-04-23
  * @author guillermob
  */
-const ENTRY_POINTS_TYPE = Object.freeze({
+const EntryPointsType = Object.freeze({
   NONE: 'none',
   MAIN: 'main_window',
   FORM: 'form',
@@ -39,5 +39,5 @@ const ENTRY_POINTS_TYPE = Object.freeze({
   EDIT_DOCUMENT: 'editdocument',
 });
 
-module.exports = ENTRY_POINTS_TYPE;
-exports.ENTRY_POINTS_TYPE = ENTRY_POINTS_TYPE;
+module.exports = EntryPointsType;
+exports.EntryPointsType = EntryPointsType;

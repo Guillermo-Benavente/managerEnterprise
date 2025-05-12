@@ -1,10 +1,11 @@
 import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
-import { SetDocuments, SetEmployeeByDocument, GetDocument, UpdateDocument } from 'Components/dbAPI.js';
+import dbAPI, { keys } from 'Components/dbAPI.js';
 import { newPdf } from 'Components/createPdf.js'
 import VariableInline from 'Components/editor/variableInline.js'
-import DIALOG_TYPE from 'Types/dialog.js';
-import VAR_INLINE_NAME from 'Types/varInlineName';
-import ENTRY_POINTS_TYPE from 'Types/entryPoints.js';
+import TableName from 'Types/handler/TableName.js';
+import DialogType from 'Types/dialog.js';
+import VarInlineName from 'Types/varInlineName';
+import EntryPointsType from 'Types/entryPoints.js';
 import EditorJS from '@editorjs/editorjs';
 import Header from  '@editorjs/header' ; 
 import List from  '@editorjs/list' ;
@@ -12,6 +13,8 @@ import Image from "@editorjs/image";
 import Table from "@editorjs/table";
 import Paragraph from '@editorjs/paragraph';
 
+const docKeys = keys(TableName.DOCUMENT);
+const ebdKeys = keys(TableName.EMPLOYEEBYDOCUMENT);
 
 DOM(async() => {
     const companyId = new URLSearchParams(window.location.search).get('id');
@@ -19,12 +22,12 @@ DOM(async() => {
 
     registerBackHandler(documentId, companyId);
     try {
-        const document = documentId ? await GetDocument(documentId) : null;
+        const document = documentId ? await dbAPI[docKeys.GETONE](documentId) : null;
         const editor = await init(document, configEditorTools());
         registerCreateHandler(documentId, document, companyId, editor);
     } catch (error) {
         console.error('Error al obtener el documento:', error);
-        Dialog('Error', 'No se ha podido cargar el documento.', DIALOG_TYPE.ERROR);
+        Dialog('Error', 'No se ha podido cargar el documento.', DialogType.ERROR);
     }
     
 });
@@ -48,10 +51,10 @@ function configEditorTools() {
             class: VariableInline,
             config: {
                 variables: [
-                { key: VAR_INLINE_NAME.EMPLOYEE_NAME, label: 'Nombre del Empleado' },
-                { key: VAR_INLINE_NAME.COMPANY_NAME, label: 'Nombre de la Empresa' },
-                { key: VAR_INLINE_NAME.EMPLOYEE_SIGNATURE, label: 'Firma del empleado' },
-                { key: VAR_INLINE_NAME.DOCUMENT_DATE, label: 'Fecha del documento' }
+                { key: VarInlineName.EMPLOYEE_NAME, label: 'Nombre del Empleado' },
+                { key: VarInlineName.COMPANY_NAME, label: 'Nombre de la Empresa' },
+                { key: VarInlineName.EMPLOYEE_SIGNATURE, label: 'Firma del empleado' },
+                { key: VarInlineName.DOCUMENT_DATE, label: 'Fecha del documento' }
                 ]
             }
         },
@@ -131,13 +134,13 @@ function registerCreateHandler(documentId, document, companyId, editor) {
                     buffer: newPdf(outputData),
                 };
 
-                await UpdateDocument(documentUpdate);
+                await dbAPI[docKeys.UPDATE](documentUpdate);
 
-                Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DIALOG_TYPE.INFO);
+                Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DialogType.INFO);
                 Navigate('editdocument', {id:documentId, backId: companyId});
             } catch (error) {
                 console.error('Error al actualizar el documento:', error);
-                Dialog('Error', 'No se ha podido actualizar el documento.', DIALOG_TYPE.ERROR);
+                Dialog('Error', 'No se ha podido actualizar el documento.', DialogType.ERROR);
             }
         });
     } else {
@@ -151,24 +154,21 @@ function registerCreateHandler(documentId, document, companyId, editor) {
                         content: outputData,
                         buffer: newPdf(outputData)
                     };
-                    const documents = await SetDocuments(companyId, [document]);
-
+                    const documentId = (await dbAPI[docKeys.INSERT](companyId, [document]))[0];
+                    
                     if (documentData.selector != null) {
                         Object.keys(documentData.selector).forEach((employeeId) => {
                             if (documentData.selector[employeeId].toLowerCase() === 'on') {
                                 const dateKey = Object.keys(documentData.selector).find(key => key.startsWith(employeeId) && key !== employeeId);
                                 const date = dateKey ? documentData.selector[dateKey] : null;
-                                SetEmployeeByDocument(employeeId, documents[0], date, (success) => {
-                                    if(!success)
-                                        Dialog('Error', 'No se ha podido guardar las referencias al usuario. Cree de nuevo las referencias en el documento.', DIALOG_TYPE.ERROR);
-                                });
+                                dbAPI[ebdKeys.INSERT](employeeId, documentId, date);
                             }
                         });
                     }
                     Navigate('editcompanies', {id:companyId});
                 } catch (error) {
                     console.error('Error al guardar el documento:', error);
-                    Dialog('Error', 'No se ha podido guardar el documento.', DIALOG_TYPE.ERROR);
+                    Dialog('Error', 'No se ha podido guardar el documento.', DialogType.ERROR);
                 }
             });
         });
@@ -176,6 +176,6 @@ function registerCreateHandler(documentId, document, companyId, editor) {
 }
 
 function registerBackHandler(documentId, companyId) {
-    if(documentId) AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_DOCUMENT, {id:documentId, backId: companyId}); });
-    else AddEvent('.pgBack', 'click', () => { Navigate(ENTRY_POINTS_TYPE.EDIT_COMPANY, {id:companyId}); });
+    if(documentId) AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: companyId}); });
+    else AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); });
 }
