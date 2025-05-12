@@ -1,59 +1,49 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import IpcChannel from './types/handler/IpcChannel.js';
+import TableName from './types/handler/TableName.js';
+import IpcRendererType from './types/handler/IpcRendererType.js';
 
 let server = null;
-ipcRenderer.invoke('get-server').then(serverUrl => { server = serverUrl; });
+ipcRenderer.invoke(IpcChannel.GET_SERVER).then(serverUrl => { server = serverUrl; });
 
-contextBridge.exposeInMainWorld('dbAPI', {
-  /// TABLE METHODS EMPLOYEE ///
-  getEmployees: () => ipcRenderer.invoke('get-employees'),
-  getEmployee: (dni) => ipcRenderer.invoke('get-employee', dni),
-  insertEmployee: (employee) => ipcRenderer.invoke('insert-employee', employee),
-  updateEmployee: (employee) => ipcRenderer.invoke('update-employee', employee),
-  deleteEmployee: (dni) => ipcRenderer.invoke('delete-employee', dni),
+const Renderer = (type) => (channel) => (...args) => {
+  if (type === IpcRendererType.ON) ipcRenderer.on(channel, (_, data) => args[0](data)); 
+  else return ipcRenderer[type](channel, ...args);
+};
+const invoke = Renderer(IpcRendererType.INVOKE);
+const send = Renderer(IpcRendererType.SEND);
+const on = Renderer(IpcRendererType.ON);
 
-  /// TABLE METHODS COMPANY ///
-  getCompanies: () => ipcRenderer.invoke('get-companies'),
-  getCompany: (nif) => ipcRenderer.invoke('get-company', nif),
-  insertCompany: (company) => ipcRenderer.invoke('insert-company', company),
-  updateCompany: (company) => ipcRenderer.invoke('update-company', company),
-  deleteCompany: (nif) => ipcRenderer.invoke('delete-company', nif),
+const dbActions = [
+  IpcChannel.GETALL, 
+  IpcChannel.GETONE,
+  IpcChannel.INSERT,
+  IpcChannel.UPDATE,
+  IpcChannel.DELETE
+];
 
-  /// TABLE METHODS COURSES ///
-  getCourses: (dni) => ipcRenderer.invoke('get-courses', dni),
-  getCourse: (id) => ipcRenderer.invoke('get-course', id),
-  insertCourses: (dni, courses) => ipcRenderer.invoke('insert-courses', dni, courses),
-  deleteCourse: (id) => ipcRenderer.invoke('delete-course', id),
+const dbMethods = Object.values(TableName).reduce((methods, tableName) => {
+  dbActions.forEach((action) => methods[action+tableName] = invoke(`${action}-${tableName}`));
+  return methods;
+}, {});
 
-  /// TABLE METHODS DOCUMENTS ///
-  getDocuments: (nif) => ipcRenderer.invoke('get-documets', nif),
-  getDocument: (id) => ipcRenderer.invoke('get-documet', id),
-  insertDocuments: (nif, documents) => ipcRenderer.invoke('insert-documents', nif, documents),
-  updateDocument: (document) => ipcRenderer.invoke('update-document', document),
-  deleteDocument: (id) => ipcRenderer.invoke('delete-document', id),
-
-  /// TABLE METHODS EMPLOYEEBYDOCUMENT///
-  getEmployeesByDocument: (idDoc) => ipcRenderer.invoke('get-employees-document', idDoc),
-  getEmployeeByDocument: (id) => ipcRenderer.invoke('get-employee-document', id),
-  insertEmployeeByDocument: (employee, document, date) => ipcRenderer.invoke('insert-employee-document', employee, document, date),
-  updateEmployeeByDocument: (employeeByDocument) => ipcRenderer.invoke('update-employee-document', employeeByDocument),
-  deleteEmployeeByDocument: (id) => ipcRenderer.invoke('delete-employee-document', id),
-});
+contextBridge.exposeInMainWorld('dbAPI', dbMethods);
 
 contextBridge.exposeInMainWorld('utilAPI', {
-  modifySvgColor: (url, color) => ipcRenderer.invoke('modify-svg', url, color),
+  modifySvgColor: invoke(IpcChannel.SVG_MODIFY),
 });
 
 contextBridge.exposeInMainWorld('controlAPI', {
   dom: (callback) => document.addEventListener('DOMContentLoaded', callback),
-  navigate: (page, attr) => ipcRenderer.send('navigate', page, attr),
-  modalWindow: (page, attr) => ipcRenderer.send('modal-window', page, attr),
-  onModalResponse: (callback) => ipcRenderer.on('modal-response', (_, response) => callback(response)),
-  sendModalResponse: (response) => ipcRenderer.send('modal-send', response),
-  dialogWindow: (type, title, message) => ipcRenderer.send('dialog-window', type, title, message),
-  onDialogResponse: (callback) => ipcRenderer.on('dialog-response', (_, response) => callback(response)),
-  saveDialog: (options) => ipcRenderer.invoke('save-dialog', options),
-  openDialog: (options) => ipcRenderer.invoke('open-dialog', options),
-  saveFile: (filePath, data) => ipcRenderer.invoke('save-file', filePath, data),
+  navigate: send(IpcChannel.NAVIGATE),
+  modalWindow: send(IpcChannel.MODAL),
+  onModalResponse: on(IpcChannel.MODAL_RESPONSE),
+  sendModalResponse: send(IpcChannel.MODAL_SEND),
+  dialogWindow: send(IpcChannel.DIALOG),
+  onDialogResponse: on(IpcChannel.DIALOG_RESPONSE),
+  saveDialog: invoke(IpcChannel.DIALOG_SAVE),
+  openDialog: invoke(IpcChannel.DIALOG_OPEN),
+  saveFile: invoke(IpcChannel.FILE_SAVE),
   getPdfUrl: (type, user, name) => `${server}/pdf/${type}/${user}/${name}`,
   addEvent: function (selector = document.defaultView, type, callback) {
     if (selector == null) window.addEventListener(type, callback);
