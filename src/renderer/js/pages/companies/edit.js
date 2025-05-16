@@ -72,7 +72,7 @@ async function loadDocuments(companyId, table) {
                 const documentData = await dbAPI[docKeys.GETONE](id);
 
                 if (employeesData.length > 1) savePath = await OpenDialog('Seleccione la carpeta de destino');
-                else savePath = await SaveDialog('Guardar PDF', documentData.name);
+                else savePath = await SaveDialog('Guardar PDF', documentData.name, 'pdf');
 
                 if (savePath != null) {
                     for (const ebd of employeesData) {

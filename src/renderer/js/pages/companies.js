@@ -1,10 +1,10 @@
-import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
+import { DOM, AddEvent, Navigate, Modal, Dialog, SaveDialog } from 'Components/controlAPI.js';
 import dbAPI, { keys, COMPANY } from 'Components/dbAPI.js';
 import Table from 'Components/table.js';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
 import EntryPointsType from 'Types/entryPoints.js';
-import { FormatObjectLD } from 'Components/utilAPI';
+import { ExportCSV, FormatObjectLD } from 'Components/utilAPI';
 
 const cmpKeys = keys(TableName.COMPANY);
 
@@ -13,6 +13,7 @@ DOM(async() => {
     const table = initTable();
     await loadCompanies(table);
     registerCreateHandler(table);
+    registerExportHandler();
 });
 
 function initTable() {
@@ -57,6 +58,21 @@ function registerCreateHandler(table) {
             }
         });
     });
+}
+
+function registerExportHandler() {
+    AddEvent('.export', 'click', async() => {
+        try {
+            const companies = await dbAPI[cmpKeys.GETALL]();
+            const path = await SaveDialog('Guardar Tabla', 'Empresas', 'csv');
+            await ExportCSV(companies, path);
+            Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+        } catch (err) {
+            console.error('Error al inicializar la tabla:', err);
+            Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
+        }    
+    });
+    
 }
 
 function registerBackHandler() {

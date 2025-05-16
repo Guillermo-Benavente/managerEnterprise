@@ -193,7 +193,7 @@ export const Dialog = (title, message, type = 0) => {
 };
 
 // TODO crear comentario
-export const SaveDialog = (title, documentName) => window.controlAPI.saveDialog({ title, defaultPath: documentName + '.pdf',filters: [{ name: 'PDF', extensions: ['pdf'] }]});
+export const SaveDialog = (title, documentName, type) => window.controlAPI.saveDialog({ title, defaultPath: documentName + '.' + type,filters: [{ name: type, extensions: [type] }]});
 
 // TODO crear comentario
 export const OpenDialog = (title) => window.controlAPI.openDialog({ title, properties: ['openDirectory', 'createDirectory']});
