@@ -1,10 +1,10 @@
 import EmployeeData from 'Types/database/EmployeeData';
 import EmployeeType from 'Types/database/EmployeeType';
+import { toISO, formatToView } from '../../../utils/date';
 
 export default class EmployeeMapper {
   static toData(e: EmployeeType): EmployeeData {
-    const [firstSurname, secondSurname] = e.surnames.split(' ');
-    const toISO = (d?: string | Date | null) => d ? new Date(d).toISOString() : undefined;
+    const [firstSurname, secondSurname] = e.surnames.trim().split(/\s+/, 2);
     return {
       dni:                     e.dni,
       name:                   e.name,
@@ -19,15 +19,14 @@ export default class EmployeeMapper {
   }
 
   static toFrontend(data: EmployeeData): EmployeeType {
-    const fmt = (s?: string | null) => s ? new Date(s).toLocaleDateString('es-ES') : undefined;
     return {
       dni:                    data.dni,
       name:                   data.name,
       surnames:               data.first_surname + (data.second_surname ? ` ${data.second_surname}` : ''),
-      discharge_date:         fmt(data.discharge_date)!,
-      leave_date:             fmt(data.leave_date),
-      medical_leave_date:     fmt(data.medical_leave_date),
-      medical_discharge_date: fmt(data.medical_discharge_date),
+      discharge_date:         formatToView(data.discharge_date),
+      leave_date:             formatToView(data.leave_date),
+      medical_leave_date:     formatToView(data.medical_leave_date),
+      medical_discharge_date: formatToView(data.medical_discharge_date),
       courses:                data.courses,
     };
   }

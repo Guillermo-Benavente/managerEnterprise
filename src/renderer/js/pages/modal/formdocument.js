@@ -1,7 +1,6 @@
 import { DOM, GetElement, CreateElement, AddElement, SendModalResponse, Dialog} from 'Components/controlAPI.js';
 import dbAPI, { keys, DOCUMENT, DOCUMENTBYEMPLOYEES, EMPLOYEE} from 'Components/dbAPI.js';
 import Fieldset from 'Components/form.js';
-import { formatDateForInput } from 'Components/time';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
 import FormType from 'Types/form.js';
@@ -46,7 +45,7 @@ async function loadDocument(documentId) {
             AddElement(hiddenInput, GetElement('.employees'));
 
             GetElement(`input[name='${employeeByDocument.employee}']`).checked = true;
-            GetElement(`input[name='${employeeByDocument.employee}date']`).value = formatDateForInput(employeeByDocument.date);            
+            GetElement(`input[name='${employeeByDocument.employee}date']`).value = employeeByDocument.date;            
         });
     } catch (error) {
         console.error('Error al cargar el documento:', error);

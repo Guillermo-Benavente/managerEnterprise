@@ -8,23 +8,25 @@ import { TableDocument } from './tables/document/TableDocument';
 import { TableEmployeeByDocument } from './tables/employeeByDocument/TableEmployeeByDocument';
 import SQLMethod from 'Types/database/SQLMethod';
 import ITable from './tables/ITable';
+import IDatabase from './IDatabase';
 import EmployeeData from 'Types/database/EmployeeData';
 import CompanyData from 'Types/database/CompanyData';
 import CourseData from 'Types/database/CourseData';
 import DocumentData from 'Types/database/DocumentData';
 import EmployeeByDocumentData from 'Types/database/EmployeeByDocumentData';
+import TableName from 'Types/handler/TableName';
 
 const sqlite = verbose();
 
-export default class Database{
+export default class Database implements IDatabase{
     private db: Promise<SqliteDatabase>;
 
     public tables: {
-        employee: ITable<EmployeeData, string>,
-        course: ITable<CourseData, string>,
-        company: ITable<CompanyData, string>,
-        document: ITable<DocumentData, string>,
-        employeeByDocument: ITable<EmployeeByDocumentData, string>,
+        [TableName.EMPLOYEE]: ITable<EmployeeData, string>,
+        [TableName.COURSE]: ITable<CourseData, string>,
+        [TableName.COMPANY]: ITable<CompanyData, string>,
+        [TableName.DOCUMENT]: ITable<DocumentData, string>,
+        [TableName.EMPLOYEEBYDOCUMENT]: ITable<EmployeeByDocumentData, string>,
     };
 
     constructor() {
@@ -39,11 +41,11 @@ export default class Database{
         });
 
         this.tables = {
-            employee: new TableEmployee(this),
-            course: new TableCourse(this),
-            company: new TableCompany(this),
-            document: new TableDocument(this),
-            employeeByDocument: new TableEmployeeByDocument(this),
+            [TableName.EMPLOYEE]: new TableEmployee(this),
+            [TableName.COURSE]: new TableCourse(this),
+            [TableName.COMPANY]: new TableCompany(this),
+            [TableName.DOCUMENT]: new TableDocument(this),
+            [TableName.EMPLOYEEBYDOCUMENT]: new TableEmployeeByDocument(this),
         }
     }
 
@@ -61,7 +63,7 @@ export default class Database{
         });
     }
 
-    async InitializeDatabaseAsync() {
+    async InitializeDatabaseAsync(): Promise<void> {
         try {
             const db = await this.db;
             const checking = await this.CheckTablesExistAsync();
@@ -113,7 +115,7 @@ export default class Database{
         }
     }
 
-    async CheckTablesExistAsync() {
+    async CheckTablesExistAsync(): Promise<{ exists: boolean; rows: Array<{ name: string }> }> {
         const db = await this.db;
         const tables = ['employee', 'company', 'course', 'documents', 'employeebydocument'];
         const rows = await this.executeSQL(db, SQLMethod.ALL,
@@ -126,7 +128,7 @@ export default class Database{
         return {exists: rows.length === tables.length, rows: rows};
     }
 
-    async CreateTablesAsync(rows: Array<{name: string}>) {
+    async CreateTablesAsync(rows: Array<{name: string}>): Promise<void> {
         const existingTables = new Set(rows.map(row => row.name));
 
         const tablesToCreate = {
