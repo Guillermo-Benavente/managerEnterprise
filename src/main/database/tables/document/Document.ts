@@ -1,8 +1,10 @@
 import DocumentData from 'Types/database/DocumentData';
 import DocumentType from 'Types/database/DocumentType';
 import DocumentMapper from './DocumentMapper';
+import { IModel, ModelClass } from '../IModel';
 
-export default class Document {
+const Document: ModelClass<DocumentType, DocumentData> = 
+class Document implements IModel<DocumentType, DocumentData> {
 
   constructor(private data: DocumentData) {
     if (!data.id)                         throw new Error('El ID del documento es obligatorio');
@@ -12,7 +14,7 @@ export default class Document {
   }
 
   /** UI → dominio */
-  static fromView(d: DocumentType): Document {
+  static fromView(d: DocumentType): IModel<DocumentType, DocumentData> {
     if (!d.id)         throw new Error('El ID del documento es obligatorio');
     if (!d.name)       throw new Error('El nombre del documento es obligatorio');
     if (!d.company)    throw new Error('El NIF de la empresa es obligatorio');
@@ -31,3 +33,5 @@ export default class Document {
     return DocumentMapper.toFrontend(this.data);
   }
 }
+
+export default Document;

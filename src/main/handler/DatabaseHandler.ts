@@ -1,0 +1,137 @@
+import { app } from 'electron';
+import { join } from 'path';
+import { promises as fspromise } from 'fs';
+import { SaveFile } from '../fileWriter';
+import ipc from '../ipc';
+import ITable from '../database/tables/ITable';
+import { ModelClass } from '../database/tables/IModel';
+import Employee from '../database/tables/employee/Employee';
+import Company from '../database/tables/company/Company';
+import Course from '../database/tables/course/Course';
+import Document from '../database/tables/document/Document';
+import EmployeeByDocument from '../database/tables/employeeByDocument/EmployeeByDocument';
+import TableName from 'Types/handler/TableName';
+import IpcChannel from 'Types/handler/IpcChannel';
+import IpcMain from 'Types/handler/IpcMain';
+import IDatabase from '../database/IDatabase';
+
+const ipcM = ipc as IpcMain;
+const { rm } = fspromise;
+
+export default class DatabaseHandler {
+    constructor(private db: IDatabase) {}
+    public register() {
+        this.dbHandlers(TableName.EMPLOYEE, this.db, Employee);
+        this.dbHandlers(TableName.COMPANY, this.db, Company);
+        this.dbHandlers(TableName.COURSE, this.db, Course, {
+            [IpcChannel.INSERT]: async (dni: string, courses: any[]) => {
+                const formatCourses = await Promise.allSettled(
+                    courses.map(async (course, index) => {
+                        course.id = dni + Date.now() + index;
+                        course.employee = dni;
+                        course.url = join(app.getPath('userData'), 'courses', dni, `${course.id}.pdf`);
+                        await SaveFile(course.url, course.data);
+                        return Course.fromView(course).toData();
+                    })
+                );
+                const goodResults = formatCourses
+                    .filter(r => r.status === 'fulfilled')
+                    .map(r => (r as any).value);
+                return await this.db.tables.course.insert(goodResults);
+            }
+        });
+
+        this.dbHandlers(TableName.DOCUMENT, this.db, Document, {
+            [IpcChannel.INSERT]: async (nif: string, documents: any[]) => {
+                const formatDocuments = await Promise.allSettled(
+                    documents.map(async (document, index) => {
+                        document.id = nif + Date.now() + index;
+                        document.company = nif;
+                        document.url = join(app.getPath('userData'), 'documents', nif, `${document.id}.pdf`);
+                        await SaveFile(document.url, document.buffer);
+                        return Document.fromView(document).toData();
+                    })
+                );
+                const goodResults = formatDocuments
+                    .filter(r => r.status === 'fulfilled')
+                    .map(r => (r as any).value);
+                return await this.db.tables.document.insert(goodResults);
+            },
+            [IpcChannel.UPDATE]: async (document: any) => {
+                if (document.company && document.buffer) {
+                    await rm(document.url);
+                    await SaveFile(document.url, document.buffer);
+                }
+                await this.db.tables.document.update(Document.fromView(document).toData());
+                return { success: true };
+            }
+        });
+
+        this.dbHandlers(TableName.EMPLOYEEBYDOCUMENT, this.db, EmployeeByDocument, {
+            [IpcChannel.INSERT]: async (employee: string, document: string, date: string) => {
+                const id = employee + Date.now();
+                const data = EmployeeByDocument.fromView({ id, employee, document, date }).toData();
+                return await this.db.tables.employeeByDocument.insert(data);
+            }
+        });
+
+        console.log('Handlers de Database cargados');
+    }
+
+    private dbHandlers<V, D>(
+        prefix: typeof TableName[keyof typeof TableName],
+        db: IDatabase,
+        Class: ModelClass<V, D>,
+        custom: Partial<Record<string, (...args: any[]) => Promise<any>>> = {}
+    ): void {
+        
+        const table = db.tables[prefix] as ITable<D, string>;
+
+        // GET ALL
+        ipcM.handle(
+            `${IpcChannel.GETALL}-${prefix}`,
+            custom[IpcChannel.GETALL] ?? (async (...args: any[]) => {
+                const all = await table.getAll(...args);
+                return all.map(item => new Class(item).toFrontend());
+            })
+        );
+
+        // GET ONE
+        ipcM.handle(
+            `${IpcChannel.GETONE}-${prefix}`,
+            custom[IpcChannel.GETONE] ?? (async (key: string) => {
+                const one = await table.getOne(key);
+                return new Class(one!).toFrontend();
+            })
+        );
+
+        // INSERT
+        ipcM.handle(
+            `${IpcChannel.INSERT}-${prefix}`,
+            custom[IpcChannel.INSERT] ?? (async (view: V) => {
+                const data = Class.fromView(view).toData();
+                await table.insert(data);
+                return { success: true };
+            })
+        );
+
+        // UPDATE
+        ipcM.handle(
+            `${IpcChannel.UPDATE}-${prefix}`,
+            custom[IpcChannel.UPDATE] ?? (async (view: V) => {
+                const data = Class.fromView(view).toData();
+                await table.update(data);
+                return { success: true };
+            })
+        );
+
+        // DELETE
+        ipcM.handle(
+            `${IpcChannel.DELETE}-${prefix}`,
+            custom[IpcChannel.DELETE] ?? (async (key: string) => {
+                await table.delete(key);
+                return { success: true };
+            })
+        );
+    }
+}

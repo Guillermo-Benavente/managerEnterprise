@@ -4,6 +4,7 @@ import Table from 'Components/table.js';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
 import EntryPointsType from 'Types/entryPoints.js';
+import { FormatObjectLD } from 'Components/utilAPI';
 
 const empKeys = keys(TableName.EMPLOYEE);
 
@@ -35,7 +36,10 @@ function initTable() {
 async function loadEmployees(table) {
     try {
         const employees = await dbAPI[empKeys.GETALL]();
-        table.init(employees);
+        let formatEmployees = [];
+        for (const employee of employees) formatEmployees.push(await FormatObjectLD(employee))
+        console.log(formatEmployees);
+        table.init(formatEmployees);
     } catch (err) {
         console.error('Error al inicializar la tabla:', err);
         Dialog('Error', 'No se ha podido eliminar al empleado.', DialogType.ERROR);    
@@ -48,7 +52,7 @@ function registerCreateHandler(table) {
         .then(async(employee) => {
             try {
                 await dbAPI[empKeys.INSERT](employee);
-                table.addRow(employee);
+                table.addRow(await FormatObjectLD(employee));
             } catch (error) {
                 console.error('Error al abrir el modal:', error);
                 Dialog('Error', 'No se ha podido añadir al empleado.', DialogType.ERROR);       

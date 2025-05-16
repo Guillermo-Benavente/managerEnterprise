@@ -1,4 +1,3 @@
-import { ModifySvgColor } from "./utilAPI.js";
 /**
  * La función UploadImages selecciona todos los botones con la clase 'btn-img' en el DOM 
  * y les asigna una imagen de fondo basándose en el atributo 'data-img' de cada elemento.
@@ -16,30 +15,11 @@ import { ModifySvgColor } from "./utilAPI.js";
  * // - Si es un JPG/PNG, la imagen se aplicará como fondo del elemento.
  * // - Si es un SVG y 'data-clr' está presente, se cargará el SVG y su color será modificado.
  */
+//TODO cambiar comentario
 export function UploadImages() {
     document.querySelectorAll('.btn-img').forEach(button => {
         const imgUrl = button.getAttribute('data-img');
         const svgColor = button.getAttribute('data-clr');
-
-        if (svgColor != null) {
-            console.log('Tiene color');
-            ModifySvgColor(imgUrl, svgColor, (success, svg) => {
-                console.log('Vamos a poner color');
-                if(success) { 
-                    console.log(svg);
-                    button.style.backgroundImage = svg;
-                    console.log('Color puesto')
-                }
-            });
-            /*fetch(imgUrl)
-                .then(response => response.text())
-                .then(svgContent => {
-                    const coloredSvg = svgContent.replace(/currentColor|fill="[^"]+"/g, `fill="${svgColor}"`);
-                    button.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(coloredSvg)}')`;
-                })
-                .catch(error => console.error('Error al cargar el SVG:', error));*/
-        } else {
-            button.style.backgroundImage = `url('${imgUrl}')`;
-        }
+        button.style.backgroundImage = `url('${imgUrl}')`;
     });
 }

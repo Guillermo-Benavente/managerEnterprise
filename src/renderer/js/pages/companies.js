@@ -4,6 +4,7 @@ import Table from 'Components/table.js';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
 import EntryPointsType from 'Types/entryPoints.js';
+import { FormatObjectLD } from 'Components/utilAPI';
 
 const cmpKeys = keys(TableName.COMPANY);
 
@@ -34,7 +35,9 @@ function initTable() {
 async function loadCompanies(table) {
     try {
         const companies = await dbAPI[cmpKeys.GETALL]();
-        table.init(companies);
+        let formatCompanies = [];
+        for (const company of companies) formatCompanies.push(await FormatObjectLD(company))
+        table.init(formatCompanies);
     } catch (err) {
         console.error('Error al inicializar la tabla:', err);
         Dialog('Error', 'No se ha podido eliminar a la empresa.', DialogType.ERROR);    
@@ -47,7 +50,7 @@ function registerCreateHandler(table) {
         .then(async(company) => {
             try {
                 await dbAPI[cmpKeys.INSERT](company);
-                table.addRow(company);
+                table.addRow(await FormatObjectLD(company));
             } catch (error) {
                 console.error('Error al abrir el modal:', error);
                 Dialog('Error', 'No se ha podido añadir a la empresa.', DialogType.ERROR);       

@@ -1,18 +1,10 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge } from 'electron';
+import ipc from './main/ipc';
 import IpcChannel from './types/handler/IpcChannel.js';
 import TableName from './types/handler/TableName.js';
-import IpcRendererType from './types/handler/IpcRendererType.js';
 
 let server = null;
-ipcRenderer.invoke(IpcChannel.GET_SERVER).then(serverUrl => { server = serverUrl; });
-
-const Renderer = (type) => (channel) => (...args) => {
-  if (type === IpcRendererType.ON) ipcRenderer.on(channel, (_, data) => args[0](data)); 
-  else return ipcRenderer[type](channel, ...args);
-};
-const invoke = Renderer(IpcRendererType.INVOKE);
-const send = Renderer(IpcRendererType.SEND);
-const on = Renderer(IpcRendererType.ON);
+ipc.invoke(IpcChannel.GET_SERVER)().then(serverUrl => { server = serverUrl; });
 
 const dbActions = [
   IpcChannel.GETALL, 
@@ -23,27 +15,28 @@ const dbActions = [
 ];
 
 const dbMethods = Object.values(TableName).reduce((methods, tableName) => {
-  dbActions.forEach((action) => methods[action+tableName] = invoke(`${action}-${tableName}`));
+  dbActions.forEach((action) => methods[action+tableName] = ipc.invoke(`${action}-${tableName}`));
   return methods;
 }, {});
 
 contextBridge.exposeInMainWorld('dbAPI', dbMethods);
 
 contextBridge.exposeInMainWorld('utilAPI', {
-  modifySvgColor: invoke(IpcChannel.SVG_MODIFY),
+  formatDate: ipc.invoke(IpcChannel.FORMAT_LOCAL_DATE),
+  formatObjectLD: ipc.invoke(IpcChannel.FORMAT_OBJECT_LD),
 });
 
 contextBridge.exposeInMainWorld('controlAPI', {
   dom: (callback) => document.addEventListener('DOMContentLoaded', callback),
-  navigate: send(IpcChannel.NAVIGATE),
-  modalWindow: send(IpcChannel.MODAL),
-  onModalResponse: on(IpcChannel.MODAL_RESPONSE),
-  sendModalResponse: send(IpcChannel.MODAL_SEND),
-  dialogWindow: send(IpcChannel.DIALOG),
-  onDialogResponse: on(IpcChannel.DIALOG_RESPONSE),
-  saveDialog: invoke(IpcChannel.DIALOG_SAVE),
-  openDialog: invoke(IpcChannel.DIALOG_OPEN),
-  saveFile: invoke(IpcChannel.FILE_SAVE),
+  navigate: ipc.send(IpcChannel.NAVIGATE),
+  modalWindow: ipc.send(IpcChannel.MODAL),
+  onModalResponse: ipc.on(IpcChannel.MODAL_RESPONSE),
+  sendModalResponse: ipc.send(IpcChannel.MODAL_SEND),
+  dialogWindow: ipc.send(IpcChannel.DIALOG),
+  onDialogResponse: ipc.on(IpcChannel.DIALOG_RESPONSE),
+  saveDialog: ipc.invoke(IpcChannel.DIALOG_SAVE),
+  openDialog: ipc.invoke(IpcChannel.DIALOG_OPEN),
+  saveFile: ipc.invoke(IpcChannel.FILE_SAVE),
   getPdfUrl: (type, user, name) => `${server}/pdf/${type}/${user}/${name}`,
   addEvent: function (selector = document.defaultView, type, callback) {
     if (selector == null) window.addEventListener(type, callback);

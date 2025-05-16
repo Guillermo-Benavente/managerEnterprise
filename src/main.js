@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import started from 'electron-squirrel-startup';
 import Database from './main/database/Database';
-import handler from './main/handler.js';
+import HandlerManager from './main/handler/HandlerManager';
 import server from './main/server.js';
 
 if (started) {
@@ -26,9 +26,7 @@ const createWindow = async () => {
 
   try {
     await Db.InitializeDatabaseAsync();
-    handler.AddDatabaseHandlers(Db);
-    handler.AddUtilHandlers();
-    handler.AddPathHandlers(mainWindow);
+    new HandlerManager(Db, mainWindow).register();
   } catch (error) {
     console.error("Error durante la inicialización de la base de datos:", error);
   }

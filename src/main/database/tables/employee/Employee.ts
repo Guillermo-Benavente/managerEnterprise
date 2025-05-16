@@ -1,8 +1,10 @@
 import EmployeeData from 'Types/database/EmployeeData';
 import EmployeeType from 'Types/database/EmployeeType';
 import EmployeeMapper from './EmployeeMapper';
+import { IModel, ModelClass } from '../IModel';
 
-export default class Employee {
+const Employee: ModelClass<EmployeeType, EmployeeData> = 
+class Employee implements IModel<EmployeeType, EmployeeData> {
 
   constructor(private data: EmployeeData) {
     if (!data.dni)            throw new Error('El DNI es obligatorio')
@@ -13,7 +15,7 @@ export default class Employee {
   }
 
   /** UI → dominio */
-  static fromView(e: EmployeeType): Employee {
+  static fromView(e: EmployeeType): IModel<EmployeeType, EmployeeData> {
     if (!e.dni)                throw new Error('El DNI es obligatorio')
     if (!e.name)               throw new Error('El nombre es obligatorio')
     if (!e.surnames)           throw new Error('El primer apellido es obligatorio')
@@ -33,3 +35,5 @@ export default class Employee {
     return EmployeeMapper.toFrontend(this.data);
   }
 }
+
+export default Employee;

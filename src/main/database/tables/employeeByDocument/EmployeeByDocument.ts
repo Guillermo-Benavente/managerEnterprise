@@ -1,8 +1,10 @@
 import EmployeeByDocumentData from 'Types/database/EmployeeByDocumentData';
 import EmployeeByDocumentType from 'Types/database/EmployeeByDocumentType';
 import EmployeeByDocumentMapper from './EmployeeByDocumentMapper';
+import { IModel, ModelClass } from '../IModel';
 
-export default class EmployeeByDocument {
+const EmployeeByDocument: ModelClass<EmployeeByDocumentType, EmployeeByDocumentData> = 
+class EmployeeByDocument implements IModel<EmployeeByDocumentType, EmployeeByDocumentData> {
 
   constructor(private data: EmployeeByDocumentData) {
     if (!data.id)       throw new Error('El ID del registro es obligatorio');
@@ -12,7 +14,7 @@ export default class EmployeeByDocument {
   }
 
   /** UI → dominio */
-  static fromView(ebd: EmployeeByDocumentType): EmployeeByDocument {
+  static fromView(ebd: EmployeeByDocumentType): IModel<EmployeeByDocumentType, EmployeeByDocumentData> {
     if (!ebd.id)       throw new Error('El ID del registro es obligatorio');
     if (!ebd.employee) throw new Error('El DNI del empleado es obligatorio');
     if (!ebd.document) throw new Error('El ID del documento es obligatorio');
@@ -31,3 +33,5 @@ export default class EmployeeByDocument {
     return EmployeeByDocumentMapper.toFrontend(this.data);
   }
 }
+
+export default EmployeeByDocument;
