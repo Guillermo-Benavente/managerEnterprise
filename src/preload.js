@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('dbAPI', dbMethods);
 contextBridge.exposeInMainWorld('utilAPI', {
   formatDate: ipc.invoke(IpcChannel.FORMAT_LOCAL_DATE),
   formatObjectLD: ipc.invoke(IpcChannel.FORMAT_OBJECT_LD),
+  exportCSV: ipc.invoke(IpcChannel.EXPORT_CSV),
 });
 
 contextBridge.exposeInMainWorld('controlAPI', {

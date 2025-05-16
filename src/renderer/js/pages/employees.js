@@ -1,10 +1,10 @@
-import { DOM, AddEvent, Navigate, Modal, Dialog } from 'Components/controlAPI.js';
+import { DOM, AddEvent, Navigate, Modal, Dialog, SaveDialog } from 'Components/controlAPI.js';
 import dbAPI, { keys, EMPLOYEE} from 'Components/dbAPI.js';
 import Table from 'Components/table.js';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
 import EntryPointsType from 'Types/entryPoints.js';
-import { FormatObjectLD } from 'Components/utilAPI';
+import { ExportCSV, FormatObjectLD } from 'Components/utilAPI';
 
 const empKeys = keys(TableName.EMPLOYEE);
 
@@ -13,6 +13,7 @@ DOM(async() => {
     const table = initTable();
     await loadEmployees(table);
     registerCreateHandler(table);
+    registerExportHandler();
 });
 
 function initTable() {
@@ -38,11 +39,10 @@ async function loadEmployees(table) {
         const employees = await dbAPI[empKeys.GETALL]();
         let formatEmployees = [];
         for (const employee of employees) formatEmployees.push(await FormatObjectLD(employee))
-        console.log(formatEmployees);
         table.init(formatEmployees);
     } catch (err) {
         console.error('Error al inicializar la tabla:', err);
-        Dialog('Error', 'No se ha podido eliminar al empleado.', DialogType.ERROR);    
+        Dialog('Error', 'No se ha podido cargar a los empleados.', DialogType.ERROR);    
     }
 }
 
@@ -59,6 +59,21 @@ function registerCreateHandler(table) {
             }
         });
     });
+}
+
+function registerExportHandler() {
+    AddEvent('.export', 'click', async() => {
+        try {
+            const employees = await dbAPI[empKeys.GETALL]();
+            const path = await SaveDialog('Guardar Tabla', 'Empleados', 'csv');
+            await ExportCSV(employees, path);
+            Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+        } catch (err) {
+            console.error('Error al inicializar la tabla:', err);
+            Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
+        }    
+    });
+    
 }
 
 function registerBackHandler() {
