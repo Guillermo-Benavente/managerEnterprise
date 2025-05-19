@@ -39,13 +39,19 @@ async function loadDocument(documentId) {
         GetElement(`input[name='name']`).value = document.name;
 
         employeesByDocument.forEach((employeeByDocument) => {
+            const checkbox = GetElement(`input[name='${employeeByDocument.employee}']`);
+            const date = GetElement(`input[name='${employeeByDocument.employee}date']`);
+            const content = checkbox.closest('div');
             const hiddenInput = CreateElement('input', { type: 'hidden', name: `${employeeByDocument.employee}docId` });
             hiddenInput.setAttribute('data-id', employeeByDocument.id);
+            
+            if(content.classList.contains('errorCondition')){
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            } else checkbox.checked = true;
 
+            date.value = employeeByDocument.date;
             AddElement(hiddenInput, GetElement('.employees'));
-
-            GetElement(`input[name='${employeeByDocument.employee}']`).checked = true;
-            GetElement(`input[name='${employeeByDocument.employee}date']`).value = employeeByDocument.date;            
         });
     } catch (error) {
         console.error('Error al cargar el documento:', error);

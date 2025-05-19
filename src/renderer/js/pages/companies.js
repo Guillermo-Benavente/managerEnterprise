@@ -65,8 +65,10 @@ function registerExportHandler() {
         try {
             const companies = await dbAPI[cmpKeys.GETALL]();
             const path = await SaveDialog('Guardar Tabla', 'Empresas', 'csv');
-            await ExportCSV(companies, path);
-            Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+            if (path != null){
+                await ExportCSV(companies, path);
+                Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+            }
         } catch (err) {
             console.error('Error al inicializar la tabla:', err);
             Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    

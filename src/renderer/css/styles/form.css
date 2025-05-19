@@ -9,6 +9,12 @@
     margin-top: 10px;
 }
 
+.errorCondition{
+    background-color: #FF4F4A;
+    color: var(--primary-color);
+    border-color: #FF3A33 !important;
+}
+
 .frm {
     color: var(--secondary-color);
     background-color: var(--secondary-background-color);
