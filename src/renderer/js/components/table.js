@@ -94,7 +94,7 @@ export default class Table {
 
         table.on('click', 'tbody tr', async (event) => {
             const row = event.target.closest('tr');
-            if (row) {
+            if (row && row.id) {
                 const actions = this._interactiveRowActions;
 
                 if (actions.deletion && event.target.classList.contains('tbl-row-del')) {

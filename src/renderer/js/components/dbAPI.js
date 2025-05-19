@@ -56,7 +56,7 @@ export const EMPLOYEE = {
         'type':'file',
         'accept':'.pdf',
         'showForm':true,
-        'showTable':true
+        'showTable':false
     }
 }
 
