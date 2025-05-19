@@ -1,6 +1,5 @@
 import { DOM, CreateElement, GetElement, AddElement } from 'Components/controlAPI.js';
-import { SubmitForm } from 'Components/form.js';
-import Fieldset from 'Components/form.js';
+import Fieldset, { SubmitForm } from 'Components/form.js';
 import FromType from 'Types/form.js';
 
 DOM(() => {

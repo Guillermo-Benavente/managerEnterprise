@@ -6,6 +6,7 @@ type EmployeeType = {
   leave_date?: string|Date;
   medical_leave_date?: string|Date;
   medical_discharge_date?: string|Date;
+  dni_date?: string|Date;
   courses: number;
 };
 

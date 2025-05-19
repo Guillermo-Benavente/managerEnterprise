@@ -14,6 +14,7 @@ export default class EmployeeMapper {
       leave_date:             toISO(e.leave_date),
       medical_leave_date:     toISO(e.medical_leave_date),
       medical_discharge_date: toISO(e.medical_discharge_date),
+      dni_date:               toISO(e.dni_date),
       courses:                e.courses,
     };
   }
@@ -27,6 +28,7 @@ export default class EmployeeMapper {
       leave_date:             formatToView(data.leave_date),
       medical_leave_date:     formatToView(data.medical_leave_date),
       medical_discharge_date: formatToView(data.medical_discharge_date),
+      dni_date:               formatToView(data.dni_date),
       courses:                data.courses,
     };
   }

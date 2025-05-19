@@ -11,12 +11,12 @@ export default class Fieldset {
 
     init() {
         if (this.type === FormType.NORMAL) {
-            Object.values(this.createForm(this.data)).forEach((element) => {
+            Object.values(this._createForm(this.data)).forEach((element) => {
                 AddElement(element['label'], this.fieldset);
                 AddElement(element['input'], this.fieldset);
             });
         } else if(this.type === FormType.SELECTOR) {
-            const inputs = this.createInputs(this.data['object'][0]);
+            const inputs = this._createInputs(this.data['object'][0]);
 
             const identifiers = Array.isArray(this.data['object']) 
                 ? this.data['object'].map(obj => Object.keys(obj).find(key => obj[key].identifier))
@@ -26,29 +26,48 @@ export default class Fieldset {
                 ? this.data['object'].map(obj => Object.keys(obj).filter(key => obj[key].showFormSelectorText))
                 : [Object.keys(this.data['object']).filter(key => this.data['object'][key].showFormSelectorText)];
 
+            const state = Array.isArray(this.data['object']) 
+                ? this.data['object'].map(obj => Object.keys(obj).filter(key => obj[key].showFormSelectorState))
+                : [Object.keys(this.data['object']).filter(key => this.data['object'][key].showFormSelectorState)];
+
             Object.values(this.data['data']).forEach((value) => {
                 const id = Object.keys(value).find(key => identifiers.includes(key.identifier));
                 const values = Object.keys(value).filter(key => text.flat().includes(key)).map(key => value[key]);
+                const conditions = Object.keys(value).filter(key => state.flat().includes(key)).map(key => value[key]);
                 const newInputs = Object.values(inputs).map((node) => node.cloneNode(true));
-                AddElement(this.createSelector(value[id], values.join(' '), newInputs), this.fieldset);
+                AddElement(this._createSelector(value[id], values.join(' '), conditions[0], newInputs), this.fieldset);
             });
         }
     }
     
-    createInputs(object) {
+    _createInputs(object) {
         let skeleton = {};
         Object.keys(object).filter(key => object[key].showForm).forEach(key => {
-            skeleton[key] = this.createInput(object[key], key);
+            skeleton[key] = this._createInput(object[key], key);
         });
         return skeleton;
     }
 
-    createSelector(id, text, inputs) {
-        const content = CreateElement('div');
+    _createSelector(id, text, conditions, inputs) {
+        let content;
         const label = CreateElement('label');
         const checkbox = CreateElement('input', { type: 'checkbox', name: id });
         const checkText = CreateElement('span', {title: id}, text);
-        const finalInputs = Object.values(inputs).map(input => { input.name = id+input.name; return input; });
+        let finalInputs;
+        const isValidCondition = this._isConditionValid(conditions);
+        if(isValidCondition) {
+            content = CreateElement('div');
+            finalInputs = Object.values(inputs).map(input => { input.name = id+input.name; return input; });
+        } else {
+            content = CreateElement('div', { class: 'errorCondition' });
+            finalInputs = Object.values(inputs).map(input => { 
+                input.name = id+input.name;
+                input.readOnly = true;
+                input.style.userSelect = 'none';
+                input.style.pointerEvents = 'none';
+                return input;
+            });
+        }
 
         checkbox.addEventListener('change', (event) => {
             if (event.target.checked) {
@@ -56,27 +75,45 @@ export default class Fieldset {
                     const allFilled = finalInputs.every(input => input.value.trim() !== '');
                     if (!allFilled) {
                         event.target.checked = false;
-                        Dialog('Advertencia','Por favor, llena todos los campos antes de seleccionarlo.', DIALOG_TYPE.WARNING);
+                        if(isValidCondition)
+                            Dialog('Advertencia','Por favor, llena todos los campos antes de seleccionarlo.', DIALOG_TYPE.WARNING);
+                        else Dialog('Error','Este empleado tiene su información caducada.', DIALOG_TYPE.ERROR);
                     }
                 });
             }
         });
-
         return AddElement([AddElement([checkbox, checkText], label), ...finalInputs], content);
     }
 
-    createForm(object) {
+    _isConditionValid(conditions) {
+        let valid = false;
+
+        if (conditions) {
+            const date = new Date(conditions);
+            if (!isNaN(date.getTime())) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                valid = date >= today;
+            } else {
+                valid = true;
+            }
+        }
+
+        return valid;
+    }
+
+    _createForm(object) {
         let skeleton = {};
         Object.keys(object).filter(key => object[key].showForm).forEach(key => {
             const data = object[key];
             skeleton[key] = {};
             skeleton[key]['label'] = CreateElement('label', { for: key }, data.name.toLowerCase().replace(/./, c => c.toUpperCase()));
-            skeleton[key]['input'] = this.createInput(data, key);
+            skeleton[key]['input'] = this._createInput(data, key);
         });
         return skeleton;
     }
 
-    createInput(element, key){
+    _createInput(element, key){
         let finalInput;
         const inputForm = CreateElement('input', { name: key, id: key, type: element.type });
 

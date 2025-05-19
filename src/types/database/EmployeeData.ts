@@ -7,6 +7,7 @@ type EmployeeData = {
   leave_date?: string;
   medical_leave_date?: string;
   medical_discharge_date?: string;
+  dni_date?: string;
   courses: number;
 };
 

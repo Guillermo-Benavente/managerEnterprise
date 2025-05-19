@@ -44,6 +44,13 @@ export const EMPLOYEE = {
         'type':'date',
         'showTable':true
     },
+    'dni_date': {
+        'name':'validez del dni',
+        'type':'date',
+        'showForm':true,
+        'showTable':true,
+        'showFormSelectorState':true
+    },
     'courses': {
         'name':'cursos',
         'type':'file',

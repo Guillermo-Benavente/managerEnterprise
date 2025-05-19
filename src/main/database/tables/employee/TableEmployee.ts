@@ -14,6 +14,7 @@ export class TableEmployee extends TableBase<EmployeeData, string> {
                 leave_date DATE,
                 medical_leave_date DATE,
                 medical_discharge_date DATE,
+                dni_date DATE,
                 courses INTEGER DEFAULT 0
             );`,
             [
@@ -29,20 +30,26 @@ export class TableEmployee extends TableBase<EmployeeData, string> {
     async getOne(id: string) { 
         return this.runSQL(SQLMethod.GET, 'SELECT * FROM employee WHERE dni = ?', [id], 'Error al obtener el empleado');
     }
-    async insert(emp: EmployeeData) { 
+    async insert(emp: EmployeeData) {
+        console.log(emp);
         return this.runSQL(SQLMethod.RUN, 
-            `INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, courses)
-                VALUES (?, ?, ?, ?, ?, ?)`,
-            [emp.dni, emp.name, emp.first_surname, emp.second_surname, emp.discharge_date, emp.courses],
+            `INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, dni_date, courses)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [emp.dni, emp.name, emp.first_surname, emp.second_surname, emp.discharge_date, emp.dni_date, emp.courses],
             'Error al insertar un empleado'
         );
     }
     async update(emp: EmployeeData) { 
         return this.runSQL(SQLMethod.RUN, 
             `UPDATE employee
-                SET name = ?, first_surname = ?, second_surname = ?, discharge_date = ?, leave_date = ?, medical_leave_date = ?, medical_discharge_date = ?, courses = ?
+                SET name = ?, first_surname = ?, second_surname = ?, discharge_date = ?,
+                 leave_date = ?, medical_leave_date = ?, medical_discharge_date = ?, dni_date = ?, courses = ?
                 WHERE dni = ?`,
-            [emp.name, emp.first_surname, emp.second_surname, emp.discharge_date, emp.leave_date, emp.medical_leave_date, emp.medical_discharge_date, emp.courses, emp.dni],
+            [
+                emp.name, emp.first_surname, emp.second_surname, emp.discharge_date,
+                emp.leave_date, emp.medical_leave_date, emp.medical_discharge_date, emp.dni_date, emp.courses,
+                emp.dni
+            ],
             'Error al actualizar un empleado'
         );
     }
