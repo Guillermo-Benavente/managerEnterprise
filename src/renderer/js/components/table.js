@@ -151,10 +151,13 @@ export default class Table {
     }
 
     addRow(data) {
+        const maxLen = 50;
         let row = Object.keys(this.dataType)
         .filter(key => this.dataType[key].showTable)
         .reduce((o, key) => {
-            o[key] = data[key] !== undefined ? data[key] : '';
+            let val = data[key] !== undefined ? data[key] : '';
+            if (val.length > maxLen) val = val.slice(0, maxLen - 3) + '…';
+            o[key] = val;
             return o;
         }, {});
         
