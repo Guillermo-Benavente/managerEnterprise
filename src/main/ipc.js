@@ -19,7 +19,10 @@ class IPC {
     this.handle = (chan, fn) =>
       ipc.handle(chan, async (e, ...a) => {
         try { return await fn(...a); }
-        catch (err) { return { success: false, error: err.message }; }
+        catch (err) {
+          console.error(`Error ${chan}: ${err.message}`); 
+          throw err;
+        }
       });
     this.on = (chan, fn) => {
       ipc.removeAllListeners(chan);

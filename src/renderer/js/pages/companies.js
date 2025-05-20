@@ -53,7 +53,7 @@ function registerCreateHandler(table) {
                 await dbAPI[cmpKeys.INSERT](company);
                 table.addRow(await FormatObjectLD(company));
             } catch (error) {
-                console.error('Error al abrir el modal:', error);
+                console.error('Error al intentar crear la empresa:', error);
                 Dialog('Error', 'No se ha podido añadir a la empresa.', DialogType.ERROR);       
             }
         });

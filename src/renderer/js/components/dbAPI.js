@@ -7,27 +7,34 @@ export const EMPLOYEE = {
         'type':'text',
         'identifier':true,
         'showForm':true,
-        'showTable':true
+        'showTable':true,
+        'requireForm':true,
+        'checkForm': '^\\d{8}[A-HJ-NP-TV-Z]$'
     },
     'name': {
         'name':'nombre',
         'type':'text',
         'showForm':true,
         'showTable':true,
-        'showFormSelectorText':true
+        'showFormSelectorText':true,
+        'requireForm':true,
+        'checkForm': '^[A-ZÁÉÍÓÚÑa-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑa-záéíóúñ]+)*$'
     },
     'surnames': {
         'name':'apellidos',
         'type':'text',
         'showForm':true,
         'showTable':true,
-        'showFormSelectorText':true
+        'showFormSelectorText':true,
+        'requireForm':true,
+        'checkForm': '^[A-ZÁÉÍÓÚÑa-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑa-záéíóúñ]+)?$'
     },
     'discharge_date': {
         'name':'alta',
         'type':'date',
         'showForm':true,
-        'showTable':true
+        'showTable':true,
+        'requireForm':true
     },
     'leave_date': {
         'name':'baja',
@@ -66,13 +73,17 @@ export const COMPANY = {
         'name':'nif',
         'type':'string',
         'showForm':true,
-        'showTable':true
+        'showTable':true,
+        'requireForm':true,
+        'checkForm': '^\\d{8}[A-HJ-NP-TV-Z]$'
     },
     'name': {
         'name':'nombre',
         'type':'string',
         'showForm':true,
-        'showTable':true
+        'showTable':true,
+        'requireForm':true,
+        'checkForm': '^[A-ZÁÉÍÓÚÑa-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑa-záéíóúñ]+)*$'
     },
     'telephone': {
         'name':'teléfono',
@@ -93,7 +104,8 @@ export const COURSES = {
         'name':'cursos',
         'type':'file',
         'accept':'.pdf',
-        'showForm':true
+        'showForm':true,
+        'requireForm':true,
     }
 }
 
