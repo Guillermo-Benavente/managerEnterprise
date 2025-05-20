@@ -31,7 +31,6 @@ export class TableEmployee extends TableBase<EmployeeData, string> {
         return this.runSQL(SQLMethod.GET, 'SELECT * FROM employee WHERE dni = ?', [id], 'Error al obtener el empleado');
     }
     async insert(emp: EmployeeData) {
-        console.log(emp);
         return this.runSQL(SQLMethod.RUN, 
             `INSERT INTO employee (dni, name, first_surname, second_surname, discharge_date, dni_date, courses)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`,

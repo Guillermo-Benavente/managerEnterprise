@@ -54,7 +54,7 @@ function registerCreateHandler(table) {
                 await dbAPI[empKeys.INSERT](employee);
                 table.addRow(await FormatObjectLD(employee));
             } catch (error) {
-                console.error('Error al abrir el modal:', error);
+                console.error('Error añadir al empleado:', error);
                 Dialog('Error', 'No se ha podido añadir al empleado.', DialogType.ERROR);       
             }
         });

@@ -9,14 +9,12 @@ class Company implements IModel<CompanyType, CompanyData> {
   constructor(private data: CompanyData) {
     if (!data.nif)         throw new Error('El NIF es obligatorio');
     if (!data.name)       throw new Error('El nombre de la empresa es obligatorio');
-    if (!data.telephone)  throw new Error('El teléfono es obligatorio');
   }
 
   /** UI → dominio */
   static fromView(c: CompanyType): IModel<CompanyType, CompanyData> {
     if (!c.nif)        throw new Error('El NIF es obligatorio');
     if (!c.name)       throw new Error('El nombre de la empresa es obligatorio');
-    if (!c.telephone)  throw new Error('El teléfono es obligatorio');
 
     return new Company(CompanyMapper.toData(c));
   }

@@ -82,7 +82,7 @@ export default class Table {
         actions.textContent = 'Acciones';
 
         row.appendChild(actions);
-        
+
         header.appendChild(row);
         return header;
     }
@@ -130,7 +130,6 @@ export default class Table {
     }
 
     _interactiveButtonsActions() {
-
         let actions = document.createElement('div');
 
         if (this._interactiveRowActions.creation != null) {
@@ -160,9 +159,9 @@ export default class Table {
             o[key] = val;
             return o;
         }, {});
-        
+
         row.actions = this._interactiveButtonsActions();
-        row.DT_RowId = data[Object.keys(data)[0]]; 
+        row.DT_RowId = data[Object.keys(data)[0]];
 
         this.dataTable.row.add(row).draw(false);
     }

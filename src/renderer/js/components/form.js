@@ -117,6 +117,9 @@ export default class Fieldset {
         let finalInput;
         const inputForm = CreateElement('input', { name: key, id: key, type: element.type });
 
+        if (element.checkForm) inputForm.pattern = element.checkForm;
+        if(element.requireForm) inputForm.required = true;
+
         if (element.type == 'file') {
             this.fieldset.form.enctype = 'multipart/form-data';
             inputForm.accept = element.accept;
