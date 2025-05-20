@@ -16,7 +16,7 @@ import IpcMain from 'Types/handler/IpcMain';
 import IDatabase from '../database/IDatabase';
 
 const ipcM = ipc as IpcMain;
-const { rm } = fspromise;
+const { rm, readdir, rmdir } = fspromise;
 
 export default class DatabaseHandler {
     constructor(private db: IDatabase) {}
@@ -38,6 +38,15 @@ export default class DatabaseHandler {
                     .filter(r => r.status === 'fulfilled')
                     .map(r => (r as any).value);
                 return await this.db.tables.course.insert(goodResults);
+            },
+            [IpcChannel.DELETE]: async (id: string) => {
+                const course = await this.db.tables.course.getOne(id);
+                const path = join(app.getPath('userData'), 'courses', course!.employee);
+                await rm(join(path, `${id}.pdf`));
+                const remaining = await readdir(path);
+                if (remaining.length === 0) await rmdir(path);
+
+                return await this.db.tables.course.delete(id);
             }
         });
 
@@ -64,6 +73,14 @@ export default class DatabaseHandler {
                 }
                 await this.db.tables.document.update(Document.fromView(document).toData());
                 return { success: true };
+            },
+            [IpcChannel.DELETE]: async (id: string) => {
+                const document = await this.db.tables.document.getOne(id);
+                const path = join(app.getPath('userData'), 'documents', document!.company);
+                await rm(join(path, `${id}.pdf`));
+                const remaining = await readdir(path);
+                if (remaining.length === 0) await rmdir(path);
+                return await this.db.tables.document.delete(id);
             }
         });
 
