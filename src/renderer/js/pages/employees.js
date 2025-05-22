@@ -49,18 +49,21 @@ async function loadEmployees(table) {
 function registerCreateHandler(table) {
     let isProcessing = false;
 
-    AddEvent('.wininCreate', 'click', () => {
+    AddEvent('.wininCreate', 'click', async() => {
         if (!isProcessing) {
             isProcessing = true;
             Modal(EntryPointsType.FORM, { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
             .then(async(employee) => {
-                try {
-                    await dbAPI[empKeys.INSERT](employee);
-                    table.addRow(await FormatObjectLD(employee));
-                } catch (error) {
-                    console.error('Error añadir al empleado:', error);
-                    Dialog('Error', 'No se ha podido añadir al empleado.', DialogType.ERROR);       
+                if (employee) {
+                    try {
+                        await dbAPI[empKeys.INSERT](employee);
+                        table.addRow(await FormatObjectLD(employee));
+                    } catch (error) {
+                        console.error('Error añadir al empleado:', error);
+                        Dialog('Error', 'No se ha podido añadir al empleado.', DialogType.ERROR);       
+                    }
                 }
+                isProcessing = false;
             });
         }
     });
@@ -82,7 +85,8 @@ function registerExportHandler() {
             } catch (err) {
                 console.error('Error al inicializar la tabla:', err);
                 Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
-            }    
+            }
+            isProcessing = false;
         }
     });
 }

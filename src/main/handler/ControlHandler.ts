@@ -80,7 +80,7 @@ export default class ControlHandler {
                 parent.webContents.send(IpcChannel.MODAL_RESPONSE, data);
             });
 
-            modal.on('closed', () => { modal = null!; });
+            modal.on('closed', () => { parent.webContents.send(IpcChannel.MODAL_RESPONSE, null); });
         });
 
         ipcM.on(IpcChannel.DIALOG, (type, title, message) => {

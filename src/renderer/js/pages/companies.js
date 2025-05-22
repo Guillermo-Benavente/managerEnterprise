@@ -53,13 +53,16 @@ function registerCreateHandler(table) {
             isProcessing = true;
             Modal(EntryPointsType.FORM, { title: 'Nueva empresa', dataType: JSON.stringify(COMPANY) })
             .then(async(company) => {
-                try {
-                    await dbAPI[cmpKeys.INSERT](company);
-                    table.addRow(await FormatObjectLD(company));
-                } catch (error) {
-                    console.error('Error al intentar crear la empresa:', error);
-                    Dialog('Error', 'No se ha podido añadir a la empresa.', DialogType.ERROR);       
+                if (company){
+                    try {
+                        await dbAPI[cmpKeys.INSERT](company);
+                        table.addRow(await FormatObjectLD(company));
+                    } catch (error) {
+                        console.error('Error al intentar crear la empresa:', error);
+                        Dialog('Error', 'No se ha podido añadir a la empresa.', DialogType.ERROR);       
+                    }
                 }
+                isProcessing = false;
             });
         }
     });
@@ -82,6 +85,7 @@ function registerExportHandler() {
                 console.error('Error al inicializar la tabla:', err);
                 Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
             }
+            isProcessing = false;
         }  
     });
 }
