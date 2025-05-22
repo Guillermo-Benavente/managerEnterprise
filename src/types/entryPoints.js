@@ -28,15 +28,15 @@ const EntryPointsType = Object.freeze({
   NONE: 'none',
   MAIN: 'main_window',
   FORM: 'form',
-  FORM_DOCUMENT: 'formdocument',
+  FORM_DOCUMENT: 'form_document',
   EMPLOYEES: 'employees',
-  EDIT_EMPLOYEE: 'editemployees',
-  COURSES: 'courseemployees',
-  VIEW_COURSE: 'viewcourse',
+  EDIT_EMPLOYEE: 'edit_employee',
+  COURSES: 'courses',
+  VIEW_COURSE: 'view_course',
   COMPANIES: 'companies',
-  EDIT_COMPANY: 'editcompanies',
-  DOCUMENTS: 'createdocument',
-  EDIT_DOCUMENT: 'editdocument',
+  EDIT_COMPANY: 'edit_company',
+  DOCUMENTS: 'documents',
+  EDIT_DOCUMENT: 'edit_document',
 });
 
 module.exports = EntryPointsType;
