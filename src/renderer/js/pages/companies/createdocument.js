@@ -120,59 +120,62 @@ function configEditorTools() {
 }
 
 function registerCreateHandler(documentId, document, companyId, editor) {
-    if (document) {
-        AddEvent('.wininCreate', 'click', async() => {
-            try {
-                const outputData = await editor.save();
+    let isProcessing = false;
 
-                const documentUpdate = { 
-                    id: documentId, 
-                    company: companyId, 
-                    name: document.name, 
-                    content: outputData,
-                    url: document.url,
-                    buffer: newPdf(outputData),
-                };
-
-                await dbAPI[docKeys.UPDATE](documentUpdate);
-
-                Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DialogType.INFO);
-                Navigate('editdocument', {id:documentId, backId: companyId});
-            } catch (error) {
-                console.error('Error al actualizar el documento:', error);
-                Dialog('Error', 'No se ha podido actualizar el documento.', DialogType.ERROR);
-            }
-        });
-    } else {
-        AddEvent('.wininCreate', 'click', () => { 
-            Modal('formdocument', { modeEdit: false })
-            .then(async(documentData) => {
+    AddEvent('.wininCreate', 'click', async() => {
+        if (!isProcessing) {
+            isProcessing = true;
+            if (document) {
                 try {
                     const outputData = await editor.save();
-                    let document = { 
-                        name: documentData.data.name,
+
+                    const documentUpdate = { 
+                        id: documentId, 
+                        company: companyId, 
+                        name: document.name, 
                         content: outputData,
-                        buffer: newPdf(outputData)
+                        url: document.url,
+                        buffer: newPdf(outputData),
                     };
-                    const documentId = (await dbAPI[docKeys.INSERT](companyId, [document]))[0];
-                    
-                    if (documentData.selector != null) {
-                        Object.keys(documentData.selector).forEach((employeeId) => {
-                            if (documentData.selector[employeeId].toLowerCase() === 'on') {
-                                const dateKey = Object.keys(documentData.selector).find(key => key.startsWith(employeeId) && key !== employeeId);
-                                const date = dateKey ? documentData.selector[dateKey] : null;
-                                dbAPI[ebdKeys.INSERT](employeeId, documentId, date);
-                            }
-                        });
-                    }
-                    Navigate('editcompanies', {id:companyId});
+
+                    await dbAPI[docKeys.UPDATE](documentUpdate);
+
+                    Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DialogType.INFO);
+                    Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: companyId});
                 } catch (error) {
-                    console.error('Error al guardar el documento:', error);
-                    Dialog('Error', 'No se ha podido guardar el documento.', DialogType.ERROR);
+                    console.error('Error al actualizar el documento:', error);
+                    Dialog('Error', 'No se ha podido actualizar el documento.', DialogType.ERROR);
                 }
-            });
-        });
-    }
+            } else {
+                Modal(EntryPointsType.FORM_DOCUMENT, { modeEdit: false })
+                .then(async(documentData) => {
+                    try {
+                        const outputData = await editor.save();
+                        let document = { 
+                            name: documentData.data.name,
+                            content: outputData,
+                            buffer: newPdf(outputData)
+                        };
+                        const documentId = (await dbAPI[docKeys.INSERT](companyId, [document]))[0];
+                        
+                        if (documentData.selector != null) {
+                            Object.keys(documentData.selector).forEach((employeeId) => {
+                                if (documentData.selector[employeeId].toLowerCase() === 'on') {
+                                    const dateKey = Object.keys(documentData.selector).find(key => key.startsWith(employeeId) && key !== employeeId);
+                                    const date = dateKey ? documentData.selector[dateKey] : null;
+                                    dbAPI[ebdKeys.INSERT](employeeId, documentId, date);
+                                }
+                            });
+                        }
+                        Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId});
+                    } catch (error) {
+                        console.error('Error al guardar el documento:', error);
+                        Dialog('Error', 'No se ha podido guardar el documento.', DialogType.ERROR);
+                    }
+                });
+            }
+        }
+    });
 }
 
 function registerBackHandler(documentId, companyId) {
