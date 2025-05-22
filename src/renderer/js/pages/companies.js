@@ -46,35 +46,44 @@ async function loadCompanies(table) {
 }
 
 function registerCreateHandler(table) {
+    let isProcessing = false;
+    
     AddEvent('.wininCreate', 'click', () => {
-        Modal('form', { title: 'Nueva empresa', dataType: JSON.stringify(COMPANY) })
-        .then(async(company) => {
-            try {
-                await dbAPI[cmpKeys.INSERT](company);
-                table.addRow(await FormatObjectLD(company));
-            } catch (error) {
-                console.error('Error al intentar crear la empresa:', error);
-                Dialog('Error', 'No se ha podido añadir a la empresa.', DialogType.ERROR);       
-            }
-        });
+        if (!isProcessing) {
+            isProcessing = true;
+            Modal(EntryPointsType.FORM, { title: 'Nueva empresa', dataType: JSON.stringify(COMPANY) })
+            .then(async(company) => {
+                try {
+                    await dbAPI[cmpKeys.INSERT](company);
+                    table.addRow(await FormatObjectLD(company));
+                } catch (error) {
+                    console.error('Error al intentar crear la empresa:', error);
+                    Dialog('Error', 'No se ha podido añadir a la empresa.', DialogType.ERROR);       
+                }
+            });
+        }
     });
 }
 
 function registerExportHandler() {
+    let isProcessing = false;
+
     AddEvent('.export', 'click', async() => {
-        try {
-            const companies = await dbAPI[cmpKeys.GETALL]();
-            const path = await SaveDialog('Guardar Tabla', 'Empresas', 'csv');
-            if (path != null){
-                await ExportCSV(companies, path);
-                Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+        if (!isProcessing) {
+            isProcessing = true;
+            try {
+                const companies = await dbAPI[cmpKeys.GETALL]();
+                const path = await SaveDialog('Guardar Tabla', 'Empresas', 'csv');
+                if (path != null){
+                    await ExportCSV(companies, path);
+                    Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+                }
+            } catch (err) {
+                console.error('Error al inicializar la tabla:', err);
+                Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
             }
-        } catch (err) {
-            console.error('Error al inicializar la tabla:', err);
-            Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
-        }    
+        }  
     });
-    
 }
 
 function registerBackHandler() {

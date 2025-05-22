@@ -47,21 +47,26 @@ async function loadCourses(employeeId, table) {
 }
 
 function registerCreateHandler(employeeId, table) {
-    AddEvent('.wininCreate', 'click', () => {
-        Modal('form', { title: 'Nuevos cursos', dataType: JSON.stringify(COURSES) })
-        .then(async(model) => {
-            try {
-                const idCourses = await dbAPI[curKeys.INSERT](employeeId, model.courses);
-                const courses = await Promise.all(idCourses.map(id => dbAPI[curKeys.GETONE](id)));
-                
-                courses.forEach(course => { table.addRow(course); });
+    let isProcessing = false;
 
-                await updateEmployeeCourses(employeeId, courses.length);
-            } catch (error) {
-                console.error('Error al abrir el modal:', error);
-                Dialog('Error', 'No se han podido añadir los cursos.', DialogType.ERROR);       
-            }
-        });
+    AddEvent('.wininCreate', 'click', () => {
+        if (!isProcessing) {
+            isProcessing = true;
+            Modal(EntryPointsType.FORM, { title: 'Nuevos cursos', dataType: JSON.stringify(COURSES) })
+            .then(async(model) => {
+                try {
+                    const idCourses = await dbAPI[curKeys.INSERT](employeeId, model.courses);
+                    const courses = await Promise.all(idCourses.map(id => dbAPI[curKeys.GETONE](id)));
+                    
+                    courses.forEach(course => { table.addRow(course); });
+
+                    await updateEmployeeCourses(employeeId, courses.length);
+                } catch (error) {
+                    console.error('Error al abrir el modal:', error);
+                    Dialog('Error', 'No se han podido añadir los cursos.', DialogType.ERROR);       
+                }
+            });
+        }
     });
 }
 

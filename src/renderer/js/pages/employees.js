@@ -47,35 +47,44 @@ async function loadEmployees(table) {
 }
 
 function registerCreateHandler(table) {
+    let isProcessing = false;
+
     AddEvent('.wininCreate', 'click', () => {
-        Modal('form', { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
-        .then(async(employee) => {
-            try {
-                await dbAPI[empKeys.INSERT](employee);
-                table.addRow(await FormatObjectLD(employee));
-            } catch (error) {
-                console.error('Error añadir al empleado:', error);
-                Dialog('Error', 'No se ha podido añadir al empleado.', DialogType.ERROR);       
-            }
-        });
+        if (!isProcessing) {
+            isProcessing = true;
+            Modal(EntryPointsType.FORM, { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
+            .then(async(employee) => {
+                try {
+                    await dbAPI[empKeys.INSERT](employee);
+                    table.addRow(await FormatObjectLD(employee));
+                } catch (error) {
+                    console.error('Error añadir al empleado:', error);
+                    Dialog('Error', 'No se ha podido añadir al empleado.', DialogType.ERROR);       
+                }
+            });
+        }
     });
 }
 
 function registerExportHandler() {
+    let isProcessing = false;
+
     AddEvent('.export', 'click', async() => {
-        try {
-            const employees = await dbAPI[empKeys.GETALL]();
-            const path = await SaveDialog('Guardar Tabla', 'Empleados', 'csv');
-            if (path != null){
-                await ExportCSV(employees, path);
-                Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
-            }
-        } catch (err) {
-            console.error('Error al inicializar la tabla:', err);
-            Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
-        }    
+        if (!isProcessing) {
+            isProcessing = true;
+            try {
+                const employees = await dbAPI[empKeys.GETALL]();
+                const path = await SaveDialog('Guardar Tabla', 'Empleados', 'csv');
+                if (path != null){
+                    await ExportCSV(employees, path);
+                    Dialog('Información', 'Exportación creada correctamente.', DialogType.INFO);
+                }
+            } catch (err) {
+                console.error('Error al inicializar la tabla:', err);
+                Dialog('Error', 'No se ha podido exportar la tabla.', DialogType.ERROR);    
+            }    
+        }
     });
-    
 }
 
 function registerBackHandler() {
