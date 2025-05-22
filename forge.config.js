@@ -1,6 +1,6 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
-const ENTRY_POINTS_TYPE = require('./src/types/entryPoints.js');
+const EntryPointsType = require('./src/types/entryPoints.js');
 
 module.exports = {
   packagerConfig: {
@@ -40,7 +40,7 @@ module.exports = {
             {
               html: './src/index.html',
               js: './src/renderer/js/pages/index.js',
-              name: ENTRY_POINTS_TYPE.MAIN,
+              name: EntryPointsType.MAIN,
               preload: {
                 js: './src/preload.js',
               },
@@ -48,7 +48,7 @@ module.exports = {
             {
               html: './src/renderer/html/modal/form.html',
               js: './src/renderer/js/pages/modal/form.js',
-              name: ENTRY_POINTS_TYPE.FORM,
+              name: EntryPointsType.FORM,
               preload: {
                 js: './src/preload.js',
               },
@@ -56,7 +56,7 @@ module.exports = {
             {
               html: './src/renderer/html/modal/formdocument.html',
               js: './src/renderer/js/pages/modal/formdocument.js',
-              name: ENTRY_POINTS_TYPE.FORM_DOCUMENT,
+              name: EntryPointsType.FORM_DOCUMENT,
               preload: {
                 js: './src/preload.js',
               },
@@ -64,7 +64,7 @@ module.exports = {
             {
               html: './src/renderer/html/employees.html',
               js: './src/renderer/js/pages/employees.js',
-              name: ENTRY_POINTS_TYPE.EMPLOYEES,
+              name: EntryPointsType.EMPLOYEES,
               preload: {
                 js: './src/preload.js',
               },
@@ -72,7 +72,7 @@ module.exports = {
             {
               html: './src/renderer/html/employees/edit.html',
               js: './src/renderer/js/pages/employees/edit.js',
-              name: ENTRY_POINTS_TYPE.EDIT_EMPLOYEE,
+              name: EntryPointsType.EDIT_EMPLOYEE,
               preload: {
                 js: './src/preload.js',
               },
@@ -80,7 +80,7 @@ module.exports = {
             {
               html: './src/renderer/html/employees/course.html',
               js: './src/renderer/js/pages/employees/course.js',
-              name: ENTRY_POINTS_TYPE.COURSES,
+              name: EntryPointsType.COURSES,
               preload: {
                 js: './src/preload.js',
               },
@@ -88,7 +88,7 @@ module.exports = {
             {
               html: './src/renderer/html/employees/course/view.html',
               js: './src/renderer/js/pages/employees/course/view.js',
-              name: ENTRY_POINTS_TYPE.VIEW_COURSE,
+              name: EntryPointsType.VIEW_COURSE,
               preload: {
                 js: './src/preload.js',
               },
@@ -96,7 +96,7 @@ module.exports = {
             {
               html: './src/renderer/html/companies.html',
               js: './src/renderer/js/pages/companies.js',
-              name: ENTRY_POINTS_TYPE.COMPANIES,
+              name: EntryPointsType.COMPANIES,
               preload: {
                 js: './src/preload.js',
               },
@@ -104,7 +104,7 @@ module.exports = {
             {
               html: './src/renderer/html/companies/edit.html',
               js: './src/renderer/js/pages/companies/edit.js',
-              name: ENTRY_POINTS_TYPE.EDIT_COMPANY,
+              name: EntryPointsType.EDIT_COMPANY,
               preload: {
                 js: './src/preload.js',
               },
@@ -112,7 +112,7 @@ module.exports = {
             {
               html: './src/renderer/html/companies/createdocument.html',
               js: './src/renderer/js/pages/companies/createdocument.js',
-              name: ENTRY_POINTS_TYPE.DOCUMENTS,
+              name: EntryPointsType.DOCUMENTS,
               preload: {
                 js: './src/preload.js',
               },
@@ -120,7 +120,7 @@ module.exports = {
             {
               html: './src/renderer/html/companies/documents/edit.html',
               js: './src/renderer/js/pages/companies/documents/edit.js',
-              name: ENTRY_POINTS_TYPE.EDIT_DOCUMENT,
+              name: EntryPointsType.EDIT_DOCUMENT,
               preload: {
                 js: './src/preload.js',
               },
