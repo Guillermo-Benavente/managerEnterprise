@@ -132,14 +132,14 @@ export default class Database implements IDatabase{
         const existingTables = new Set(rows.map(row => row.name));
 
         const tablesToCreate = {
-            employee: this.tables.employee.createTable,
-            company: this.tables.company.createTable,
-            course: this.tables.course.createTable,
-            documents: this.tables.document.createTable,
-            employeebydocument: this.tables.employeeByDocument.createTable
+            employee: () => this.tables.employee.createTable(),
+            company: () => this.tables.company.createTable(),
+            course: () => this.tables.course.createTable(),
+            documents: () => this.tables.document.createTable(),
+            employeebydocument: () => this.tables.employeeByDocument.createTable()
         };
 
         for (const [tableName, createTable] of Object.entries(tablesToCreate)) 
-            if (!existingTables.has(tableName)) await createTable.call(this);
+            if (!existingTables.has(tableName)) await createTable();
     }
 }
