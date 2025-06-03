@@ -3,6 +3,7 @@ import started from 'electron-squirrel-startup';
 import Database from './main/database/Database';
 import HandlerManager from './main/handler/HandlerManager';
 import server from './main/server.js';
+import path from 'path';
 
 if (started) {
   app.quit();
@@ -13,8 +14,10 @@ let serverInstance;
 
 const createWindow = async () => {
   const mainWindow = new BrowserWindow({
+    icon: path.join(__dirname, 'icon.png'),
     width: 1100,
     height: 650,
+    autoHideMenuBar: true,
     minWidth: 1000,
     minHeight: 650,
     webPreferences: {
@@ -45,8 +48,6 @@ const createWindow = async () => {
   });
 
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-  // Open the DevTools.
-  //mainWindow.webContents.openDevTools();
 }
 
 app.disableHardwareAcceleration();

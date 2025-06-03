@@ -1,0 +1,31 @@
+This product includes the following third-party libraries:
+
+- @editorjs/editorjs@^2.30.7 – Apache-2.0 License  
+- @editorjs/header@^2.8.8 – Apache-2.0 License  
+- @editorjs/image@^2.10.1 – Apache-2.0 License  
+- @editorjs/list@^2.0.2 – Apache-2.0 License  
+- @editorjs/paragraph@^2.11.7 – Apache-2.0 License  
+- @editorjs/table@^2.4.3 – Apache-2.0 License  
+- cors@^2.8.5 – MIT License  
+- datatables.net-dt@^2.2.2 – MIT License  
+- electron-squirrel-startup@^1.0.1 – MIT License  
+- express@^5.1.0 – MIT License  
+- jspdf@^3.0.1 – MIT License  
+- jspdf-autotable@^5.0.2 – MIT License  
+- path-browserify@^1.0.1 – MIT License  
+- pdfjs-dist@^5.1.91 – Apache-2.0 License  
+- sqlite3@^5.1.7 – BSD-3-Clause License  
+
+In addition, the software includes indirect dependencies under the following licenses:
+
+- 161 packages under MIT  
+- 46 packages under ISC  
+- 5 packages under Apache-2.0  
+- 4 packages under BSD-3-Clause  
+- 2 packages under (MIT OR Apache-2.0)  
+- 1 package under (MPL-2.0 OR Apache-2.0)  
+- 1 package under (MIT OR WTFPL)  
+- 1 package under BSD-2-Clause  
+- 1 package under (BSD-2-Clause OR MIT OR Apache-2.0)  
+
+Full license texts are available in the respective third-party project sources.

@@ -1,5 +1,6 @@
 const rules = require('./webpack.rules');
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 rules.push({
   test: /\.js$/,
@@ -30,5 +31,12 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.json'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
-  }
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/assets/icon.png', to: 'icon.png' }
+      ]
+    })
+  ]
 };

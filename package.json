@@ -1,6 +1,6 @@
 {
-  "name": "manager",
-  "productName": "manager",
+  "name": "Docmaen",
+  "productName": "Docmaen",
   "version": "1.0.0",
   "description": "Business management",
   "main": ".webpack/main",
@@ -40,9 +40,9 @@
   },
   "keywords": [],
   "author": {
-    "name": "guillermob"
+    "name": "Guillermo Benavente Mora"
   },
-  "license": "",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@editorjs/editorjs": "^2.30.7",
     "@editorjs/header": "^2.8.8",
@@ -52,11 +52,11 @@
     "@editorjs/table": "^2.4.3",
     "cors": "^2.8.5",
     "datatables.net-dt": "^2.2.2",
+    "Docmaen": "file:",
     "electron-squirrel-startup": "^1.0.1",
     "express": "^5.1.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
-    "manager": "file:",
     "path-browserify": "^1.0.1",
     "pdfjs-dist": "^5.1.91",
     "sqlite3": "^5.1.7"

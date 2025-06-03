@@ -2,6 +2,7 @@ import { BrowserWindow, dialog } from 'electron';
 import { SaveFile } from '../fileWriter';
 import server from '../server';
 import ipc from '../ipc';
+import path from 'path';
 import IpcChannel from 'Types/handler/IpcChannel';
 import IpcMain from 'Types/handler/IpcMain';
 import EntryPointsType from 'Types/entryPoints';
@@ -45,6 +46,7 @@ export default class ControlHandler {
         ipcM.on(IpcChannel.MODAL, (page, attr) => {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
+                icon: path.join(__dirname, 'icon.png'),
                 width: 800,
                 height: 600,
                 parent,

@@ -6,7 +6,7 @@ import { app } from 'electron';
 import cors from 'cors';
 
 const expressApp = express();
-const pdfFolder = join(app.getPath('appData'), 'manager');
+const pdfFolder = join(app.getPath('appData'), 'Docmaen');
 const serverPort = 3500;
 const serverHost = 'localhost';
 const serverUrl = `http://${serverHost}:${serverPort}`;
