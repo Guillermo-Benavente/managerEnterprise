@@ -2,7 +2,16 @@
     text-align: right;
 }
 
-.btn, .btn-img {
+.btn-img-cnt {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn,
+.btn-img {
     all: unset;
     display: inline-block;
     cursor: pointer;
@@ -14,6 +23,10 @@
     &:hover {
         scale: .95;
     }
+
+    svg {
+        pointer-events: none;
+    }
 }
 
 .btn {
@@ -22,7 +35,9 @@
 
 .btn-img {
     margin: 5px;
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 35px;
     height: 35px;
     background-size: 60% 60%;
@@ -86,6 +101,7 @@ input.btn.btn-primary {
 .btn.btn-link {
     padding: 6px;
     background-color: unset;
+
     &:hover {
         color: var(--button-link-hover-color);
     }

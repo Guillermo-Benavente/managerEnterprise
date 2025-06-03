@@ -11,7 +11,8 @@ This product includes the following third-party libraries:
 - electron-squirrel-startup@^1.0.1 – MIT License  
 - express@^5.1.0 – MIT License  
 - jspdf@^3.0.1 – MIT License  
-- jspdf-autotable@^5.0.2 – MIT License  
+- jspdf-autotable@^5.0.2 – MIT License 
+- lucide@^0.511.0 – MIT License 
 - path-browserify@^1.0.1 – MIT License  
 - pdfjs-dist@^5.1.91 – Apache-2.0 License  
 - sqlite3@^5.1.7 – BSD-3-Clause License  
