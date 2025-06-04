@@ -49,6 +49,7 @@ export default class ControlHandler {
                 icon: path.join(__dirname, 'icon.png'),
                 width: 800,
                 height: 600,
+                autoHideMenuBar: true,
                 parent,
                 modal: true,
                 show: false,
@@ -95,7 +96,9 @@ export default class ControlHandler {
 
             const { buttons, defaultId } = options[type as keyof typeof options] || { buttons: ['OK'], defaultId: 0 };
 
-            const response = dialog.showMessageBoxSync(this.mainWindow, {
+            const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
+
+            const response = dialog.showMessageBoxSync(win, {
                 type, title, message, buttons, defaultId
             });
 
@@ -103,13 +106,13 @@ export default class ControlHandler {
         });
 
         ipcM.handle(IpcChannel.DIALOG_SAVE, async (options) => {
-            const win = BrowserWindow.getFocusedWindow();
+            const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
             const { canceled, filePath } = await dialog.showSaveDialog(win!, options);
             return canceled ? null : filePath;
         });
 
         ipcM.handle(IpcChannel.DIALOG_OPEN, async (options) => {
-            const win = BrowserWindow.getFocusedWindow();
+            const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
             const { canceled, filePaths } = await dialog.showOpenDialog(win!, options);
             return canceled || !filePaths.length ? null : filePaths[0];
         });
