@@ -19,10 +19,28 @@ const ipcM = ipc as IpcMain;
 const { rm, readdir, rmdir } = fspromise;
 
 export default class DatabaseHandler {
-    constructor(private db: IDatabase) {}
+    constructor(private db: IDatabase) { }
     public register() {
-        this.dbHandlers(TableName.EMPLOYEE, this.db, Employee);
-        this.dbHandlers(TableName.COMPANY, this.db, Company);
+        this.dbHandlers(TableName.EMPLOYEE, this.db, Employee, {
+            [IpcChannel.DELETE]: async (dni: string) => {
+                const courses = await this.db.tables.course.getAll(dni);
+                const path = join(app.getPath('userData'), 'courses', dni);
+                for (const course of courses) await rm(join(path, `${course.id}.pdf`));
+                const remaining = await readdir(path);
+                if (remaining.length === 0) await rmdir(path);
+                return await this.db.tables.employee.delete(dni);
+            }
+        });
+        this.dbHandlers(TableName.COMPANY, this.db, Company, {
+            [IpcChannel.DELETE]: async (nif: string) => {
+                const documents = await this.db.tables.document.getAll(nif);
+                const path = join(app.getPath('userData'), 'documents', nif);
+                for (const doc of documents.filter(d => d.company === nif)) await rm(join(path, `${doc.id}.pdf`));
+                const remaining = await readdir(path);
+                if (remaining.length === 0) await rmdir(path);
+                return await this.db.tables.company.delete(nif);
+            }
+        });
         this.dbHandlers(TableName.COURSE, this.db, Course, {
             [IpcChannel.INSERT]: async (dni: string, courses: any[]) => {
                 const formatCourses = await Promise.allSettled(
@@ -101,7 +119,7 @@ export default class DatabaseHandler {
         Class: ModelClass<V, D>,
         custom: Partial<Record<string, (...args: any[]) => Promise<any>>> = {}
     ): void {
-        
+
         const table = db.tables[prefix] as ITable<D, string>;
 
         // GET ALL
