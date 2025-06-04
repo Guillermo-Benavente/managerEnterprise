@@ -10,9 +10,6 @@
     --secondary-color: #fdfdfd;
     --secondary-background-color: #00abe3;
 
-    --search-color: #fdfdfd;
-    --search-background-color: #013274;
-
     --button-primary-background-color: #457DC8;
     --button-primary-hover-background-color: #7CAFF2;
     --button-secondary-background-color: #838694;
@@ -25,11 +22,13 @@
     --table-hover-color:#1F2740;
     --table-background-color: #00abe3;
     --table-header-background-color: #457DC8;
-    --table-body-background-color: #7CAFF2;
+    --table-body-background-color: #75a6e6;
+    --table-odd-row-background-color: #7eb3f8;
     --table-hover-row-background-color: rgba(0, 0, 0, 0.1);
 
-    --window-header-background-color: #013274;
-    --window-background-color: #0000002a;
-    --pop-up-background-color: #b1b6c9;
-    --pop-up-shadow: black;
+    --form-selector-border-items: #013274;
+    --form-selector-checked-items: #7CAFF2;
+
+    --pdf-viewer-background: rgba(0, 0, 0, 0.2);
+    --pdf-viewer-shadow: rgba(0, 0, 0, 0.7);
 }

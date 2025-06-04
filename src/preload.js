@@ -1,41 +1,57 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge } from 'electron';
+import ipc from './main/ipc';
+import IpcChannel from './types/handler/IpcChannel.js';
+import TableName from './types/handler/TableName.js';
 
-contextBridge.exposeInMainWorld('dbAPI', {
-  /// TABLE METHODS EMPLOYED ///
-  getEmployees: () => ipcRenderer.invoke('get-employees'),
-  getEmployee: (dni) => ipcRenderer.invoke('get-employee', dni),
-  insertEmployee: (employee) => ipcRenderer.invoke('insert-employee', employee),
-  updateEmployee: (employee) => ipcRenderer.invoke('update-employee', employee),
-  deleteEmployee: (dni) => ipcRenderer.invoke('delete-employee', dni),
+let server = null;
+ipc.invoke(IpcChannel.GET_SERVER)().then(serverUrl => { server = serverUrl; });
 
-  /// TABLE METHODS COMPANY ///
-  getCompanies: () => ipcRenderer.invoke('get-companies'),
-  getCompany: (nif) => ipcRenderer.invoke('get-company', nif),
-  insertCompany: (company) => ipcRenderer.invoke('insert-company', company),
-  updateCompany: (company) => ipcRenderer.invoke('update-company', company),
-  deleteCompany: (nif) => ipcRenderer.invoke('delete-company', nif),
+const dbActions = [
+  IpcChannel.GETALL, 
+  IpcChannel.GETONE,
+  IpcChannel.INSERT,
+  IpcChannel.UPDATE,
+  IpcChannel.DELETE
+];
 
-  /// TABLE METHODS COURSES ///
-  getCourses: (dni) => ipcRenderer.invoke('get-courses', dni),
-  insertCourses: (dni, courses) => ipcRenderer.invoke('insert-courses', dni, courses),
-});
+const dbMethods = Object.values(TableName).reduce((methods, tableName) => {
+  dbActions.forEach((action) => methods[action+tableName] = ipc.invoke(`${action}-${tableName}`));
+  return methods;
+}, {});
+
+contextBridge.exposeInMainWorld('dbAPI', dbMethods);
 
 contextBridge.exposeInMainWorld('utilAPI', {
-  modifySvgColor: (url, color) => ipcRenderer.invoke('modify-svg', url, color),
+  formatDate: ipc.invoke(IpcChannel.FORMAT_LOCAL_DATE),
+  formatObjectLD: ipc.invoke(IpcChannel.FORMAT_OBJECT_LD),
+  exportCSV: ipc.invoke(IpcChannel.EXPORT_CSV),
 });
 
 contextBridge.exposeInMainWorld('controlAPI', {
   dom: (callback) => document.addEventListener('DOMContentLoaded', callback),
-  navigate: (page, attr) => ipcRenderer.send('navigate', page, attr),
-  addEvent: (selector = document.defaultView, type, callback) => {
+  navigate: ipc.send(IpcChannel.NAVIGATE),
+  modalWindow: ipc.send(IpcChannel.MODAL),
+  onModalResponse: ipc.on(IpcChannel.MODAL_RESPONSE),
+  sendModalResponse: ipc.send(IpcChannel.MODAL_SEND),
+  dialogWindow: ipc.send(IpcChannel.DIALOG),
+  onDialogResponse: ipc.on(IpcChannel.DIALOG_RESPONSE),
+  saveDialog: ipc.invoke(IpcChannel.DIALOG_SAVE),
+  openDialog: ipc.invoke(IpcChannel.DIALOG_OPEN),
+  saveFile: ipc.invoke(IpcChannel.FILE_SAVE),
+  getPdfUrl: (type, user, name) => `${server}/pdf/${type}/${user}/${name}`,
+  addEvent: function (selector = document.defaultView, type, callback) {
     if (selector == null) window.addEventListener(type, callback);
     else {
-      const element = GetElement(selector);
+      const element = this.getElement(selector);
       element.addEventListener(type, callback);
     }
   },
-  getElement: (selector) => GetElement(selector),
-  createElement: (tag, attributes = {}, content = '') => {
+  getElement: function (selector, element = document) {
+    const elementSelected = element.querySelector(selector);
+    if (!elementSelected) throw new Error(`El elemento con el selector "${selector}" no se encontró en el DOM.`);
+    return elementSelected;
+  },
+  createElement: function (tag, attributes = {}, content = '') {
     const element = document.createElement(tag);
 
     for (let key in attributes) 
@@ -43,17 +59,14 @@ contextBridge.exposeInMainWorld('controlAPI', {
           element.setAttribute(key, attributes[key]);
         
     if (typeof content === 'string') element.textContent = content;
-    else if (content instanceof HTMLElement) element.appendChild(content);
+    else if (content instanceof HTMLElement) this.addElement(content, element);
 
     return element;
   },
-  addElement: (child, parent = document.body) => parent.appendChild(child),
+  addElement: function (children, parent = document.body) {
+    if (Array.isArray(children)) children.forEach(child => parent.appendChild(child));
+    else parent.appendChild(children);
+    return parent;
+  },
   removeElement: (child, parent = document.body) => parent.removeChild(child),
 });
-
-function GetElement(selector) {
-  const element = document.querySelector(selector);
-  if (!element) throw new Error(`El elemento con el selector "${selector}" no se encontró en el DOM.`);
-  return element;
-}
-

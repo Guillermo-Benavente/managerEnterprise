@@ -1,53 +1,43 @@
-import { DOM, AddEvent, GetElement, AddElement, Navigate } from 'Components/controlAPI.js';
-import { EMPLOYEE, FormatEmployee, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
-import { CreateForm, CreateChangeDateForm } from 'Components/form.js';
-import { AlertWindow } from 'Components/window.js';
-import Alert from 'Types/alert.js';
+import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog } from 'Components/controlAPI.js';
+import dbAPI, { keys, EMPLOYEE, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
+import { CreateForm } from 'Components/form.js';
+import TableName from 'Types/handler/TableName.js';
+import DialogType from 'Types/dialog.js';
+import EntryPointsType from 'Types/entryPoints.js';
 
-DOM(() => {
-    AddEvent('.pgBack', 'click', () => { Navigate('employees'); });
+const empKeys = keys(TableName.EMPLOYEE);
 
-    window.onload = () => {
-        const employeeId = new URLSearchParams(window.location.search).get('id');
+DOM(async() => {
+    const employeeId = new URLSearchParams(window.location.search).get('id');
 
-        GetEmployee(employeeId, (success, data) => {
-            if(success){
-                AddElement(CreateForm(FormatEmployee(data), EMPLOYEE, 
-                    (employee) => {
-                        let surnamesArray = employee.surnames.split(" ");
-                        let newFormatEmployee = {
-                            'dni': employee.dni,
-                            'name': employee.name,
-                            'first_surname': surnamesArray[0],
-                            'second_surname': surnamesArray[1] || '',
-                            'discharge_date': employee.discharge_date,
-                            'leave_date': employee.leave_date,
-                            'medical_leave_date': employee.medical_leave_date,
-                            'medical_discharge_date': employee.medical_discharge_date,
-                            'courses': employee.courses
-                        };
-
-                        UpdateEmployee(newFormatEmployee, (success) => {
-                            if (success) AddElement(AlertWindow(Alert.SUCCESS,'Información actualizada'));
-                            else AddElement(AlertWindow(Alert.ERROR,'No se pudo actualizar la informacion con éxito'));
-                        });
-                    }
-                ), GetElement('.frm-cnt'));
-
-                //TODO agregar los nuevos botones para los documentos y un input para la fecha
-                /*AddElement(CreateChangeDateForm({
-                    'AptitudeCertificate':'Certificado de aptitud',
-                    'Art1819':'Art. 18-19',
-                    'MachineryUses':'Usos de maquinaria',
-                    'HealthMonitoring':'Vigilancia de la salud',
-                    'Epi':'Epi'
-                }), GetElement('.frm-cnt'));*/
-            }
-
-            AddEvent('.pgCourse', 'click', () => { Navigate('courseemployees', {id:employeeId} ); });
-
-            //TODO Añadir a empleados un nuevo campo de la fecha de DNI
-            //TODO Añadir un check al lateral sobre si tiene o no asignado el documento de CreateChangeDateForm
-        });
-    };
+    registerBackHandler();
+    await init(employeeId);
 });
+
+async function init(employeeId){
+    try {
+        const employee = await dbAPI[empKeys.GETONE](employeeId);
+
+        AddElement(CreateForm(employee, EMPLOYEE, 
+            async(employee) => {
+                try {
+                    await dbAPI[empKeys.UPDATE](employee);
+                    Dialog('Información', 'Información actualizada.', DialogType.INFO).then(() => { Navigate(EntryPointsType.EMPLOYEES); });
+                } catch (error) {
+                    console.error('Error al abrir el modal:', error);
+                    Dialog('Error', 'No se pudo actualizar la informacion con éxito.', DialogType.ERROR);
+                }
+            }
+        ), GetElement('.frm-cnt'));
+
+        AddEvent('.pgCourse', 'click', () => { Navigate(EntryPointsType.COURSES, {id:employeeId} ); });
+    } catch (error) {
+        console.error('Error al inicializar el código:', error);
+        Dialog('Error', 'No se ha podido cargar la página con éxito.', DialogType.ERROR);
+    }
+    //TODO Añadir a empleados un nuevo campo de la fecha de DNI
+}
+
+function registerBackHandler() {
+    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EMPLOYEES); });
+}

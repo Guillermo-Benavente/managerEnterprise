@@ -1,0 +1,9 @@
+Copyright (c) 2025 Guillermo Benavente Mora.
+
+All rights reserved.
+
+This software is proprietary and confidential. 
+Unauthorized use, reproduction, modification, or distribution is strictly prohibited without prior written permission from the author.
+
+This software includes open-source components, each of which retains its original license. 
+See the NOTICE file or the respective repositories for full license details.

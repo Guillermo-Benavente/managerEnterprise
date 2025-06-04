@@ -1,5 +1,6 @@
 const rules = require('./webpack.rules');
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 rules.push({
   test: /\.js$/,
@@ -10,6 +11,11 @@ rules.push({
       presets: ['@babel/preset-env'],
     },
   },
+},
+{
+  test: /\.ts$/,
+  exclude: /node_modules/,
+  use: 'ts-loader'
 });
 
 module.exports = {
@@ -23,7 +29,14 @@ module.exports = {
     rules: rules,
   },
   resolve: {
-    extensions: ['.js', '.json'],
+    extensions: ['.js', '.ts', '.json'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
-  }
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/assets/icon.png', to: 'icon.png' }
+      ]
+    })
+  ]
 };

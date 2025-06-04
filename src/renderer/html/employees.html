@@ -8,23 +8,22 @@
         <title>Empleados</title>
     </head>
     <body>
-        <div class="header">
-            <div class="title">
-                <span>Empleados</span>
-            </div>
+        <header class="header">
+            <h1>Empleados</h1>
             <div class="actions">
-                <span class="btn btn-primary pgBack">Volver</span>
+                <button class="btn btn-primary pgBack">Volver</button>
             </div>
-        </div>
-        <br />
-        <div class="bar-opt">
-            <div class="bar-right">
-                <span class="btn btn-secondary">Exportar</span>
-                <span class="btn btn-primary wininCreate">Añadir Empelado</span>
+        </header>
+        <main>
+            <div class="bar-opt">
+                <div class="bar-right">
+                    <button class="btn btn-secondary export">Exportar</button>
+                    <button class="btn btn-primary wininCreate">Añadir Empelado</button>
+                </div>
             </div>
-        </div>
-        <div class="tbl-cnt">
-            <table id="tblEmployees"></table>
-        </div>
+            <div class="tbl-cnt">
+                <table id="tblEmployees"></table>
+            </div>
+        </main>
     </body>
 </html>

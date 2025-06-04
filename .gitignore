@@ -93,3 +93,6 @@ out/
 
 # Visual Studio Community
 .vs/
+
+# TypeScript Generator
+dist/

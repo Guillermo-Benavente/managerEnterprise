@@ -1,0 +1,19 @@
+.pdfViewer {
+    overflow-y: auto;
+    margin-top: 10px;
+    padding: 15px;
+    background-color: var(--pdf-viewer-background);
+
+    border-radius: 5px;
+    gap: 15px;
+
+    position: relative;
+    height: calc(100vh - 195px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    canvas { box-shadow: 0px 4px 10px var(--pdf-viewer-shadow) }
+}
+
+.pdfViewer.onlyPdf { height: calc(100vh - 141px);}
