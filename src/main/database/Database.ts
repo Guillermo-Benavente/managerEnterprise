@@ -1,6 +1,5 @@
-import { app } from 'electron';
 import { verbose, Database as SqliteDatabase } from 'sqlite3';
-import { join } from 'path';
+import { getDb } from '../utils/path';
 import { TableEmployee } from './tables/employee/TableEmployee';
 import { TableCourse } from './tables/course/TableCourse';
 import { TableCompany } from './tables/company/TableCompany';
@@ -30,7 +29,7 @@ export default class Database implements IDatabase{
     };
 
     constructor() {
-        const databasePath = join(app.getPath('userData'), 'manager.db');
+        const databasePath = getDb();
 
         this.db = new Promise<SqliteDatabase>((resolve, reject) => {
             const dbInstance = new sqlite.Database(
