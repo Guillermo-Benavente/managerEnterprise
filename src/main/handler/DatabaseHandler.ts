@@ -1,8 +1,8 @@
-import { app } from 'electron';
 import { join } from 'path';
 import { promises as fspromise } from 'fs';
 import { SaveFile } from '../fileWriter';
 import ipc from '../ipc';
+import { getFolder } from '../utils/path';
 import ITable from '../database/tables/ITable';
 import { ModelClass } from '../database/tables/IModel';
 import Employee from '../database/tables/employee/Employee';
@@ -14,6 +14,7 @@ import TableName from 'Types/handler/TableName';
 import IpcChannel from 'Types/handler/IpcChannel';
 import IpcMain from 'Types/handler/IpcMain';
 import IDatabase from '../database/IDatabase';
+import { FolderType } from 'Types/handler/FolderType';
 
 const ipcM = ipc as IpcMain;
 const { rm, readdir, rmdir } = fspromise;
@@ -24,7 +25,7 @@ export default class DatabaseHandler {
         this.dbHandlers(TableName.EMPLOYEE, this.db, Employee, {
             [IpcChannel.DELETE]: async (dni: string) => {
                 const courses = await this.db.tables.course.getAll(dni);
-                const path = join(app.getPath('userData'), 'courses', dni);
+                const path = getFolder(FolderType.Courses, dni);
                 for (const course of courses) await rm(join(path, `${course.id}.pdf`));
                 const remaining = await readdir(path);
                 if (remaining.length === 0) await rmdir(path);
@@ -34,7 +35,7 @@ export default class DatabaseHandler {
         this.dbHandlers(TableName.COMPANY, this.db, Company, {
             [IpcChannel.DELETE]: async (nif: string) => {
                 const documents = await this.db.tables.document.getAll(nif);
-                const path = join(app.getPath('userData'), 'documents', nif);
+                const path = getFolder(FolderType.Documents, nif);
                 for (const doc of documents.filter(d => d.company === nif)) await rm(join(path, `${doc.id}.pdf`));
                 const remaining = await readdir(path);
                 if (remaining.length === 0) await rmdir(path);
@@ -47,7 +48,7 @@ export default class DatabaseHandler {
                     courses.map(async (course, index) => {
                         course.id = dni + Date.now() + index;
                         course.employee = dni;
-                        course.url = join(app.getPath('userData'), 'courses', dni, `${course.id}.pdf`);
+                        course.url = join(getFolder(FolderType.Courses, dni), `${course.id}.pdf`);
                         await SaveFile(course.url, course.data);
                         return Course.fromView(course).toData();
                     })
@@ -59,7 +60,7 @@ export default class DatabaseHandler {
             },
             [IpcChannel.DELETE]: async (id: string) => {
                 const course = await this.db.tables.course.getOne(id);
-                const path = join(app.getPath('userData'), 'courses', course!.employee);
+                const path = getFolder(FolderType.Courses, course!.employee);
                 await rm(join(path, `${id}.pdf`));
                 const remaining = await readdir(path);
                 if (remaining.length === 0) await rmdir(path);
@@ -74,7 +75,7 @@ export default class DatabaseHandler {
                     documents.map(async (document, index) => {
                         document.id = nif + Date.now() + index;
                         document.company = nif;
-                        document.url = join(app.getPath('userData'), 'documents', nif, `${document.id}.pdf`);
+                        document.url = join(getFolder(FolderType.Documents, nif), `${document.id}.pdf`);
                         await SaveFile(document.url, document.buffer);
                         return Document.fromView(document).toData();
                     })
@@ -94,7 +95,7 @@ export default class DatabaseHandler {
             },
             [IpcChannel.DELETE]: async (id: string) => {
                 const document = await this.db.tables.document.getOne(id);
-                const path = join(app.getPath('userData'), 'documents', document!.company);
+                const path = getFolder(FolderType.Documents, document!.company);
                 await rm(join(path, `${id}.pdf`));
                 const remaining = await readdir(path);
                 if (remaining.length === 0) await rmdir(path);
