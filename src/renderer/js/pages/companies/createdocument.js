@@ -161,12 +161,8 @@ function registerCreateHandler(documentId, document, companyId, editor) {
                             const documentId = (await dbAPI[docKeys.INSERT](companyId, [document]))[0];
                             
                             if (documentData.selector != null) {
-                                Object.keys(documentData.selector).forEach((employeeId) => {
-                                    if (documentData.selector[employeeId].toLowerCase() === 'on') {
-                                        const dateKey = Object.keys(documentData.selector).find(key => key.startsWith(employeeId) && key !== employeeId);
-                                        const date = dateKey ? documentData.selector[dateKey] : null;
-                                        dbAPI[ebdKeys.INSERT](employeeId, documentId, date);
-                                    }
+                                Object.entries(documentData.selector).forEach(([employeeId, data]) => {
+                                    if (data.value?.toLowerCase() === 'on') dbAPI[ebdKeys.INSERT](employeeId, documentId, data.date || null);
                                 });
                             }
                             Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId});

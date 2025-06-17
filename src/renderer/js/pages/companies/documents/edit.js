@@ -40,6 +40,16 @@ function init(companyId, documentId){
     });
 }
 
+async function safeTask(fn) {
+  try {
+    await fn();
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
 function registerCreateHandler(documentId) {
     let isProcessing = false;
 
@@ -65,44 +75,22 @@ function registerCreateHandler(documentId) {
                         console.error('Error al actualizar el documento:', error);
                     }
 
-                    //TODO mejorar la legibilidad de este codigo es un caos
-                    Object.keys(documentData.selector).forEach((key) => {
-                        const value = documentData.selector[key];
-                        const date = documentData.selector[key + 'date'] || null;
-                        const ebdId = documentData.selector[key + 'docId-data-id'];
+                    Object.entries(documentData.selector).forEach(([key, data]) => {
+                        const checkbox = data.value?.toLowerCase();
 
-                        if (value?.toLowerCase?.() === 'on') {
-                            if (ebdId) {
-                                tasks.push(new Promise(async(resolve) => {
-                                    try {
-                                        const ebd = await dbAPI[ebdKeys.GETONE](ebdId);
-                                        ebd.date = date;
-                                        await dbAPI[ebdKeys.UPDATE](ebd);
-                                        resolve(true);
-                                    } catch (error) {
-                                        console.error('Error al actualizar la referencia del empleado:', error);
-                                    }
+                        if (checkbox === 'on') {
+                            if (data.docId) {
+                                tasks.push(safeTask(async () => {
+                                    const ebd = await dbAPI[ebdKeys.GETONE](data.docId);
+                                    ebd.date = data.date || null;
+                                    await dbAPI[ebdKeys.UPDATE](ebd);
                                 }));
-                            } else {
-                                tasks.push(new Promise(async(resolve) => {
-                                    try {
-                                        await dbAPI[ebdKeys.INSERT](key, documentId, date);
-                                        resolve(true);
-                                    } catch (error) {
-                                        console.error('Error al crear la referencia del empleado:', error);
-                                    }
-                                }));
-                            }
-                        } else if (key.endsWith('docId-data-id') && !documentData.selector[key.slice(0, -13)]) {
-                            tasks.push(new Promise(async(resolve) => {
-                                try {
-                                    await dbAPI[ebdKeys.DELETE](value);
-                                    resolve(true);
-                                } catch (error) {
-                                    console.error('Error al eliminar la referencia del empleado:', error);
-                                }
-                            }));
-                        }
+                            } else tasks.push(
+                                safeTask(async () => await dbAPI[ebdKeys.INSERT](key, documentId, data.date || null))
+                            );
+                        } else if (data.docId && checkbox !== 'on') tasks.push(
+                            safeTask(async () => await dbAPI[ebdKeys.DELETE](data.docId))
+                        );
                     });
 
                     const results = await Promise.all(tasks);
