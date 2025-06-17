@@ -47,8 +47,6 @@ export default class ControlHandler {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
                 icon: path.join(__dirname, 'icon.png'),
-                width: 800,
-                height: 600,
                 autoHideMenuBar: true,
                 parent,
                 modal: true,
@@ -63,17 +61,25 @@ export default class ControlHandler {
 
             this.navigate(modal, page, attr);
 
-            modal.once('ready-to-show', () => {
-                modal.webContents.executeJavaScript(`
+            modal.once('ready-to-show', async () => {
+                const { height: contentH } = await modal.webContents.executeJavaScript(`
                     new Promise(resolve => {
-                        const body = document.body;
-                        resolve({ width: body.scrollWidth, height: body.scrollHeight });
+                    const body = document.body;
+                    resolve({ height: body.scrollHeight });
                     });
-                `).then(size => {
-                    const w = Math.min(size.width + 85, 800);
-                    const h = Math.min(size.height + 85, 600);
-                    const screen = require('electron').screen.getPrimaryDisplay().workAreaSize;
-                    modal.setBounds({ x: (screen.width - w) / 2, y: (screen.height - h) / 2, width: w, height: h });
+                `);
+
+                const paddingY = 85;
+
+                const { height: screenH, width: screenW } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+                const h = Math.min(contentH + paddingY, screenH);
+
+                const w = 800;
+                modal.setBounds({
+                    x: (screenW - w) / 2,
+                    y: (screenH - h) / 2,
+                    width: w,
+                    height: h
                 });
 
                 modal.show();

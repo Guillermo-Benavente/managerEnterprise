@@ -1,3 +1,4 @@
+import DataTable from 'datatables.net-dt';
 import { CreateElement, AddElement, SendModalResponse, Dialog } from 'Components/controlAPI.js';
 import FormType from 'Types/form.js';
 import DIALOG_TYPE from 'Types/dialog.js';
@@ -16,7 +17,17 @@ export default class Fieldset {
                 AddElement(element['input'], this.fieldset);
             });
         } else if(this.type === FormType.SELECTOR) {
+            const idTable = this.fieldset.classList[0]+'-selector';
+            const table = CreateElement('table', { id: idTable });
+            const thead = CreateElement('thead');
+            const tbody = CreateElement('tbody');
             const inputs = this._createInputs(this.data['object'][0]);
+
+            const headerRow = CreateElement('tr');
+            const th = CreateElement('th', {}, 'Empleados');
+            headerRow.appendChild(th);
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
 
             const identifiers = Array.isArray(this.data['object']) 
                 ? this.data['object'].map(obj => Object.keys(obj).find(key => obj[key].identifier))
@@ -35,7 +46,34 @@ export default class Fieldset {
                 const values = Object.keys(value).filter(key => text.flat().includes(key)).map(key => value[key]);
                 const conditions = Object.keys(value).filter(key => state.flat().includes(key)).map(key => value[key]);
                 const newInputs = Object.values(inputs).map((node) => node.cloneNode(true));
-                AddElement(this._createSelector(value[id], values.join(' '), conditions[0], newInputs), this.fieldset);
+                const inputGroup = this._createSelector(value[id], values.join(' '), conditions[0], newInputs);
+                const row = CreateElement('tr');
+                const tdCheck = CreateElement('td');
+
+                tdCheck.appendChild(inputGroup);
+                row.appendChild(tdCheck);
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            AddElement(table, this.fieldset);
+
+            return new DataTable('#'+idTable, {
+                pageLength: 8,
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "",
+                    info: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                    infoEmpty: "No hay registros disponibles",
+                    infoFiltered: "(filtrado de _MAX_ registros en total)",
+                    loadingRecords: "Cargando...",
+                    zeroRecords: "No se encontraron resultados",
+                    emptyTable: "No hay datos disponibles en la tabla",
+                    aria: {
+                        sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                        sortDescending: ": Activar para ordenar la columna de manera descendente"
+                    }
+                }
             });
         }
     }
@@ -56,10 +94,10 @@ export default class Fieldset {
         let finalInputs;
         const isValidCondition = this._isConditionValid(conditions);
         if(isValidCondition) {
-            content = CreateElement('div');
+            content = CreateElement('div', { class: 'option' });
             finalInputs = Object.values(inputs).map(input => { input.name = id+input.name; return input; });
         } else {
-            content = CreateElement('div', { class: 'errorCondition' });
+            content = CreateElement('div', { class: 'option errorCondition' });
             finalInputs = Object.values(inputs).map(input => { 
                 input.name = id+input.name;
                 input.readOnly = true;
