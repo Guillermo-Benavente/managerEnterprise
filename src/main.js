@@ -17,7 +17,7 @@ const createWindow = async () => {
     icon: path.join(__dirname, 'icon.png'),
     width: 1100,
     height: 650,
-    //autoHideMenuBar: true,
+    autoHideMenuBar: true,
     minWidth: 1000,
     minHeight: 650,
     webPreferences: {

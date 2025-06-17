@@ -47,11 +47,11 @@ export default class ControlHandler {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
                 icon: path.join(__dirname, 'icon.png'),
-                //autoHideMenuBar: true,
+                autoHideMenuBar: true,
                 parent,
                 modal: true,
                 show: false,
-                //resizable: false,
+                resizable: false,
                 webPreferences: {
                     nodeIntegration: false,
                     contextIsolation: true,
