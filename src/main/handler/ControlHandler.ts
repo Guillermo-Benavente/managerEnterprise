@@ -69,10 +69,8 @@ export default class ControlHandler {
                     });
                 `);
 
-                const paddingY = 85;
-
                 const { height: screenH, width: screenW } = require('electron').screen.getPrimaryDisplay().workAreaSize;
-                const h = Math.min(contentH + paddingY, screenH);
+                const h = Math.min(contentH + 55, screenH);
 
                 const w = 800;
                 modal.setBounds({
