@@ -12,6 +12,7 @@ let loadedEmployeeData = [];
 let table;
 
 DOM(async() => {
+    GetElement('button[type=button]').addEventListener('click', () => window.close());
     const { modeEdit, documentId } = Object.fromEntries(new URLSearchParams(window.location.search));
 
     await init();
@@ -25,8 +26,6 @@ async function init() {
 
         new Fieldset(GetElement('.document'), DOCUMENT, FormType.NORMAL).init();
         table = new Fieldset(GetElement('.employees'), {object: [DOCUMENTBYEMPLOYEES, EMPLOYEE], data: employees}, FormType.SELECTOR).init();
-
-        GetElement('button[type=button]').addEventListener('click', () => window.close());
     } catch (error) {
         console.error('Error al inicializar el formulario:', error);
         Dialog('Error', 'No se ha podido cargar la información.', DialogType.ERROR);
