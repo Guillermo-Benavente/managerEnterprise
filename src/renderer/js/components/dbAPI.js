@@ -143,7 +143,8 @@ export const DOCUMENT = {
         'name':'nombre',
         'type':'string',
         'showForm':true,
-        'showTable':true
+        'showTable':true,
+        'requireForm':true
     },
     'company':{
         'name':'empresa',

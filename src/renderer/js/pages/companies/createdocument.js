@@ -91,7 +91,7 @@ function configEditorTools() {
                     uploadByFile(file) {
                         return new Promise((resolve, reject) => {
                         if (!file.type.startsWith('image/')) {
-                            reject('El archivo no es una imagen');
+                            reject(new Error('El archivo no es una imagen'));
                             return;
                         }
 
@@ -107,7 +107,7 @@ function configEditorTools() {
                         };
 
                         reader.onerror = () => {
-                            reject('Error al cargar la imagen');
+                            reject(new Error('Error al cargar la imagen'));
                         };
 
                         reader.readAsDataURL(file);
@@ -122,7 +122,7 @@ function configEditorTools() {
 function registerCreateHandler(documentId, document, companyId, editor) {
     let isProcessing = false;
 
-    AddEvent('.wininCreate', 'click', async() => {
+    AddEvent('click', async() => {
         if (!isProcessing) {
             isProcessing = true;
             if (document) {
@@ -175,10 +175,10 @@ function registerCreateHandler(documentId, document, companyId, editor) {
                 });
             }
         }
-    });
+    }, '.wininCreate');
 }
 
 function registerBackHandler(documentId, companyId) {
-    if(documentId) AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: companyId}); });
-    else AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); });
+    if(documentId) AddEvent('click', () => { Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: companyId}); }, '.pgBack');
+    else AddEvent('click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); }, '.pgBack');
 }

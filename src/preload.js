@@ -39,7 +39,7 @@ contextBridge.exposeInMainWorld('controlAPI', {
   openDialog: ipc.invoke(IpcChannel.DIALOG_OPEN),
   saveFile: ipc.invoke(IpcChannel.FILE_SAVE),
   getPdfUrl: (type, user, name) => `${server}/pdf/${type}/${user}/${name}`,
-  addEvent: function (selector = document.defaultView, type, callback) {
+  addEvent: function (type, callback, selector = document.defaultView) {
     if (selector == null) window.addEventListener(type, callback);
     else {
       const element = this.getElement(selector);

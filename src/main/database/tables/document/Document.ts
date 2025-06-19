@@ -6,7 +6,7 @@ import { IModel, ModelClass } from '../IModel';
 const Document: ModelClass<DocumentType, DocumentData> = 
 class Document implements IModel<DocumentType, DocumentData> {
 
-  constructor(private data: DocumentData) {
+  constructor(readonly data: DocumentData) {
     if (!data.id)                         throw new Error('El ID del documento es obligatorio');
     if (!data.name)                       throw new Error('El nombre del documento es obligatorio');
     if (!data.company)                    throw new Error('El NIF de la empresa es obligatorio');

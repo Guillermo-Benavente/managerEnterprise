@@ -127,9 +127,9 @@ async function loadDocuments(companyId, table) {
 }
 
 function registerCreateHandler(companyId) {
-    AddEvent('.pgCreateDocument', 'click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId}); });
+    AddEvent('click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId}); }, '.pgCreateDocument');
 }
 
 function registerBackHandler() {
-    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.COMPANIES); });
+    AddEvent('click', () => { Navigate(EntryPointsType.COMPANIES); }, '.pgBack');
 }

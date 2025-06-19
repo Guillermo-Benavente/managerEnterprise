@@ -6,7 +6,7 @@ import { IModel, ModelClass } from '../IModel';
 const Employee: ModelClass<EmployeeType, EmployeeData> = 
 class Employee implements IModel<EmployeeType, EmployeeData> {
 
-  constructor(private data: EmployeeData) {
+  constructor(readonly data: EmployeeData) {
     if (!data.dni)            throw new Error('El DNI es obligatorio')
     if (!data.name)           throw new Error('El nombre es obligatorio')
     if (!data.first_surname)  throw new Error('El primer apellido es obligatorio')

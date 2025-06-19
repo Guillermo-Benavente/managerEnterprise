@@ -18,7 +18,7 @@ import TableName from 'Types/handler/TableName';
 const sqlite = verbose();
 
 export default class Database implements IDatabase{
-    private db: Promise<SqliteDatabase>;
+    readonly db: Promise<SqliteDatabase>;
 
     public tables: {
         [TableName.EMPLOYEE]: ITable<EmployeeData, string>,
@@ -35,7 +35,7 @@ export default class Database implements IDatabase{
             const dbInstance = new sqlite.Database(
                 databasePath, 
                 sqlite.OPEN_READWRITE | sqlite.OPEN_CREATE, 
-                (err) => { if (err) reject(err); else resolve(dbInstance); }
+                (err) => { if (err) reject(new Error(err.message)); else resolve(dbInstance); }
             );
         });
 
@@ -92,14 +92,15 @@ export default class Database implements IDatabase{
                 stmt.finalize();
             } catch (err) {
                 console.error(`${errorMsg} (excepción):`, err);
-                reject(err);
+                if (err instanceof Error) reject(err);
+                else reject(new Error(String(err)));
             }
         });
     }
 
     async createTable(db: SqliteDatabase, table: string, ddls: string[]): Promise<void> {
         await new Promise<void>((res, rej) =>
-            db.run(table, (err) => (err ? rej(err) : res()))
+            db.run(table, (err) => (err ? rej(err instanceof Error ? err : new Error(String(err))) : res()))
         );
 
         if (ddls) {
@@ -107,7 +108,7 @@ export default class Database implements IDatabase{
                 ddls.map(
                 (ddl) =>
                     new Promise<void>((res, rej) =>
-                        db.run(ddl, (err) => (err ? rej(err) : res()))
+                        db.run(ddl, (err) => (err ? rej(err instanceof Error ? err : new Error(String(err))) : res()))
                     )
                 )
             );

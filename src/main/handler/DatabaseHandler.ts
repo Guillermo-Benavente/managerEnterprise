@@ -20,7 +20,7 @@ const ipcM = ipc as IpcMain;
 const { rm, readdir, rmdir } = fspromise;
 
 export default class DatabaseHandler {
-    constructor(private db: IDatabase) { }
+    constructor(readonly db: IDatabase) { }
     public register() {
         this.dbHandlers(TableName.EMPLOYEE, this.db, Employee, {
             [IpcChannel.DELETE]: async (dni: string) => {

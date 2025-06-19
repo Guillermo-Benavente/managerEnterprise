@@ -23,8 +23,8 @@ const ipcM = ipc as IpcMain;
 
 export default class ControlHandler {
     constructor(
-        private mainWindow: BrowserWindow,
-        private entryMap = {
+        readonly mainWindow: BrowserWindow,
+        readonly entryMap = {
             [EntryPointsType.MAIN]: MAIN_WINDOW_WEBPACK_ENTRY,
             [EntryPointsType.FORM]: FORM_WEBPACK_ENTRY,
             [EntryPointsType.FORM_DOCUMENT]: FORM_DOCUMENT_WEBPACK_ENTRY,
@@ -47,11 +47,11 @@ export default class ControlHandler {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
                 icon: path.join(__dirname, 'icon.png'),
-                autoHideMenuBar: true,
+                //autoHideMenuBar: true,
                 parent,
                 modal: true,
                 show: false,
-                resizable: false,
+                //resizable: false,
                 webPreferences: {
                     nodeIntegration: false,
                     contextIsolation: true,
@@ -111,13 +111,13 @@ export default class ControlHandler {
 
         ipcM.handle(IpcChannel.DIALOG_SAVE, async (options) => {
             const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
-            const { canceled, filePath } = await dialog.showSaveDialog(win!, options);
+            const { canceled, filePath } = await dialog.showSaveDialog(win, options);
             return canceled ? null : filePath;
         });
 
         ipcM.handle(IpcChannel.DIALOG_OPEN, async (options) => {
             const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
-            const { canceled, filePaths } = await dialog.showOpenDialog(win!, options);
+            const { canceled, filePaths } = await dialog.showOpenDialog(win, options);
             return canceled || !filePaths.length ? null : filePaths[0];
         });
 

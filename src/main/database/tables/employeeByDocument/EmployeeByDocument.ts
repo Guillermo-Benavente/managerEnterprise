@@ -6,7 +6,7 @@ import { IModel, ModelClass } from '../IModel';
 const EmployeeByDocument: ModelClass<EmployeeByDocumentType, EmployeeByDocumentData> = 
 class EmployeeByDocument implements IModel<EmployeeByDocumentType, EmployeeByDocumentData> {
 
-  constructor(private data: EmployeeByDocumentData) {
+  constructor(readonly data: EmployeeByDocumentData) {
     if (!data.id)       throw new Error('El ID del registro es obligatorio');
     if (!data.employee) throw new Error('El DNI del empleado es obligatorio');
     if (!data.document) throw new Error('El ID del documento es obligatorio');

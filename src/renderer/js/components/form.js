@@ -196,7 +196,7 @@ export function SubmitForm(form) {
                     const reader = new FileReader();
 
                     reader.onloadend = () => resolve({name:file.name, data:reader.result.split(',')[1]});
-                    reader.onerror = (error) => reject(error);
+                    reader.onerror = (error) => reject(new Error('Error leyendo archivo'));
 
                     reader.readAsDataURL(file);
                 });

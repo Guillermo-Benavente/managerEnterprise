@@ -33,5 +33,5 @@ function init(courseId, employeeId) {
 }
 
 function registerBackHandler(employeeId) {
-    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.COURSES, {id:employeeId} ); });
+    AddEvent('click', () => { Navigate(EntryPointsType.COURSES, {id:employeeId} ); }, '.pgBack');
 }

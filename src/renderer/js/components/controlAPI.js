@@ -256,7 +256,7 @@ export const GetPdf = (type, user, name) => window.controlAPI.getPdfUrl(type, us
  * @author guillermob
  */
 //TODO cambiar comentario
-export const AddEvent = (selector, type, callback) => window.controlAPI.addEvent(selector, type, callback);
+export const AddEvent = (type, callback, selector) => window.controlAPI.addEvent(type, callback, selector);
 
 /**
  * Obtiene un elemento del DOM basado en un selector.

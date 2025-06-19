@@ -6,7 +6,7 @@ import { IModel, ModelClass } from '../IModel';
 const Company: ModelClass<CompanyType, CompanyData> = 
 class Company implements IModel<CompanyType, CompanyData> {
 
-  constructor(private data: CompanyData) {
+  constructor(readonly data: CompanyData) {
     if (!data.nif)         throw new Error('El NIF es obligatorio');
     if (!data.name)       throw new Error('El nombre de la empresa es obligatorio');
   }
