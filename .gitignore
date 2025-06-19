@@ -100,5 +100,3 @@ dist/
 # SonarQube local analysis
 .sonar/
 .scannerwork/
-sonar-scanner.log
-sonar-project.properties
