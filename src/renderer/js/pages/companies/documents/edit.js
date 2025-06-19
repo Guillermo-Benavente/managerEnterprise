@@ -53,7 +53,7 @@ async function safeTask(fn) {
 function registerCreateHandler(documentId) {
     let isProcessing = false;
 
-    AddEvent('.wininCreate', 'click', () => { 
+    AddEvent('click', () => { 
         if (!isProcessing) {
             isProcessing = true;
             Modal(EntryPointsType.FORM_DOCUMENT, { modeEdit: true, documentId: documentId})
@@ -66,9 +66,8 @@ function registerCreateHandler(documentId) {
                         if(documentData.data.name != document.name) {
                             document.name = documentData.data.name;
 
-                            tasks.push(new Promise(async(resolve) => {
+                            tasks.push(safeTask(async () => {
                                 await dbAPI[docKeys.UPDATE](document);
-                                resolve(true);
                             }));
                         }
                     } catch (error) {
@@ -102,13 +101,13 @@ function registerCreateHandler(documentId) {
                 isProcessing = false;
             });
         }
-    });
+    }, '.wininCreate');
 }
 
 function registerEditHandler(companyId, documentId) {
-    AddEvent('.pgEdit', 'click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId, documentId: documentId}); });
+    AddEvent('click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId, documentId: documentId}); }, '.pgEdit');
 }
 
 function registerBackHandler(companyId) {
-    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); });
+    AddEvent('click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); }, '.pgBack');
 }

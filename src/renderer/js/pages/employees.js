@@ -49,7 +49,7 @@ async function loadEmployees(table) {
 function registerCreateHandler(table) {
     let isProcessing = false;
 
-    AddEvent('.wininCreate', 'click', async() => {
+    AddEvent('click', async() => {
         if (!isProcessing) {
             isProcessing = true;
             Modal(EntryPointsType.FORM, { title: 'Nuevo empleado', dataType: JSON.stringify(EMPLOYEE) })
@@ -66,13 +66,13 @@ function registerCreateHandler(table) {
                 isProcessing = false;
             });
         }
-    });
+    }, '.wininCreate');
 }
 
 function registerExportHandler() {
     let isProcessing = false;
 
-    AddEvent('.export', 'click', async() => {
+    AddEvent('click', async() => {
         if (!isProcessing) {
             isProcessing = true;
             try {
@@ -88,9 +88,9 @@ function registerExportHandler() {
             }
             isProcessing = false;
         }
-    });
+    }, '.export');
 }
 
 function registerBackHandler() {
-    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.MAIN); });
+    AddEvent('click', () => { Navigate(EntryPointsType.MAIN); }, '.pgBack');
 }

@@ -1,5 +1,5 @@
 import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog } from 'Components/controlAPI.js';
-import dbAPI, { keys, EMPLOYEE, GetEmployee, UpdateEmployee } from 'Components/dbAPI.js';
+import dbAPI, { keys, EMPLOYEE } from 'Components/dbAPI.js';
 import { CreateForm } from 'Components/form.js';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
@@ -30,14 +30,13 @@ async function init(employeeId){
             }
         ), GetElement('.frm-cnt'));
 
-        AddEvent('.pgCourse', 'click', () => { Navigate(EntryPointsType.COURSES, {id:employeeId} ); });
+        AddEvent('click', () => { Navigate(EntryPointsType.COURSES, {id:employeeId} ); }, '.pgCourse');
     } catch (error) {
         console.error('Error al inicializar el código:', error);
         Dialog('Error', 'No se ha podido cargar la página con éxito.', DialogType.ERROR);
     }
-    //TODO Añadir a empleados un nuevo campo de la fecha de DNI
 }
 
 function registerBackHandler() {
-    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EMPLOYEES); });
+    AddEvent('click', () => { Navigate(EntryPointsType.EMPLOYEES); }, '.pgBack');
 }

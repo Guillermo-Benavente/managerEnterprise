@@ -49,7 +49,7 @@ async function loadCourses(employeeId, table) {
 function registerCreateHandler(employeeId, table) {
     let isProcessing = false;
 
-    AddEvent('.wininCreate', 'click', () => {
+    AddEvent('click', () => {
         if (!isProcessing) {
             isProcessing = true;
             Modal(EntryPointsType.FORM, { title: 'Nuevos cursos', dataType: JSON.stringify(COURSES) })
@@ -70,11 +70,11 @@ function registerCreateHandler(employeeId, table) {
                 isProcessing = false;
             });
         }
-    });
+    }, '.wininCreate');
 }
 
 function registerBackHandler(employeeId) {
-    AddEvent('.pgBack', 'click', () => { Navigate(EntryPointsType.EDIT_EMPLOYEE, {id:employeeId} ); });
+    AddEvent('click', () => { Navigate(EntryPointsType.EDIT_EMPLOYEE, {id:employeeId} ); }, '.pgBack');
 }
 
 async function updateEmployeeCourses(employeeId, courses) {

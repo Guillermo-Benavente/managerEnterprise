@@ -5,11 +5,11 @@ import UtilHandler from './UtilHandler';
 import ControlHandler from './ControlHandler';
 
 class HandlerManager {
-  private dbHandler: DatabaseHandler;
-  private utilHandler: UtilHandler;
-  private controlHandler: ControlHandler;
+  readonly dbHandler: DatabaseHandler;
+  readonly utilHandler: UtilHandler;
+  readonly controlHandler: ControlHandler;
 
-  constructor(private db: IDatabase, private mainWindow: BrowserWindow) {
+  constructor(readonly db: IDatabase, readonly mainWindow: BrowserWindow) {
     this.dbHandler   = new DatabaseHandler(this.db);
     this.utilHandler = new UtilHandler();
     this.controlHandler = new ControlHandler(this.mainWindow);

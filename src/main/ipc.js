@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, ipcMain } from 'electron';
+import { ipcRenderer, ipcMain } from 'electron';
 import IpcRendererType from 'Types/handler/IpcRendererType.js';
 
 const isRenderer = (process && process.type === 'renderer');
@@ -38,14 +38,19 @@ class IPC {
 
   // RENDERER
   _initRenderer(ipc) {
-    const Renderer = type => channel => (...args) =>
-    type === IpcRendererType.ON
-      ? ipc.on(channel, (_, data) => args[0]?.(data))
-      : ipc[type](channel, ...args);
+    this.invoke = this._createRenderer(ipc, IpcRendererType.INVOKE);
+    this.send   = this._createRenderer(ipc, IpcRendererType.SEND);
+    this.on     = this._createRenderer(ipc, IpcRendererType.ON);
+  }
 
-    this.invoke = Renderer(IpcRendererType.INVOKE);
-    this.send   = Renderer(IpcRendererType.SEND);
-    this.on     = Renderer(IpcRendererType.ON);
+  _createRenderer(ipc, type) {
+    return channel => (...args) => {
+      if (type === IpcRendererType.ON) {
+        ipc.on(channel, (_, data) => args[0]?.(data));
+      } else {
+        return ipc[type](channel, ...args);
+      }
+    };
   }
 }
 

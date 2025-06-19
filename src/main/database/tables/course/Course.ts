@@ -2,12 +2,11 @@ import CourseData from 'Types/database/CourseData';
 import CourseType from 'Types/database/CourseType';
 import CourseMapper from './CourseMapper';
 import { IModel, ModelClass } from '../IModel';
-import { Console } from 'console';
 
 const Course: ModelClass<CourseType, CourseData> = 
 class Course implements IModel<CourseType, CourseData> {
 
-  constructor(private data: CourseData) {
+  constructor(readonly data: CourseData) {
     if (!data.id)                         throw new Error('El ID del curso es obligatorio');
     if (!data.name)                       throw new Error('El nombre del curso es obligatorio');
     if (!data.employee)                   throw new Error('El DNI del empleado es obligatorio');
