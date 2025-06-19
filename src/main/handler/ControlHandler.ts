@@ -47,8 +47,7 @@ export default class ControlHandler {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
                 icon: path.join(__dirname, 'icon.png'),
-                width: 800,
-                height: 600,
+                autoHideMenuBar: true,
                 parent,
                 modal: true,
                 show: false,
@@ -62,17 +61,23 @@ export default class ControlHandler {
 
             this.navigate(modal, page, attr);
 
-            modal.once('ready-to-show', () => {
-                modal.webContents.executeJavaScript(`
+            modal.once('ready-to-show', async () => {
+                const { height: contentH } = await modal.webContents.executeJavaScript(`
                     new Promise(resolve => {
-                        const body = document.body;
-                        resolve({ width: body.scrollWidth, height: body.scrollHeight });
+                    const body = document.body;
+                    resolve({ height: body.scrollHeight });
                     });
-                `).then(size => {
-                    const w = Math.min(size.width + 85, 800);
-                    const h = Math.min(size.height + 85, 600);
-                    const screen = require('electron').screen.getPrimaryDisplay().workAreaSize;
-                    modal.setBounds({ x: (screen.width - w) / 2, y: (screen.height - h) / 2, width: w, height: h });
+                `);
+
+                const { height: screenH, width: screenW } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+                const h = Math.min(contentH + 55, screenH);
+
+                const w = 800;
+                modal.setBounds({
+                    x: (screenW - w) / 2,
+                    y: (screenH - h) / 2,
+                    width: w,
+                    height: h
                 });
 
                 modal.show();
@@ -95,7 +100,9 @@ export default class ControlHandler {
 
             const { buttons, defaultId } = options[type as keyof typeof options] || { buttons: ['OK'], defaultId: 0 };
 
-            const response = dialog.showMessageBoxSync(this.mainWindow, {
+            const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
+
+            const response = dialog.showMessageBoxSync(win, {
                 type, title, message, buttons, defaultId
             });
 
@@ -103,13 +110,13 @@ export default class ControlHandler {
         });
 
         ipcM.handle(IpcChannel.DIALOG_SAVE, async (options) => {
-            const win = BrowserWindow.getFocusedWindow();
+            const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
             const { canceled, filePath } = await dialog.showSaveDialog(win!, options);
             return canceled ? null : filePath;
         });
 
         ipcM.handle(IpcChannel.DIALOG_OPEN, async (options) => {
-            const win = BrowserWindow.getFocusedWindow();
+            const win = BrowserWindow.getFocusedWindow() || this.mainWindow;
             const { canceled, filePaths } = await dialog.showOpenDialog(win!, options);
             return canceled || !filePaths.length ? null : filePaths[0];
         });

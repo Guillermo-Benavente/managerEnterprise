@@ -9,10 +9,14 @@
     margin-top: 10px;
 }
 
-.errorCondition{
+form > fieldset.selector div.option.errorCondition {
     background-color: #FF4F4A;
     color: var(--primary-color);
     border-color: #FF3A33 !important;
+    &:hover { 
+        background-color: #e04641; 
+        color: var(--primary-color);
+    }
 }
 
 .frm {
@@ -58,7 +62,73 @@
 }
 
 form > fieldset.selector{
-    div{
+    background-color: var(--table-background-color);
+    color: var(--table-color);
+    padding: 0 10px;
+    margin: 10px 0px 5px 0px;
+    border-radius: 5px;
+
+    .dt-paging-button {
+        background-color: var(--button-primary-background-color) !important;
+        border-radius: 5px !important;
+    }
+
+    #dt-search-0 {
+        height: 25px;
+        margin-left: 10px;
+        border: 0;
+        border-radius: 3px;
+    }
+
+    div.dt-container.dt-empty-footer tbody > tr:last-child > * {
+        border-bottom: none !important;
+    }
+
+    .dt-layout-row:not(.dt-layout-table) { 
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        .dt-layout-end { 
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
+
+    #dt-length-0, #dt-search-0 {
+        background-color: white;
+        color: black;
+    }
+
+    .dataTable{
+        font-family: sans-serif;
+        background-color: var(--table-body-background-color);
+        color: var(--table-body-color);
+
+        tr > th{
+            background-color: var(--table-header-background-color);
+            color: var(--table-header-color);
+        }
+    }
+
+    tbody {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border: 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+
+        td { display: flex; }        
+
+        input {
+            padding: 0 10px;
+            border: 0;
+            border-radius: 5px;
+        }
+
+        input[type="date"] {
+            text-align: center;
+        }
+    }
+
+    div.option {
         display: flex;
         flex: 1 1 auto;
         min-width: 150px;
@@ -72,7 +142,7 @@ form > fieldset.selector{
 
         label { 
             flex-grow: 1;
-            padding: 5px;
+            padding: 12px;
             margin: 0;
             cursor: pointer;
         }
@@ -80,10 +150,22 @@ form > fieldset.selector{
         input[type="checkbox"] {
             display: none;
         }
-    }
 
-    div:has(input[type="checkbox"]:checked) {
-        background-color: var(--form-selector-checked-items);
+        &:has(input[type="checkbox"]:checked) {
+            background-color: var(--form-selector-checked-items);
+            color: var(--table-color);
+            &:hover {
+                background-color: var(--form-selector-checked-hover-items);
+            }
+        }
+
+        &:hover {
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            color: var(--table-hover-color);
+            background-color: var(--table-hover-row-background-color);
+        }
     }
 }
 
