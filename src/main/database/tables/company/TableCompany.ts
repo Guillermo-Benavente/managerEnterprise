@@ -23,12 +23,20 @@ export class TableCompany extends TableBase<CompanyData, string> {
     async getOne(id: string) { 
         return this.runSQL(SQLMethod.GET, 'SELECT * FROM company WHERE nif = ?', [id], 'Error al obtener la empresa');
     }
-    async insert(com: CompanyData) { 
+    async insert(com: CompanyData) {
+        const nifExistsInProfile = await this.runSQL(
+            SQLMethod.GET,
+            `SELECT 1 FROM profile WHERE nif = ? LIMIT 1`,
+            [com.nif]
+        );
+
+        if (nifExistsInProfile) throw new Error('El NIF ya existe en profile. No se puede registrar como company.');
+        
         return this.runSQL(SQLMethod.RUN, 
             `INSERT INTO company (nif, name, telephone, registration_date)
                 VALUES (?, ?, ?, ?)`,
             [com.nif, com.name, com.telephone, com.registration_date],
-            'Error al insertar insertar una empresa'
+            'Error al insertar una empresa'
         );
     }
     async update(com: CompanyData) { 

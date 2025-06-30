@@ -1,34 +1,30 @@
-import { DOM, AddEvent, GetElement, AddElement, Navigate, Dialog, SaveDialog, OpenDialog, SaveFile } from 'Components/controlAPI.js';
-import dbAPI, { keys, COMPANY, DOCUMENT } from 'Components/dbAPI.js';
+import { DOM, AddEvent, AddElement, GetElement, Navigate, Dialog } from 'Components/controlAPI.js';
+import dbAPI, { keys, PROFILE, DOCUMENT } from 'Components/dbAPI.js';
 import { CreateForm } from 'Components/form.js';
-import { newPdf } from 'Components/createPdf';
 import Table from 'Components/table.js';
 import TableName from 'Types/handler/TableName.js';
 import DialogType from 'Types/dialog.js';
-import VarInline from 'Types/varInline';
-import VarInlineName from 'Types/varInlineName';
 import EntryPointsType from 'Types/entryPoints.js';
 
-const empKeys = keys(TableName.EMPLOYEE);
-const cmpKeys = keys(TableName.COMPANY);
+const proKeys = keys(TableName.PROFILE);
 const docKeys = keys(TableName.DOCUMENT);
 const ebdKeys = keys(TableName.EMPLOYEEBYDOCUMENT);
 
 DOM(async() => {
-    const companyId = new URLSearchParams(window.location.search).get('id');
+    const profile = (await dbAPI[proKeys.GETALL]())[0] ?? {nif: undefined, name: undefined, telephone: undefined};
 
     registerBackHandler();
-    const table = initTable(companyId);
-    await loadCompany(companyId);
-    await loadDocuments(companyId, table);
-    registerCreateHandler(companyId);
+    await loadProfile(profile);
+    const table = initTable(profile.nif);
+    if(profile.nif != undefined) await loadDocuments(profile.nif, table);
+    registerCreateHandler(profile.nif);
 });
 
-function initTable(companyId) {
-    const id = 'tblDocuments';
+function initTable(profileId) {
+    const id = 'tblProfile';
     const table = new Table(id, DOCUMENT);
 
-    table.addInteractiveRowNavigation(EntryPointsType.EDIT_DOCUMENT, companyId, EntryPointsType.EDIT_COMPANY);
+    table.addInteractiveRowNavigation(EntryPointsType.EDIT_DOCUMENT, profileId, EntryPointsType.PROFILE);
     table.addInteractiveRowDelete('Vas a eliminar un documento ¿Estás Seguro?', async(id) => {
         try {
             await dbAPI[docKeys.DELETE](id)
@@ -42,29 +38,29 @@ function initTable(companyId) {
     return table;
 }
 
-async function loadCompany(companyId) {
+async function loadProfile(profile) {
     try {
-        const company = await dbAPI[cmpKeys.GETONE](companyId);
-        AddElement(CreateForm(company, COMPANY,
-            async(company) => {
+        AddElement(CreateForm(profile, PROFILE,
+            async(profileUpdate) => {
                 try {
-                    await dbAPI[cmpKeys.UPDATE](company);
-                    Dialog('Información', 'Información actualizada.', DialogType.INFO).then(() => { Navigate(EntryPointsType.COMPANIES); });
+                    if (profile.nif === undefined) await dbAPI[proKeys.INSERT](profileUpdate);
+                    else await dbAPI[proKeys.UPDATE](profileUpdate);
+                    Dialog('Información', 'Información actualizada.', DialogType.INFO).then(() => { Navigate(EntryPointsType.PROFILE); });
                 } catch (error) {
-                    console.error('Error al actualizar la empresa:', error);
+                    console.error('Error al actualizar el perfil:', error);
                     Dialog('Error', 'No se pudo actualizar la informacion con éxito.', DialogType.ERROR);
                 }
             }
         ), GetElement('.frm-cnt2'));
     } catch (err) {
-        console.error('Error al cargar la empresa:', err);
-        Dialog('Error', 'No se ha podido cargar la empresa.', DialogType.ERROR);    
+        console.error('Error al cargar el perfil:', err);
+        Dialog('Error', 'No se ha podido cargar el perfil.', DialogType.ERROR);    
     }
 }
 
-async function loadDocuments(companyId, table) {
+async function loadDocuments(profileId, table) {
     try {
-        const documents = await dbAPI[docKeys.GETALL](companyId);
+        const documents = await dbAPI[docKeys.GETALL](profileId);
         table.addInteractiveRowCreate('Documentos generados correctamente', async (id) => {
             try {
                 let savePath;
@@ -79,7 +75,7 @@ async function loadDocuments(companyId, table) {
                         const employee = await dbAPI[empKeys.GETONE](ebd.employee);
                         const company = await dbAPI[cmpKeys.GETONE](documentData.company);
 
-                        const employeeName = employee.name+ ' ' + employee.surnames;
+                        const employeeName = employee.name + ' ' + employee.surnames;
                         const copyContent = structuredClone(documentData.content);
 
                         copyContent.blocks.forEach((block) => {
@@ -126,10 +122,11 @@ async function loadDocuments(companyId, table) {
     }
 }
 
-function registerCreateHandler(companyId) {
-    AddEvent('click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId, EPReturn: EntryPointsType.EDIT_COMPANY}); }, '.pgCreateDocument');
+function registerCreateHandler(profileId) {
+    if (profileId == undefined ) AddEvent('click', () => { Dialog('Error', 'Primero crea tu perfil.', DialogType.ERROR); }, '.pgCreateDocument');
+    else AddEvent('click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:profileId, EPReturn: EntryPointsType.PROFILE}); }, '.pgCreateDocument');
 }
 
 function registerBackHandler() {
-    AddEvent('click', () => { Navigate(EntryPointsType.COMPANIES); }, '.pgBack');
+    AddEvent('click', () => { Navigate(EntryPointsType.MAIN); }, '.pgBack');
 }

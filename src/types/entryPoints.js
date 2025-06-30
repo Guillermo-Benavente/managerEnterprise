@@ -18,6 +18,7 @@
  * - `EntryPointsType.EDIT_COMPANY`: Edición de compañías.
  * - `EntryPointsType.DOCUMENTS`: Creación de documentos.
  * - `EntryPointsType.EDIT_DOCUMENT`: Edición de documentos.
+ * - `EntryPointsType.PROFILE`: Perfil del usuario.
  * 
  * @readonly
  * @revision 0.0.0
@@ -37,6 +38,7 @@ const EntryPointsType = Object.freeze({
   EDIT_COMPANY: 'edit_company',
   DOCUMENTS: 'documents',
   EDIT_DOCUMENT: 'edit_document',
+  PROFILE: 'profile',
 });
 
 module.exports = EntryPointsType;

@@ -1,6 +1,7 @@
 import { Database as SqliteDatabase } from 'sqlite3';
 import ITable from './tables/ITable';
 import SQLMethod from 'Types/database/SQLMethod';
+import ProfileData   from 'Types/database/ProfileData';
 import EmployeeData   from 'Types/database/EmployeeData';
 import CompanyData    from 'Types/database/CompanyData';
 import CourseData     from 'Types/database/CourseData';
@@ -10,6 +11,7 @@ import TableName from 'Types/handler/TableName';
 
 export default interface IDatabase {
   tables: {
+    [TableName.PROFILE]: ITable<ProfileData, string>,
     [TableName.EMPLOYEE]: ITable<EmployeeData, string>;
     [TableName.COURSE]:   ITable<CourseData, string>;
     [TableName.COMPANY]:  ITable<CompanyData, string>;

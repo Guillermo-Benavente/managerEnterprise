@@ -18,6 +18,7 @@ declare const COMPANIES_WEBPACK_ENTRY: string;
 declare const EDIT_COMPANY_WEBPACK_ENTRY: string;
 declare const DOCUMENTS_WEBPACK_ENTRY: string;
 declare const EDIT_DOCUMENT_WEBPACK_ENTRY: string;
+declare const PROFILE_WEBPACK_ENTRY: string;
 
 const ipcM = ipc as IpcMain;
 
@@ -36,6 +37,7 @@ export default class ControlHandler {
             [EntryPointsType.EDIT_COMPANY]: EDIT_COMPANY_WEBPACK_ENTRY,
             [EntryPointsType.DOCUMENTS]: DOCUMENTS_WEBPACK_ENTRY,
             [EntryPointsType.EDIT_DOCUMENT]: EDIT_DOCUMENT_WEBPACK_ENTRY,
+            [EntryPointsType.PROFILE]: PROFILE_WEBPACK_ENTRY,
         }
     ) {}
     public register() {
@@ -47,11 +49,11 @@ export default class ControlHandler {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
                 icon: path.join(__dirname, 'icon.png'),
-                //autoHideMenuBar: true,
+                autoHideMenuBar: true,
                 parent,
                 modal: true,
                 show: false,
-                //resizable: false,
+                resizable: false,
                 webPreferences: {
                     nodeIntegration: false,
                     contextIsolation: true,

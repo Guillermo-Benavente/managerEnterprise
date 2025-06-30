@@ -107,8 +107,8 @@ export default class Table {
                     if (result) await Dialog('Información', message, DIALOG_TYPE.INFO);
 
                 } else if (actions.navigation) {
-                    const { page, backId } = actions.navigation;
-                    Navigate(page, { id: row.id, backId: backId });
+                    const { page, backId, EPReturn } = actions.navigation;
+                    Navigate(page, { id: row.id, backId: backId, EPReturn: EPReturn });
                 }
             }
         });
@@ -116,8 +116,8 @@ export default class Table {
         table.on('draw.dt', () => { createIcons({ icons }); });
     }
 
-    addInteractiveRowNavigation(page, backId = null) {
-        this._interactiveRowActions.navigation = { page, backId };
+    addInteractiveRowNavigation(page, backId = null, EPReturn = null) {
+        this._interactiveRowActions.navigation = { page, backId, EPReturn };
     }
 
     addInteractiveRowDelete(message, callback) {
