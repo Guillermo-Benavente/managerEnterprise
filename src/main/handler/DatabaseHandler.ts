@@ -5,16 +5,19 @@ import ipc from '../ipc';
 import { getFolder } from '../utils/path';
 import ITable from '../database/tables/ITable';
 import { ModelClass } from '../database/tables/IModel';
+import Profile from '../database/tables/profile/Profile';
 import Employee from '../database/tables/employee/Employee';
 import Company from '../database/tables/company/Company';
 import Course from '../database/tables/course/Course';
 import Document from '../database/tables/document/Document';
 import EmployeeByDocument from '../database/tables/employeeByDocument/EmployeeByDocument';
+import IDatabase from '../database/IDatabase';
 import TableName from 'Types/handler/TableName';
 import IpcChannel from 'Types/handler/IpcChannel';
 import IpcMain from 'Types/handler/IpcMain';
-import IDatabase from '../database/IDatabase';
 import { FolderType } from 'Types/handler/FolderType';
+import EntryPointsType from 'Types/entryPoints';
+type EntryPointsTypeValue = (typeof EntryPointsType)[keyof typeof EntryPointsType];
 
 const ipcM = ipc as IpcMain;
 const { rm, readdir, rmdir } = fspromise;
@@ -22,6 +25,8 @@ const { rm, readdir, rmdir } = fspromise;
 export default class DatabaseHandler {
     constructor(readonly db: IDatabase) { }
     public register() {
+        this.dbHandlers(TableName.PROFILE, this.db, Profile);
+
         this.dbHandlers(TableName.EMPLOYEE, this.db, Employee, {
             [IpcChannel.DELETE]: async (dni: string) => {
                 const courses = await this.db.tables.course.getAll(dni);
@@ -70,11 +75,12 @@ export default class DatabaseHandler {
         });
 
         this.dbHandlers(TableName.DOCUMENT, this.db, Document, {
-            [IpcChannel.INSERT]: async (nif: string, documents: any[]) => {
+            [IpcChannel.INSERT]: async (nif: string, documents: any[], entryPoint: EntryPointsTypeValue) => {
                 const formatDocuments = await Promise.allSettled(
                     documents.map(async (document, index) => {
                         document.id = nif + Date.now() + index;
-                        document.company = nif;
+                        if (entryPoint === EntryPointsType.EDIT_COMPANY) document.company = nif;
+                        else document.profile = nif;
                         document.url = join(getFolder(FolderType.Documents, nif), `${document.id}.pdf`);
                         await SaveFile(document.url, document.buffer);
                         return Document.fromView(document).toData();
@@ -95,7 +101,7 @@ export default class DatabaseHandler {
             },
             [IpcChannel.DELETE]: async (id: string) => {
                 const document = await this.db.tables.document.getOne(id);
-                const path = getFolder(FolderType.Documents, document!.company);
+                const path = getFolder(FolderType.Documents, document?.company ?? document!.profile);
                 await rm(join(path, `${id}.pdf`));
                 const remaining = await readdir(path);
                 if (remaining.length === 0) await rmdir(path);

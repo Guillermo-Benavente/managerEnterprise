@@ -1,6 +1,31 @@
 import IpcChannel from 'Types/handler/IpcChannel';
 import TableName from 'Types/handler/TableName';
 
+export const PROFILE = { 
+    'nif': {
+        'name':'nif',
+        'type':'string',
+        'showForm':true,
+        'showTable':true,
+        'requireForm':true,
+        'checkForm': '^\\d{8}[A-HJ-NP-TV-Z]$'
+    },
+    'name': {
+        'name':'nombre',
+        'type':'string',
+        'showForm':true,
+        'showTable':true,
+        'requireForm':true,
+        'checkForm': '^[A-ZÁÉÍÓÚÑa-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑa-záéíóúñ]+)*$'
+    },
+    'telephone': {
+        'name':'teléfono',
+        'type':'string',
+        'showForm':true,
+        'showTable':true
+    }
+};
+
 export const EMPLOYEE = {
     'dni': {
         'name':'dni',

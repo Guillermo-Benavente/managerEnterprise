@@ -28,12 +28,6 @@ class IPC {
       ipc.removeAllListeners(chan);
       ipc.on(chan, (e, ...a) => fn(...a));
     };
-    this.once = (chan, fn) => {
-      ipc.once(chan, (e, ...a) => fn(...a));
-    };
-    this.removeListener = (chan, fn) => {
-      ipc.removeListener(chan, fn);
-    };
   }
 
   // RENDERER

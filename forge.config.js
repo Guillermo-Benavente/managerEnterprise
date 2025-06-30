@@ -15,6 +15,7 @@ const rawEntries = [
   { name: EntryPointsType.EDIT_COMPANY, html: './src/renderer/html/companies/edit.html', js: './src/renderer/js/pages/companies/edit.js' },
   { name: EntryPointsType.DOCUMENTS, html: './src/renderer/html/companies/createdocument.html', js: './src/renderer/js/pages/companies/createdocument.js' },
   { name: EntryPointsType.EDIT_DOCUMENT, html: './src/renderer/html/companies/documents/edit.html', js: './src/renderer/js/pages/companies/documents/edit.js' },
+  { name: EntryPointsType.PROFILE, html: './src/renderer/html/profile.html', js: './src/renderer/js/pages/profile.js' },
 ];
 
 const entryPoints = rawEntries.map(({ name, html, js }) => ({ name, html, js, preload: { js: './src/preload.js' }, }));

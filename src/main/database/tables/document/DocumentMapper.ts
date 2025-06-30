@@ -7,6 +7,7 @@ export default class DocumentMapper {
       id:       d.id,
       name:     d.name,
       company:  d.company,
+      profile:  d.profile,
       content:  JSON.stringify(d.content),
       url:      d.url,
     };
@@ -17,6 +18,7 @@ export default class DocumentMapper {
       id:       data.id,
       name:     data.name,
       company:  data.company,
+      profile:  data.profile,
       content:  JSON.parse(data.content),
       url:      data.url,
     };

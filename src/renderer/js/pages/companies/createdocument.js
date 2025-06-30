@@ -17,14 +17,15 @@ const docKeys = keys(TableName.DOCUMENT);
 const ebdKeys = keys(TableName.EMPLOYEEBYDOCUMENT);
 
 DOM(async() => {
-    const companyId = new URLSearchParams(window.location.search).get('id');
+    const id = new URLSearchParams(window.location.search).get('id');
     const documentId = new URLSearchParams(window.location.search).get('documentId');
+    const entryPointReturn = new URLSearchParams(window.location.search).get('EPReturn');
 
-    registerBackHandler(documentId, companyId);
+    registerBackHandler(documentId, id, entryPointReturn);
     try {
         const document = documentId ? await dbAPI[docKeys.GETONE](documentId) : null;
         const editor = await init(document, configEditorTools());
-        registerCreateHandler(documentId, document, companyId, editor);
+        registerCreateHandler(documentId, document, id, entryPointReturn, editor);
     } catch (error) {
         console.error('Error al obtener el documento:', error);
         Dialog('Error', 'No se ha podido cargar el documento.', DialogType.ERROR);
@@ -119,7 +120,7 @@ function configEditorTools() {
     };
 }
 
-function registerCreateHandler(documentId, document, companyId, editor) {
+function registerCreateHandler(documentId, document, id, entryPointReturn, editor) {
     let isProcessing = false;
 
     AddEvent('click', async() => {
@@ -128,20 +129,21 @@ function registerCreateHandler(documentId, document, companyId, editor) {
             if (document) {
                 try {
                     const outputData = await editor.save();
-
                     const documentUpdate = { 
                         id: documentId, 
-                        company: companyId, 
                         name: document.name, 
                         content: outputData,
                         url: document.url,
                         buffer: newPdf(outputData),
                     };
 
+                    if (entryPointReturn === EntryPointsType.EDIT_COMPANY) documentUpdate.company = id;
+                    else documentUpdate.profile = id;
+
                     await dbAPI[docKeys.UPDATE](documentUpdate);
 
                     Dialog('Informacion', 'El documento ha sido actualizado correctamente.', DialogType.INFO);
-                    Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: companyId});
+                    Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: id});
                 } catch (error) {
                     console.error('Error al actualizar el documento:', error);
                     Dialog('Error', 'No se ha podido actualizar el documento.', DialogType.ERROR);
@@ -158,14 +160,14 @@ function registerCreateHandler(documentId, document, companyId, editor) {
                                 content: outputData,
                                 buffer: newPdf(outputData)
                             };
-                            const documentId = (await dbAPI[docKeys.INSERT](companyId, [document]))[0];
+                            const documentId = (await dbAPI[docKeys.INSERT](id, [document], entryPointReturn))[0];
                             
                             if (documentData.selector != null) {
                                 Object.entries(documentData.selector).forEach(([employeeId, data]) => {
                                     if (data.value?.toLowerCase() === 'on') dbAPI[ebdKeys.INSERT](employeeId, documentId, data.date || null);
                                 });
                             }
-                            Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId});
+                            Navigate(entryPointReturn, {id:id});
                         } catch (error) {
                             console.error('Error al guardar el documento:', error);
                             Dialog('Error', 'No se ha podido guardar el documento.', DialogType.ERROR);
@@ -178,7 +180,7 @@ function registerCreateHandler(documentId, document, companyId, editor) {
     }, '.wininCreate');
 }
 
-function registerBackHandler(documentId, companyId) {
-    if(documentId) AddEvent('click', () => { Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: companyId}); }, '.pgBack');
-    else AddEvent('click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); }, '.pgBack');
+function registerBackHandler(documentId, id, entryPointReturn) {
+    if(documentId) AddEvent('click', () => { Navigate(EntryPointsType.EDIT_DOCUMENT, {id:documentId, backId: id, EPReturn: entryPointReturn}); }, '.pgBack');
+    else AddEvent('click', () => { Navigate(entryPointReturn, {id:id}); }, '.pgBack');
 }

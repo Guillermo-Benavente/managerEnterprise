@@ -10,16 +10,17 @@ const ebdKeys = keys(TableName.EMPLOYEEBYDOCUMENT);
 
 DOM(() => {
     const documentId = new URLSearchParams(window.location.search).get('id');
-    const companyId = new URLSearchParams(window.location.search).get('backId');
+    const id = new URLSearchParams(window.location.search).get('backId');
+    const entryPointReturn = new URLSearchParams(window.location.search).get('EPReturn');
 
-    registerBackHandler(companyId);
-    registerEditHandler(companyId, documentId);
-    init(companyId, documentId);
+    registerBackHandler(id, entryPointReturn);
+    registerEditHandler(id, documentId, entryPointReturn);
+    init(id, documentId);
     registerCreateHandler(documentId);
 });
 
-function init(companyId, documentId){
-    const url = GetPdf('documents', companyId, documentId);
+function init(id, documentId){
+    const url = GetPdf('documents', id, documentId);
     const pdfContainer = document.querySelector('.pdfContainer');
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/workers/pdf.worker.min.mjs';
@@ -104,10 +105,10 @@ function registerCreateHandler(documentId) {
     }, '.wininCreate');
 }
 
-function registerEditHandler(companyId, documentId) {
-    AddEvent('click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:companyId, documentId: documentId}); }, '.pgEdit');
+function registerEditHandler(id, documentId, entryPointReturn) {
+    AddEvent('click', () => { Navigate(EntryPointsType.DOCUMENTS, {id:id, documentId: documentId, EPReturn: entryPointReturn}); }, '.pgEdit');
 }
 
-function registerBackHandler(companyId) {
-    AddEvent('click', () => { Navigate(EntryPointsType.EDIT_COMPANY, {id:companyId}); }, '.pgBack');
+function registerBackHandler(id, entryPointReturn) {
+    AddEvent('click', () => { Navigate(entryPointReturn, {id:id}); }, '.pgBack');
 }
