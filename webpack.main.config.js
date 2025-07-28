@@ -11,11 +11,6 @@ rules.push({
       presets: ['@babel/preset-env'],
     },
   },
-},
-{
-  test: /\.ts$/,
-  exclude: /node_modules/,
-  use: 'ts-loader'
 });
 
 module.exports = {
@@ -35,7 +30,7 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'src/assets/icon.png', to: 'icon.png' }
+        { from: 'src/renderer/assets/icon.png', to: 'icon.png' }
       ]
     })
   ]

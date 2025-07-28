@@ -26,30 +26,25 @@ module.exports = {
     rules,
   },
   resolve: {
+    extensions: ['.js', '.jsx'],
     alias: {
-      'Components': path.resolve(__dirname, './src/renderer/js/components'),
+      'Components': path.resolve(__dirname, './src/renderer/components'),
+      'Pages': path.resolve(__dirname, './src/renderer/pages'),
+      'Routes': path.resolve(__dirname, './src/renderer/routes'),
+      'Schemas': path.resolve(__dirname, './src/renderer/schemas'),
+      'Api': path.resolve(__dirname, './src/renderer/api'),
+      'Util': path.resolve(__dirname, './src/renderer/util'),
+      'Assets': path.resolve(__dirname, './src/renderer/assets'),
       'Types': path.resolve(__dirname, './src/types'),
-      'Styles': path.resolve(__dirname, './src/renderer/css/styles'),
-      'PagesCSS': path.resolve(__dirname, './src/renderer/css/pages'),
-      'Assets': path.resolve(__dirname, './src/assets'),
-      'Dictionary': path.resolve(__dirname, './public/dictionary'),
-    },
-    fallback: {
-      "fs": false,
-      "path": require.resolve("path-browserify"),
-      crypto: require.resolve("crypto-browserify"),
-      vm: require.resolve("vm-browserify"),
-      stream: require.resolve("stream-browserify")
     }
   },
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: './src/renderer/css', to: 'css' },
-        { from: './src/assets', to: 'assets' },
-        { from: './node_modules/datatables.net-dt/css/dataTables.dataTables.css', to: 'css/module' },
         { from: './node_modules/pdfjs-dist/build/pdf.worker.min.mjs', to: 'assets/workers' },
       ],
     }),
   ]
 };
+
+

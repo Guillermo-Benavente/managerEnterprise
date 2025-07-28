@@ -1,8 +1,0 @@
-@import url('../styles/static/colour_palette.css');
-@import url('../styles/static/font.css');
-
-body {
-    background-color: var(--body-background-color);
-    padding: 5px;
-    font-family: var(--main-font);
-}

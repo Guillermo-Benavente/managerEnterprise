@@ -1,5 +1,5 @@
-import EmployeeData from 'Types/database/EmployeeData';
-import EmployeeType from 'Types/database/EmployeeType';
+import EmployeeData from 'Types/main/database/EmployeeData';
+import EmployeeType from 'Types/main/database/EmployeeType';
 import EmployeeMapper from './EmployeeMapper';
 import { IModel, ModelClass } from '../IModel';
 

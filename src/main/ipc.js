@@ -1,5 +1,5 @@
 import { ipcRenderer, ipcMain } from 'electron';
-import IpcRendererType from 'Types/handler/IpcRendererType.js';
+import IpcRendererType from 'Types/main/handler/IpcRendererType.js';
 
 const isRenderer = (process && process.type === 'renderer');
 
@@ -27,12 +27,6 @@ class IPC {
     this.on = (chan, fn) => {
       ipc.removeAllListeners(chan);
       ipc.on(chan, (e, ...a) => fn(...a));
-    };
-    this.once = (chan, fn) => {
-      ipc.once(chan, (e, ...a) => fn(...a));
-    };
-    this.removeListener = (chan, fn) => {
-      ipc.removeListener(chan, fn);
     };
   }
 

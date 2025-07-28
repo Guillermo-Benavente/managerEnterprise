@@ -1,5 +1,5 @@
-import CompanyData from "Types/database/CompanyData";
-import CompanyType from "Types/database/CompanyType";
+import CompanyData from "Types/main/database/CompanyData";
+import CompanyType from "Types/main/database/CompanyType";
 import { toISO, formatToView } from '../../../utils/date';
 
 export default class CompanyMapper {

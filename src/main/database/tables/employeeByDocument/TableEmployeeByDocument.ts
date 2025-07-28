@@ -1,6 +1,6 @@
-import SQLMethod from 'Types/database/SQLMethod';
 import TableBase from '../TableBase';
-import EmployeeByDocumentData from 'Types/database/EmployeeByDocumentData';
+import EmployeeByDocumentData from 'Types/main/database/EmployeeByDocumentData';
+import SQLMethod from 'Types/main/database/SQLMethod';
 
 export class TableEmployeeByDocument extends TableBase<EmployeeByDocumentData, string> {
     async createTable() {

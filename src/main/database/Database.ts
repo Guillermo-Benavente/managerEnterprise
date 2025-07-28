@@ -1,32 +1,21 @@
 import { verbose, Database as SqliteDatabase } from 'sqlite3';
 import { getDb } from '../utils/path';
+import { TableProfile } from './tables/profile/TableProfile';
 import { TableEmployee } from './tables/employee/TableEmployee';
 import { TableCourse } from './tables/course/TableCourse';
 import { TableCompany } from './tables/company/TableCompany';
 import { TableDocument } from './tables/document/TableDocument';
 import { TableEmployeeByDocument } from './tables/employeeByDocument/TableEmployeeByDocument';
-import SQLMethod from 'Types/database/SQLMethod';
-import ITable from './tables/ITable';
+import SQLMethod from 'Types/main/database/SQLMethod';
 import IDatabase from './IDatabase';
-import EmployeeData from 'Types/database/EmployeeData';
-import CompanyData from 'Types/database/CompanyData';
-import CourseData from 'Types/database/CourseData';
-import DocumentData from 'Types/database/DocumentData';
-import EmployeeByDocumentData from 'Types/database/EmployeeByDocumentData';
-import TableName from 'Types/handler/TableName';
+import TableName from 'Types/shared/handler/TableName';
 
 const sqlite = verbose();
 
 export default class Database implements IDatabase{
     readonly db: Promise<SqliteDatabase>;
 
-    public tables: {
-        [TableName.EMPLOYEE]: ITable<EmployeeData, string>,
-        [TableName.COURSE]: ITable<CourseData, string>,
-        [TableName.COMPANY]: ITable<CompanyData, string>,
-        [TableName.DOCUMENT]: ITable<DocumentData, string>,
-        [TableName.EMPLOYEEBYDOCUMENT]: ITable<EmployeeByDocumentData, string>,
-    };
+    public tables: IDatabase["tables"];
 
     constructor() {
         const databasePath = getDb();
@@ -40,6 +29,7 @@ export default class Database implements IDatabase{
         });
 
         this.tables = {
+            [TableName.PROFILE]: new TableProfile(this),
             [TableName.EMPLOYEE]: new TableEmployee(this),
             [TableName.COURSE]: new TableCourse(this),
             [TableName.COMPANY]: new TableCompany(this),
@@ -117,7 +107,7 @@ export default class Database implements IDatabase{
 
     async CheckTablesExistAsync(): Promise<{ exists: boolean; rows: Array<{ name: string }> }> {
         const db = await this.db;
-        const tables = ['employee', 'company', 'course', 'documents', 'employeebydocument'];
+        const tables = Object.keys(this.tables);
         const rows = await this.executeSQL(db, SQLMethod.ALL,
             `SELECT name 
                 FROM sqlite_master 
@@ -130,14 +120,13 @@ export default class Database implements IDatabase{
 
     async CreateTablesAsync(rows: Array<{name: string}>): Promise<void> {
         const existingTables = new Set(rows.map(row => row.name));
+        type TableMap = Record<string, { createTable: () => Promise<void> }>;
 
-        const tablesToCreate = {
-            employee: () => this.tables.employee.createTable(),
-            company: () => this.tables.company.createTable(),
-            course: () => this.tables.course.createTable(),
-            documents: () => this.tables.document.createTable(),
-            employeebydocument: () => this.tables.employeeByDocument.createTable()
-        };
+        const tablesToCreate = Object.fromEntries(
+            Object.keys(this.tables).map(
+                key => [key, () => (this.tables as TableMap)[key].createTable()]
+            )
+        );
 
         for (const [tableName, createTable] of Object.entries(tablesToCreate)) 
             if (!existingTables.has(tableName)) await createTable();

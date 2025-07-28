@@ -1,8 +1,8 @@
 import ipc from '../ipc';
 import { formatLocalDate, formatObjectLD } from '../utils/date';
 import { exportCSV } from '../utils/export';
-import IpcChannel from 'Types/handler/IpcChannel';
-import IpcMain from 'Types/handler/IpcMain';
+import IpcChannel from 'Types/shared/handler/IpcChannel';
+import IpcMain from 'Types/main/handler/IpcMain';
 
 const ipcM = ipc as IpcMain;
 

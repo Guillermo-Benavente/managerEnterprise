@@ -37,12 +37,12 @@ const createWindow = async () => {
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     details.responseHeaders['Content-Security-Policy'] = [
       `default-src 'self'; 
-       frame-src 'self' ${server.getServer()}; 
-       style-src 'self' 'unsafe-inline'; 
-       script-src 'self'; 
-       object-src 'self' ${server.getServer()}; 
-       img-src 'self' data:; 
-       connect-src 'self' ${server.getServer()}`
+      frame-src 'self' ${server.getServer()}; 
+      style-src 'self' 'unsafe-inline'; 
+      script-src 'self'  ${!app.isPackaged ? "'unsafe-eval'" : ""}; 
+      object-src 'self' ${server.getServer()}; 
+      img-src 'self' data:; 
+      connect-src 'self' ${server.getServer()}`
     ];
     callback({ cancel: false, responseHeaders: details.responseHeaders });
   });
@@ -76,7 +76,7 @@ app.on('window-all-closed', async () => {
     try {
       const dbMessage = await Db.close();
       serverInstance.close(() => {
-          console.log('Servidor Express cerrado.');
+        console.log('Servidor Express cerrado.');
       });
       console.log(dbMessage);
       app.quit();

@@ -1,0 +1,12 @@
+.document {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: var(--pdf-viewer-background);
+  overflow-y: scroll;
+  height: calc(100vh - 135px);
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}

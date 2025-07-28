@@ -1,5 +1,5 @@
-import CourseData from 'Types/database/CourseData';
-import CourseType from 'Types/database/CourseType';
+import CourseData from 'Types/main/database/CourseData';
+import CourseType from 'Types/main/database/CourseType';
 import CourseMapper from './CourseMapper';
 import { IModel, ModelClass } from '../IModel';
 

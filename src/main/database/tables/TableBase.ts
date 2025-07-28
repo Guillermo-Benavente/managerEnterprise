@@ -1,6 +1,6 @@
 import ITable from './ITable';
 import Database from '../Database';
-import SQLMethod from 'Types/database/SQLMethod';
+import SQLMethod from 'Types/main/database/SQLMethod';
 import { Database as SqliteDatabase } from 'sqlite3';
 
 export default abstract class TableBase<T, K> implements ITable<T, K> {

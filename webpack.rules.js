@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = [
   // Add support for native node modules
   {
@@ -15,6 +13,29 @@ module.exports = [
       loader: '@vercel/webpack-asset-relocator-loader',
       options: {
         outputAssetBase: 'native_modules',
+      },
+    },
+  },
+  {
+    test: /\.tsx?$/,
+    exclude: /(node_modules|.webpack)/,
+    use: {
+      loader: 'ts-loader',
+      options: {
+        transpileOnly: true
+      }
+    }
+  },
+  {
+    test: /\.jsx?$/,
+    exclude: /node_modules/,
+    use: {
+      loader: 'babel-loader',
+      options: {
+        presets: [
+          ['@babel/preset-env'],
+          ['@babel/preset-react', { runtime: 'automatic' }],
+        ],
       },
     },
   }

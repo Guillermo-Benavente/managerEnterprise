@@ -1,6 +1,6 @@
 import TableBase from '../TableBase';
-import CourseData from 'Types/database/CourseData';
-import SQLMethod from 'Types/database/SQLMethod';
+import CourseData from 'Types/main/database/CourseData';
+import SQLMethod from 'Types/main/database/SQLMethod';
 
 export class TableCourse extends TableBase<CourseData, string> {
     async createTable() {

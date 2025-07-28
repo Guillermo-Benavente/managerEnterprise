@@ -3,55 +3,31 @@ import { SaveFile } from '../fileWriter';
 import server from '../server';
 import ipc from '../ipc';
 import path from 'path';
-import IpcChannel from 'Types/handler/IpcChannel';
-import IpcMain from 'Types/handler/IpcMain';
-import EntryPointsType from 'Types/entryPoints';
+import IpcChannel from 'Types/shared/handler/IpcChannel';
+import IpcMain from 'Types/main/handler/IpcMain';
+import EntryPointsType from 'Types/shared/entryPoints';
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const FORM_WEBPACK_ENTRY: string;
-declare const FORM_DOCUMENT_WEBPACK_ENTRY: string;
-declare const EMPLOYEES_WEBPACK_ENTRY: string;
-declare const EDIT_EMPLOYEE_WEBPACK_ENTRY: string;
-declare const COURSES_WEBPACK_ENTRY: string;
-declare const VIEW_COURSE_WEBPACK_ENTRY: string;
-declare const COMPANIES_WEBPACK_ENTRY: string;
-declare const EDIT_COMPANY_WEBPACK_ENTRY: string;
-declare const DOCUMENTS_WEBPACK_ENTRY: string;
-declare const EDIT_DOCUMENT_WEBPACK_ENTRY: string;
 
 const ipcM = ipc as IpcMain;
 
 export default class ControlHandler {
     constructor(
         readonly mainWindow: BrowserWindow,
-        readonly entryMap = {
-            [EntryPointsType.MAIN]: MAIN_WINDOW_WEBPACK_ENTRY,
-            [EntryPointsType.FORM]: FORM_WEBPACK_ENTRY,
-            [EntryPointsType.FORM_DOCUMENT]: FORM_DOCUMENT_WEBPACK_ENTRY,
-            [EntryPointsType.EMPLOYEES]: EMPLOYEES_WEBPACK_ENTRY,
-            [EntryPointsType.EDIT_EMPLOYEE]: EDIT_EMPLOYEE_WEBPACK_ENTRY,
-            [EntryPointsType.COURSES]: COURSES_WEBPACK_ENTRY,
-            [EntryPointsType.VIEW_COURSE]: VIEW_COURSE_WEBPACK_ENTRY,
-            [EntryPointsType.COMPANIES]: COMPANIES_WEBPACK_ENTRY,
-            [EntryPointsType.EDIT_COMPANY]: EDIT_COMPANY_WEBPACK_ENTRY,
-            [EntryPointsType.DOCUMENTS]: DOCUMENTS_WEBPACK_ENTRY,
-            [EntryPointsType.EDIT_DOCUMENT]: EDIT_DOCUMENT_WEBPACK_ENTRY,
-        }
     ) {}
     public register() {
         ipcM.handle(IpcChannel.GET_SERVER, () => server.getServer());
 
-        ipcM.on(IpcChannel.NAVIGATE, (page, attr) => this.navigate(this.mainWindow, page, attr));
+        //ipcM.on(IpcChannel.NAVIGATE, (page, attr) => this.navigate(this.mainWindow, page, attr));
 
         ipcM.on(IpcChannel.MODAL, (page, attr) => {
             const parent = BrowserWindow.getFocusedWindow() || this.mainWindow;
             let modal = new BrowserWindow({
                 icon: path.join(__dirname, 'icon.png'),
-                //autoHideMenuBar: true,
+                autoHideMenuBar: true,
                 parent,
                 modal: true,
                 show: false,
-                //resizable: false,
+                resizable: false,
                 webPreferences: {
                     nodeIntegration: false,
                     contextIsolation: true,
@@ -59,7 +35,7 @@ export default class ControlHandler {
                 }
             });
 
-            this.navigate(modal, page, attr);
+            //this.navigate(modal, page, attr);
 
             modal.once('ready-to-show', async () => {
                 const { height: contentH } = await modal.webContents.executeJavaScript(`
@@ -129,7 +105,7 @@ export default class ControlHandler {
         console.log('Handlers de Path cargados');
     }
 
-    private navigate(
+    /*private navigate(
         browserWindow: BrowserWindow, 
         page: keyof typeof this.entryMap, 
         attr: Record<string, string | number | boolean> | null
@@ -140,7 +116,7 @@ export default class ControlHandler {
             if(attr) browserWindow.loadURL(`${url}?${this.toSearchParams(attr).toString()}`);
             else browserWindow.loadURL(url);
         } else console.error(`Página no reconocida: ${page}`);
-    }
+    }*/
 
     private toSearchParams(obj: Record<string, string | number | boolean>): URLSearchParams {
         const result: Record<string, string> = {};

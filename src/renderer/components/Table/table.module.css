@@ -1,0 +1,9 @@
+.title {
+    margin: 0;
+}
+.search {
+    border-radius: 25px;
+    padding: 3px 10px;
+    border-color: var(--table-search-border-color);
+    outline-color: var(--table-search-outline-color);
+}

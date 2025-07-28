@@ -1,6 +1,6 @@
-import SQLMethod from 'Types/database/SQLMethod';
 import TableBase from '../TableBase';
-import EmployeeData from 'Types/database/EmployeeData';
+import EmployeeData from 'Types/main/database/EmployeeData';
+import SQLMethod from 'Types/main/database/SQLMethod';
 
 export class TableEmployee extends TableBase<EmployeeData, string> {
     async createTable() {
@@ -14,8 +14,7 @@ export class TableEmployee extends TableBase<EmployeeData, string> {
                 leave_date DATE,
                 medical_leave_date DATE,
                 medical_discharge_date DATE,
-                dni_date DATE,
-                courses INTEGER DEFAULT 0
+                dni_date DATE
             );`,
             [
                 `CREATE INDEX IF NOT EXISTS employee_name ON employee(name);`,

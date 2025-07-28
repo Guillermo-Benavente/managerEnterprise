@@ -1,5 +1,5 @@
-import EmployeeByDocumentData from 'Types/database/EmployeeByDocumentData';
-import EmployeeByDocumentType from 'Types/database/EmployeeByDocumentType';
+import EmployeeByDocumentData from 'Types/main/database/EmployeeByDocumentData';
+import EmployeeByDocumentType from 'Types/main/database/EmployeeByDocumentType';
 import { toISO, formatToView } from '../../../utils/date';
 
 export default class EmployeeByDocumentMapper {
