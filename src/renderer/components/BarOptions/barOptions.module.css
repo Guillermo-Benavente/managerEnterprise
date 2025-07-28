@@ -1,0 +1,9 @@
+.bar{
+    display: flex;
+    margin-bottom: 10px;
+
+    .right { 
+        margin-left: auto;
+        align-content: center;
+    }
+}

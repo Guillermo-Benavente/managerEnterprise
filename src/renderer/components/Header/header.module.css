@@ -1,0 +1,26 @@
+.header {
+    display: flex;
+    color: var(--primary-color);
+    background-color: var(--primary-background-color);
+    border-radius: 5px;
+    padding: 15px;
+    align-items: center;
+    margin-bottom: 10px;
+    min-height: 45px;
+
+    .title {
+        display: inline;
+        margin: 0;
+        margin-right: 10px;
+        font-size: 1.5em;
+        font-weight: bolder;
+
+        .span {
+            font-weight: normal;
+        }
+    }
+
+    .actions {
+        margin-left: auto;
+    }
+}

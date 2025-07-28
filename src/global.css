@@ -1,0 +1,53 @@
+
+/*
+*   Paleta de colores: https://paletasdecolores.com/paleta-de-colores-2412/
+*/
+
+:root {
+    --body-background-color: #b1b6c9;
+    --primary-color: #fdfdfd;
+    --primary-dark-color: #1F2740;
+    --primary-background-color: #013274;
+    --secondary-color: #fdfdfd;
+    --secondary-background-color: #00abe3;
+
+    /* Button styles */
+    --button-primary-background-color: #457DC8;
+    --button-primary-hover-background-color: #7CAFF2;
+    --button-secondary-background-color: #838694;
+    --button-secondary-hover-background-color: #a3a8b9;
+    --button-link-hover-color: #457DC8;
+
+    /* Table styles */
+    --table-color: #fdfdfd;
+    --table-background-color: #00abe3;
+    --table-search-border-color: #75a6e6;
+    --table-search-outline-color: #7eb3f8;
+    --table-head-color:#fdfdfd;
+    --table-head-background-color: #00abe3;
+    --table-pagination-color:#fdfdfd;
+    --table-pagination-background-color: #00abe3;
+    --table-row-background-color: #75a6e6;
+    --table-row-odd-background-color: #7eb3f8;
+    --table-row-hover-background-color: #bbd9ff;
+    --table-button-fill: #fdfdfd;
+    
+    /* Form styles */
+    --form-background-color: #00abe3;
+    --form-label-color: #fdfdfd;
+    --form-selector-border-items: #013274;
+    --form-selector-checked-items: #5186CC;
+    --form-selector-checked-hover-items: #4775B2;
+
+    /* Modal styles */
+    --modal-background-color: #b1b6c9;
+
+    --pdf-viewer-background: rgba(0, 0, 0, 0.2);
+    --pdf-viewer-shadow: rgba(0, 0, 0, 0.7);
+}
+
+body {
+    background-color: var(--body-background-color);
+    padding: 5px;
+    font-family: sans-serif;
+}
