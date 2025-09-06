@@ -17,6 +17,13 @@
     --button-secondary-background-color: #838694;
     --button-secondary-hover-background-color: #a3a8b9;
     --button-link-hover-color: #457DC8;
+    --button-link-active-background-color: #457DC8;
+    --button-link-active-color: #fdfdfd;
+    --button-link-active-hover-background-color: #7CAFF2;
+    --button-link-active-hover-color: #f7f7f7;
+    --button-float-background-color: #457DC8;
+    --button-float-border-color: #3865a0;
+    --button-float-hover-background-color: #7CAFF2;
 
     /* Table styles */
     --table-color: #fdfdfd;
@@ -48,6 +55,7 @@
 
 body {
     background-color: var(--body-background-color);
-    padding: 5px;
+    padding: 5px 5px 0 5px;
+    margin: 8px 8px 0 8px;
     font-family: sans-serif;
 }

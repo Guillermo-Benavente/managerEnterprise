@@ -6,6 +6,7 @@ const ButtonType = Object.freeze({
   SUBMIT: 'submit',
   RESET: 'reset',
   FILE: 'file',
+  FLOAT: 'float',
 });
 
 export default ButtonType;

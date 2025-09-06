@@ -23,7 +23,6 @@ export class TableProfile extends TableBase<ProfileData, string> {
         return this.runSQL(SQLMethod.GET, 'SELECT * FROM profile WHERE nif = ?', [id], 'Error al obtener el perfil');
     }
     async insert(pro: ProfileData) { 
-        console.log('ProfileData: ',pro);
         return this.runSQL(SQLMethod.RUN, 
             `INSERT INTO profile (nif, name, telephone)
                 VALUES (?, ?, ?)`,

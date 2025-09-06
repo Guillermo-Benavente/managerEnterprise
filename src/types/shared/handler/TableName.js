@@ -4,6 +4,7 @@ const TableName = Object.freeze({
   COMPANY:            'company',
   COURSE:             'course',
   DOCUMENT:           'document',
+  GROUP:              'group',
   EMPLOYEEBYDOCUMENT: 'employeeByDocument',
 });
 

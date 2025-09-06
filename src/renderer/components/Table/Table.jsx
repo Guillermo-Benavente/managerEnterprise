@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { Trash } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import style from './table.module.css'
 import Button from 'Components/Button/Button';
 import ButtonType from 'Types/renderer/buttonType';
 import DataTable from 'react-data-table-component';
 
-export default function Table({ title, columns, data, dbAction }) {
+export default function Table({ title, columns, data, dbAction, actions = true }) {
     const navigate = useNavigate();
     const location = useLocation();
     const rootStyles = getComputedStyle(document.documentElement);
@@ -88,15 +89,16 @@ export default function Table({ title, columns, data, dbAction }) {
                 selector: row => row[col.key],
                 sortable: true,
             }));
-        finalColumns.push({
+        if (actions) finalColumns.push({
             name: 'Acciones',
             cell: row => (
                 <Button type={ButtonType.LINK} event={() => dbAction(row[columnId])}>
-                    Borrar
+                    <Trash size={16} />
                 </Button>
             ),
             ignoreRowClick: true,
             width: '110px',
+            center: true,
         });
         onRowClicked = (row) => {
             const basePath = location.pathname.endsWith('/')

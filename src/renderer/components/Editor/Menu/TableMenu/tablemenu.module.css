@@ -1,0 +1,86 @@
+
+.tableMenuWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.floatingMenu {
+  position: absolute;
+  top: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  z-index: 1;
+  margin-top: 4px;
+  min-width: 180px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.row label {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.row input[type="number"] {
+  width: 50px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.row input[type="checkbox"] {
+  width: auto;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+button {
+  margin-top: 6px;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  table-layout: fixed;
+  position: relative;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+  position: relative;
+  vertical-align: top;
+}
+
+.column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  width: 4px;
+  bottom: 0;
+  background-color: #7c3aed;
+  cursor: col-resize;
+  z-index: 10;
+  user-select: none;
+}
+
+.resize-cursor {
+  cursor: col-resize !important;
+}
+
+th {
+  background-color: #f5f5f5;
+}

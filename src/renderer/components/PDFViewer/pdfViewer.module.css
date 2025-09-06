@@ -1,4 +1,5 @@
 .document {
+  position: relative;
   padding: 10px;
   border-radius: 5px;
   background-color: var(--pdf-viewer-background);
@@ -9,4 +10,19 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
+}
+
+.documentMinus{
+  height: calc(100vh - 172px);
+}
+
+.options {
+  margin-top: -62px;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  z-index: 3;
 }

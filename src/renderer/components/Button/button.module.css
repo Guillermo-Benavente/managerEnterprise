@@ -21,7 +21,7 @@
     text-align: center;
 
     &:hover {
-        scale: .95;
+        scale: 1.05;
     }
 
     svg {
@@ -133,4 +133,31 @@ input.btn.btn-primary {
     left: 50%;
     transform: translateX(-50%);
     z-index: 2;
+}
+
+button.btn.active {
+    background-color: var(--button-link-active-background-color);
+    color: var(--button-link-active-color);
+    border-radius: 3px;
+    &:hover {
+        background-color: var(--button-link-active-hover-background-color);
+        color: var(--button-link-active-hover-color);
+    }
+}
+
+.btn.btn-float {
+    color: var(--primary-color);
+    background-color: var(--button-float-background-color);
+    border: 1px solid var(--button-float-border-color);
+    padding: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--button-float-background-color);
+
+    &:hover {
+        color: var(--button-primary-color);
+        background-color: var(--button-float-hover-background-color);
+        transform: scale(1.2);
+    }
 }

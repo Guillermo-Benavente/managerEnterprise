@@ -15,7 +15,7 @@ import IDatabase from '../database/IDatabase';
 import TableName from 'Types/shared/handler/TableName';
 import IpcChannel from 'Types/shared/handler/IpcChannel';
 import IpcMain from 'Types/main/handler/IpcMain';
-import { FolderType } from 'Types/main/handler/FolderType';
+import FolderType from 'Types/shared/handler/FolderType';
 import EntryPointsType from 'Types/shared/entryPoints';
 type EntryPointsTypeValue = (typeof EntryPointsType)[keyof typeof EntryPointsType];
 
@@ -30,7 +30,7 @@ export default class DatabaseHandler {
         this.dbHandlers(TableName.EMPLOYEE, this.db, Employee, {
             [IpcChannel.DELETE]: async (dni: string) => {
                 const courses = await this.db.tables.course.getAll(dni);
-                const path = getFolder(FolderType.Courses, dni);
+                const path = getFolder(FolderType.COURSES, dni);
                 if (existsSync(path)) {
                     for (const course of courses) await rm(join(path, `${course.id}.pdf`));
                     const remaining = await readdir(path);
@@ -42,7 +42,7 @@ export default class DatabaseHandler {
         this.dbHandlers(TableName.COMPANY, this.db, Company, {
             [IpcChannel.DELETE]: async (nif: string) => {
                 const documents = await this.db.tables.document.getAll(nif);
-                const path = getFolder(FolderType.Documents, nif);
+                const path = getFolder(FolderType.DOCUMENTS, nif);
                 if (existsSync(path)) {
                     for (const doc of documents.filter(d => d.company === nif)) await rm(join(path, `${doc.id}.pdf`));
                     const remaining = await readdir(path);
@@ -57,7 +57,7 @@ export default class DatabaseHandler {
                     courses.map(async (course, index) => {
                         course.id = dni + Date.now() + index;
                         course.employee = dni;
-                        course.url = join(getFolder(FolderType.Courses, dni), `${course.id}.pdf`);
+                        course.url = join(getFolder(FolderType.COURSES, dni), `${course.id}.pdf`);
                         await SaveFile(course.url, course.data);
                         return Course.fromView(course).toData();
                     })
@@ -69,7 +69,7 @@ export default class DatabaseHandler {
             },
             [IpcChannel.DELETE]: async (id: string) => {
                 const course = await this.db.tables.course.getOne(id);
-                const path = getFolder(FolderType.Courses, course!.employee);
+                const path = getFolder(FolderType.COURSES, course!.employee);
                 if (existsSync(path)) {
                     await rm(join(path, `${id}.pdf`));
                     const remaining = await readdir(path);
@@ -87,7 +87,7 @@ export default class DatabaseHandler {
                         document.id = nif + Date.now() + index;
                         if (entryPoint === EntryPointsType.EDIT_COMPANY) document.company = nif;
                         else document.profile = nif;
-                        document.url = join(getFolder(FolderType.Documents, nif), `${document.id}.pdf`);
+                        document.url = join(getFolder(FolderType.DOCUMENTS, nif), `${document.id}.pdf`);
                         await SaveFile(document.url, document.buffer);
                         return Document.fromView(document).toData();
                     })
@@ -107,7 +107,7 @@ export default class DatabaseHandler {
             },
             [IpcChannel.DELETE]: async (id: string) => {
                 const document = await this.db.tables.document.getOne(id);
-                const path = getFolder(FolderType.Documents, document?.company ?? document!.profile);
+                const path = getFolder(FolderType.DOCUMENTS, document?.company ?? document!.profile);
                 if (existsSync(path)) {
                     await rm(join(path, `${id}.pdf`));
                     const remaining = await readdir(path);

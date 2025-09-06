@@ -65,7 +65,7 @@ export default function EmployeeEdit() {
             dbActionForm={handleUpdate}
             dbActionTable={handleDelete}
         >
-            <Modal title='Nuevos documentos' textButtonOpen='Añadir Documentos' textButtonClose='X'>
+            <Modal title='Nuevos documentos' textButtonOpen='Añadir Documentos'>
                 {({ close }) => (
                     <Form
                         columns={EMPLOYEE_DOCUMENT}

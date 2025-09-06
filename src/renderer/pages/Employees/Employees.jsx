@@ -50,7 +50,7 @@ export default function Employees() {
             dbAction={handleDelete}
         >
             <Button type={ButtonType.SECONDARY} event={handleExportClick}>Exportar</Button>
-            <Modal title='Nuevo empleado' textButtonOpen='Añadir Empleado' textButtonClose='X'>
+            <Modal title='Nuevo empleado' textButtonOpen='Añadir Empleado'>
                 {({ close }) => (
                     <Form
                         columns={EMPLOYEE}

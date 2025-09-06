@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import style from './modal.module.css';
+import { X } from 'lucide-react';
 import Header from 'Components/Header/Header';
 import Button from "Components/Button/Button";
 import ButtonType from 'Types/renderer/buttonType';
 
-export default function Modal({ title, textButtonOpen, textButtonClose, children }) {
+export default function Modal({ title, textButtonOpen, typeButton = ButtonType.PRIMARY, children }) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <Button type={ButtonType.PRIMARY}>
+        <Button type={typeButton}>
           {textButtonOpen}
         </Button>
       </Dialog.Trigger>
@@ -22,8 +23,8 @@ export default function Modal({ title, textButtonOpen, textButtonClose, children
           
           {/* TODO: En el futuro usar para darle contexto al dialogo <Dialog.Title></Dialog.Title> */}
           <Header title={title}>
-            <Button type={ButtonType.PRIMARY} event={() => setOpen(false)}>
-              {textButtonClose}
+            <Button type={ButtonType.LINK} event={() => setOpen(false)}>
+              <X />
             </Button>
           </Header>
           {/*children*/}

@@ -41,7 +41,6 @@ export class TableDocument extends TableBase<DocumentData, string> {
             [doc.id, doc.name, doc.company ?? null, doc.profile ?? null, doc.content, doc.url],
             'Error al insertar un documento'
         );
-        console.log(doc.id);
         return doc.id;
     }
     async update(doc: DocumentData) {
