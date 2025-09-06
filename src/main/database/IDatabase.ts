@@ -6,6 +6,7 @@ import EmployeeData   from 'Types/main/database/EmployeeData';
 import CompanyData    from 'Types/main/database/CompanyData';
 import CourseData     from 'Types/main/database/CourseData';
 import DocumentData   from 'Types/main/database/DocumentData';
+import GroupDocumentData from 'Types/main/database/GroupDocumentData';
 import EmployeeByDocumentData from 'Types/main/database/EmployeeByDocumentData';
 import TableName from 'Types/shared/handler/TableName';
 
@@ -16,6 +17,7 @@ export default interface IDatabase {
     [TableName.COURSE]:   ITable<CourseData, string>;
     [TableName.COMPANY]:  ITable<CompanyData, string>;
     [TableName.DOCUMENT]: ITable<DocumentData, string>;
+    [TableName.GROUP]: ITable<GroupDocumentData, string>,
     [TableName.EMPLOYEEBYDOCUMENT]: ITable<EmployeeByDocumentData, string>;
   };
   getDB(): Promise<SqliteDatabase>;

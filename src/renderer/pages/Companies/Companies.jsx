@@ -49,7 +49,7 @@ export default function Companies() {
             dbAction={handleDelete}
         >
             <Button type={ButtonType.SECONDARY} event={handleExportClick}>Exportar</Button>
-            <Modal title='Nueva empresa' textButtonOpen='Añadir Empresa' textButtonClose='X'>
+            <Modal title='Nueva empresa' textButtonOpen='Añadir Empresa'>
                 {({ close }) => (
                     <Form
                         columns={COMPANY}

@@ -5,6 +5,7 @@ import { TableEmployee } from './tables/employee/TableEmployee';
 import { TableCourse } from './tables/course/TableCourse';
 import { TableCompany } from './tables/company/TableCompany';
 import { TableDocument } from './tables/document/TableDocument';
+import { TableGroupDocument } from './tables/group/TableGroupDocument';
 import { TableEmployeeByDocument } from './tables/employeeByDocument/TableEmployeeByDocument';
 import SQLMethod from 'Types/main/database/SQLMethod';
 import IDatabase from './IDatabase';
@@ -34,6 +35,7 @@ export default class Database implements IDatabase{
             [TableName.COURSE]: new TableCourse(this),
             [TableName.COMPANY]: new TableCompany(this),
             [TableName.DOCUMENT]: new TableDocument(this),
+            [TableName.GROUP]: new TableGroupDocument(this),
             [TableName.EMPLOYEEBYDOCUMENT]: new TableEmployeeByDocument(this),
         }
     }

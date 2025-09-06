@@ -1,0 +1,52 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.memberList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.memberCard {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+}
+
+.memberCard span {
+    flex: 1;
+    font-weight: 500;
+}
+
+.input {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.removeButton {
+    flex: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #e53935;
+    padding: 2px;
+    transition: color 0.2s;
+}
+
+.removeButton:hover {
+    color: #b71c1c;
+}

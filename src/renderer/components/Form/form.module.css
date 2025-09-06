@@ -134,4 +134,16 @@
             }
         }
     }
+
+    .options{
+        display: flex;
+        flex-direction: row;
+        width: 80vw;
+        &>:first-child {
+            flex: 1;
+        }
+        &>:last-child {
+            flex: 1.2;
+        }
+    }
 }

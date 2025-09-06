@@ -1,7 +1,7 @@
 import { Route } from 'react-router-dom';
 import Employees from "Pages/Employees/Employees";
-import EmployeeEdit from "Pages/EmployeeEdit/EmployeeEdit";
-import EmployeeDocument from "Pages/EmployeeDocument/EmployeeDocument";
+import EmployeeEdit from "Pages/Employees/EmployeeEdit";
+import EmployeeDocument from "Pages/Employees/EmployeeDocument";
 
 export default function EmployeeRoutes() {
   return (

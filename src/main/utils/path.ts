@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import { join } from 'path';
-import { FolderType } from 'Types/main/handler/FolderType';
+import { FolderType } from 'Types/shared/handler/FolderType';
 
 export const getDb = () => join(app.getPath('userData'), 'manager.db');
 export const getFolder = (folder: FolderType, id: string) => join(app.getPath('userData'), folder, id);

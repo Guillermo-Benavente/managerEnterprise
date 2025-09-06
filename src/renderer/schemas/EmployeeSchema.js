@@ -120,13 +120,14 @@ const EMPLOYEE = [
         showTable: false,
         required: true,
     }),
-    /*newField({
+    newField({
         key: 'courses',
         name: 'Cursos',
         type: 'file',
         showTable: false,
+        showEdit: false,
         accept: '.pdf',
-    }),*/
+    }),
 ]
 
 export default EMPLOYEE;

@@ -1,0 +1,46 @@
+.imageMenuWrapper {
+  position: relative;
+}
+
+.floatingMenu {
+  position: absolute;
+  top: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  min-width: 135px;
+}
+
+.floatingMenu button {
+  background: #f4f4f4;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.floatingMenu button:hover {
+  background: #e0e0e0;
+}
+
+.urlInput {
+  display: flex;
+  gap: 6px;
+}
+
+.urlInput input {
+  flex: 1;
+  padding: 4px;
+}
+
+.buttonFile input[type='file'] {
+  display: none;
+}

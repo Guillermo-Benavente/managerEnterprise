@@ -39,12 +39,14 @@ const COMPANY_DOCUMENT = [
         identifier: true,
         showTable: false,
         showForm: false,
+        showVariable: false,
     }),
     newField({
         key: 'name',
         name: 'Nombre',
         pattern: '^[A-ZÁÉÍÓÚÑa-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑa-záéíóúñ]+)*$',
-        showForm: false,
+        required: true,
+        showVariable: false,
     }),
     newField({
         key: 'company',
@@ -58,6 +60,7 @@ const COMPANY_DOCUMENT = [
         name: 'Contenido',
         showTable: false,
         showForm: false,
+        showVariable: false,
     }),
     newField({
         key: 'url',
@@ -65,14 +68,7 @@ const COMPANY_DOCUMENT = [
         type: 'date',
         showTable: false,
         showForm: false,
-    }),
-    newField({
-        key: 'courses',
-        name: 'Cursos',
-        type: 'file',
-        showTable: false,
-        accept: '.pdf',
-        required: true,
+        showVariable: false,
     }),
 ]
 

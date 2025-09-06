@@ -19,6 +19,8 @@ const BASE_SCHEMA_FIELDS = {
     reference: false,
     showTable: true,
     showForm: true,
+    showEdit: true,
+    showVariable: true,
     accept: null,
     pattern: null,
     required: false,

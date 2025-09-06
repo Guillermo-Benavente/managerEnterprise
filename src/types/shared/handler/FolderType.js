@@ -11,12 +11,13 @@
  * 
  * @readonly
  * @revision 0.0.0
- * @date 2025-06-04
+ * @date 2025-07-29
  * @author guillermob
  */
-export const FolderType = {
-  Courses: 'courses',
-  Documents: 'documents',
-} as const;
+const FolderType = Object.freeze({
+  COURSES: 'courses',
+  DOCUMENTS: 'documents',
+});
 
-export type FolderType = typeof FolderType[keyof typeof FolderType];
+module.exports = FolderType;
+exports.FolderType = FolderType;
