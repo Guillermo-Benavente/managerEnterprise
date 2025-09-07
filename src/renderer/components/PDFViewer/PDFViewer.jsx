@@ -20,7 +20,7 @@ function LazyPage({ pageNumber, scale }) {
   );
 }
 
-export default function PdfViewer({ fileUrl, showOptions = false}) {
+export default function PdfViewer({ fileUrl, showOptions = false }) {
   const [numPages, setNumPages] = useState(null);
   const [scale, setScale] = useState(1.25);
 
@@ -34,15 +34,17 @@ export default function PdfViewer({ fileUrl, showOptions = false}) {
         <Button type={ButtonType.FLOAT} onClick={() => setScale(prev => prev + 0.25)}><ZoomIn /></Button>
         <Button type={ButtonType.FLOAT} onClick={() => setScale(prev => Math.max(prev - 0.25, 0.25))}><ZoomOut /></Button>
       </div>
-      <Document
-        file={fileUrl}
-        onLoadSuccess={onDocumentLoadSuccess}
-        loading="Cargando PDF..."
-      >
-        {Array.from(new Array(numPages), (_, index) => (
-          <LazyPage key={index + 1} pageNumber={index + 1} scale={scale} />
-        ))}
-      </Document>
+      <div className={style.pages}>
+        <Document
+          file={fileUrl}
+          onLoadSuccess={onDocumentLoadSuccess}
+          loading="Cargando PDF..."
+        >
+          {Array.from(new Array(numPages), (_, index) => (
+            <LazyPage key={index + 1} pageNumber={index + 1} scale={scale} />
+          ))}
+        </Document>
+      </div>
     </div>
   );
 } 
