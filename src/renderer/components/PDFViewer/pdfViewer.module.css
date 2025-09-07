@@ -17,12 +17,16 @@
 }
 
 .options {
-  margin-top: -62px;
-  position: sticky;
-  top: 0;
-  width: 100%;
+  position: fixed;
+  top: 150px;
+  right: 35px;
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
   z-index: 3;
+}
+
+.pages {
+  width: max-content;
+  margin: 0 auto;
 }
