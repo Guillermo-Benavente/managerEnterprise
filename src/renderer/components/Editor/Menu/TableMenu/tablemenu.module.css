@@ -44,7 +44,8 @@
   cursor: pointer;
 }
 
-button {
+/*TODO: revisar estos estilos css*/
+.button {
   margin-top: 6px;
   width: 100%;
 }
