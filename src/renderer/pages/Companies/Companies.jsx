@@ -29,7 +29,7 @@ export default function Companies() {
     const handleInsert = async (data) => {
         const itemId = await db[cmpKeys.INSERT](data);
         Dialog('Información', 'Empresa añadida correctamente.', DialogType.INFO);
-        setData(prev => [...prev, { ...data, itemId }]);
+        setData(prev => [...prev, { ...data, id: itemId }]);
     }
 
     const handleDelete = async (itemId) => {

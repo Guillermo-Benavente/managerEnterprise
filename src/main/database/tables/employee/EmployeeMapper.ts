@@ -1,35 +1,23 @@
+import MapperBase from '../MapperBase';
 import EmployeeData from 'Types/main/database/EmployeeData';
 import EmployeeType from 'Types/main/database/EmployeeType';
-import { toISO, formatToView } from '../../../utils/date';
+import EMPLOYEE from 'renderer/schemas/EmployeeSchema';
 
-export default class EmployeeMapper {
-  static toData(e: EmployeeType): EmployeeData {
-    const [firstSurname, secondSurname] = e.surnames.trim().split(/\s+/, 2);
-    return {
-      dni:                     e.dni,
-      name:                   e.name,
-      first_surname:          firstSurname,
-      second_surname:         secondSurname ?? null,
-      discharge_date:         toISO(e.discharge_date)!,
-      leave_date:             toISO(e.leave_date),
-      medical_leave_date:     toISO(e.medical_leave_date),
-      medical_discharge_date: toISO(e.medical_discharge_date),
-      dni_date:               toISO(e.dni_date),
-      courses:                e.courses,
-    };
+const EmployeeMapper = new MapperBase<EmployeeType, EmployeeData>(
+  EMPLOYEE,
+  {
+    toData: {
+      first_surname: (_, e) => e.surnames.trim().split(/\s+/, 2)[0],
+      second_surname: (_, e) => e.surnames.trim().split(/\s+/, 2)[1] ?? null,
+      surnames: () => undefined,
+      documents: () => undefined,
+    },
+    toFrontend: {
+      surnames: (_, d) => d.first_surname + (d.second_surname ? ` ${d.second_surname}` : ''),
+      first_surname: () => undefined,
+      second_surname: () => undefined,
+    },
   }
+);
 
-  static toFrontend(data: EmployeeData): EmployeeType {
-    return {
-      dni:                    data.dni,
-      name:                   data.name,
-      surnames:               data.first_surname + (data.second_surname ? ` ${data.second_surname}` : ''),
-      discharge_date:         formatToView(data.discharge_date),
-      leave_date:             formatToView(data.leave_date),
-      medical_leave_date:     formatToView(data.medical_leave_date),
-      medical_discharge_date: formatToView(data.medical_discharge_date),
-      dni_date:               formatToView(data.dni_date),
-      courses:                data.courses,
-    };
-  }
-}
+export default EmployeeMapper;

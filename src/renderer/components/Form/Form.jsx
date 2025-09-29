@@ -25,7 +25,7 @@ export default function Form({ columns, data, selectColumns, selectData, selectD
         if (selectData) {
             selectData().then((data) => {
                 const options = data.map(item => ({
-                    value: item.dni,
+                    value: item.id,
                     label: `${item.name} ${item.surnames}`
                 }));
                 setSelectDataAsync(options);
@@ -67,7 +67,6 @@ export default function Form({ columns, data, selectColumns, selectData, selectD
 
         try {
             await Promise.all(filePromises);
-            console.log('Valores finales del formulario:', values);
             if (dbAction) await dbAction(values);
             if (onSubmitSuccess) onSubmitSuccess();
         } catch (err) {
@@ -104,7 +103,7 @@ export default function Form({ columns, data, selectColumns, selectData, selectD
         finalselectColumns = (
             <fieldset className={`${style.fieldset} ${style.options} selector`}>
                 <MemberOptions options={selectDataAsync} value={selectDataSave} />
-                <GroupOptions options={selectDataAsync} />
+                {/* <GroupOptions options={selectDataAsync} /> */}
             </fieldset>
         );
     }

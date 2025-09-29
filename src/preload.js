@@ -15,6 +15,7 @@ ipc.invoke(IpcChannel.GET_SERVER)().then(serverUrl => { server = serverUrl; });
 const dbActions = [
   IpcChannel.GETALL, 
   IpcChannel.GETONE,
+  IpcChannel.INSERTALL,
   IpcChannel.INSERT,
   IpcChannel.UPDATE,
   IpcChannel.DELETE

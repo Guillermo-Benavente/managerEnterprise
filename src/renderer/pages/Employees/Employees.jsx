@@ -9,11 +9,12 @@ import Button from 'Components/Button/Button';
 import ButtonType from 'Types/renderer/buttonType';
 import TableName from 'Types/shared/handler/TableName.js';
 import DialogType from 'Types/renderer/dialog';
+import FolderType from 'Types/shared/handler/FolderType';
 import EMPLOYEE from 'Schemas/EmployeeSchema';
-
 
 export default function Employees() {
     const [data, setData] = useState([]);
+    const docKeys = keys(TableName.DOCUMENT);
     const empKeys = keys(TableName.EMPLOYEE);
 
     useEffect(() => {
@@ -29,8 +30,9 @@ export default function Employees() {
 
     const handleInsert = async (data) => {
         const itemId = await db[empKeys.INSERT](data);
+        await db[docKeys.INSERTALL](itemId, data.documents, FolderType.EMPLOYEES);
         Dialog('Información', 'Usuario añadido correctamente.', DialogType.INFO);
-        setData(prev => [...prev, { ...data, itemId }]);
+        setData(prev => [...prev, { ...data, id: itemId }]);
     }
 
     const handleDelete = async (itemId) => {

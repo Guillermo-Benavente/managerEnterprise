@@ -10,8 +10,8 @@ import ButtonType from 'Types/renderer/buttonType';
 import DialogType from 'Types/renderer/dialog';
 import TableName from 'Types/shared/handler/TableName.js';
 import EntryPointsType from 'Types/shared/entryPoints';
-import COMPANY_DOCUMENT from 'Schemas/CompanyDocumentSchema';
-import EMPLOYEE_BY_DOCUMENT from 'Schemas/EmployeeByDocumentSchema';
+import DOCUMENT from 'Schemas/DocumentSchema';
+import DOCUMENT_EMPLOYEE from 'Schemas/DocumentEmployeeSchema';
 import PROFILE from 'Schemas/ProfileSchema';
 
 export default function CompanyEditDocument() {
@@ -30,11 +30,10 @@ export default function CompanyEditDocument() {
 
             const document = {
                 id: documentId,
-                company: doc.company,
                 name: doc.name,
                 content: html,
                 url: doc.url,
-                buffer: pdfBuffer
+                data: pdfBuffer
             };
 
             await db[docKeys.UPDATE](document);
@@ -61,8 +60,8 @@ export default function CompanyEditDocument() {
                 content={handleData}
                 onReady={(editor) => (editorRef.current = editor)}
                 variableMenu={[
-                    ['Empresas', 'red', COMPANY_DOCUMENT],
-                    ['Empleados', 'blue', EMPLOYEE_BY_DOCUMENT],
+                    ['Empresas', 'red', DOCUMENT],
+                    ['Empleados', 'blue', DOCUMENT_EMPLOYEE],
                     ['Perfil', 'purple', PROFILE]
                 ]}
             >

@@ -7,16 +7,14 @@ const Document: ModelClass<DocumentType, DocumentData> =
 class Document implements IModel<DocumentType, DocumentData> {
 
   constructor(readonly data: DocumentData) {
-    if (!data.id)                         throw new Error('El ID del documento es obligatorio');
-    if (!data.name)                       throw new Error('El nombre del documento es obligatorio');
-    if (!data.url)                        throw new Error('La URL es obligatoria');
+    if (!data.name) throw new Error('El nombre del documento es obligatorio');
+    if (!data.url)  throw new Error('La URL es obligatoria');
   }
 
   /** UI → dominio */
   static fromView(d: DocumentType): IModel<DocumentType, DocumentData> {
-    if (!d.id)         throw new Error('El ID del documento es obligatorio');
-    if (!d.name)       throw new Error('El nombre del documento es obligatorio');
-    if (!d.url)        throw new Error('La URL es obligatoria');
+    if (!d.name) throw new Error('El nombre del documento es obligatorio');
+    if (!d.url)  throw new Error('La URL es obligatoria');
 
     return new Document(DocumentMapper.toData(d));
   }
