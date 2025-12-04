@@ -1,15 +1,19 @@
 import { app, BrowserWindow, Menu, MenuItem } from 'electron';
 import started from 'electron-squirrel-startup';
 import Database from './main/database/Database';
+//import MigrationManager from './main/database/MigrationManager';
 import HandlerManager from './main/handler/HandlerManager';
+import { UUIDv4 } from 'main/utils/uuidCreate';
 import server from './main/server.js';
 import path from 'path';
 
-if (started) {
-  app.quit();
-}
+if (started) app.quit();
 
 const Db = new Database();
+const tablesToMigrate = [
+  { table: 'document', column: 'id' },
+  { table: 'employee', column: 'id' },
+];
 let serverInstance;
 
 const createWindow = async () => {
@@ -129,6 +133,14 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
     try {
+      // TODO: Migración de IDs antiguos
+      // El MigrationManager se encarga de actualizar IDs antiguos en las tablas especificadas
+      // reemplazándolos por nuevos IDs generados con UUIDv4. 
+      // Para usarlo correctamente, hay que definir la función `isOldIdFn` que reciba un ID y 
+      // devuelva true si se considera "antiguo".
+      // const migrator = new MigrationManager(Db, tablesToMigrate, UUIDv4, isOldIdFn);
+      // await migrator.migrateOldIds();
+
       const dbMessage = await Db.close();
       serverInstance.close(() => {
         console.log('Servidor Express cerrado.');

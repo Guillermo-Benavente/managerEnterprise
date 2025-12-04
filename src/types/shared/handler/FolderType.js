@@ -6,8 +6,9 @@
  * Se emplea para acceder de forma segura y tipada a directorios conocidos.
  * 
  * Los valores disponibles son:
- * - `Folder.Courses`: Carpeta de cursos.
- * - `Folder.Documents`: Carpeta de documentos.
+ * - `Folder.EMPLOYEES`: Carpeta de documentos de empleados.
+ * - `Folder.COMPANIES`: Carpeta de documentos de empresas.
+ * - `Folder.PROFILES`: Carpeta de documentos del perfil.
  * 
  * @readonly
  * @revision 0.0.0
@@ -15,8 +16,9 @@
  * @author guillermob
  */
 const FolderType = Object.freeze({
-  COURSES: 'courses',
-  DOCUMENTS: 'documents',
+  EMPLOYEES: 'employees',
+  COMPANIES: 'companies',
+  PROFILES: 'profiles',
 });
 
 module.exports = FolderType;

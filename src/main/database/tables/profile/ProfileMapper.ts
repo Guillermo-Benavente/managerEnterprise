@@ -1,20 +1,8 @@
+import MapperBase from '../MapperBase';
 import ProfileData from "Types/main/database/ProfileData";
 import ProfileType from "Types/main/database/ProfileType";
+import PROFILE from 'renderer/schemas/ProfileSchema';
 
-export default class ProfileMapper {
-  static toData(p: ProfileType): ProfileData {
-    return {
-      nif:                p.nif,
-      name:              p.name,
-      telephone:         p.telephone
-    };
-  }
+const ProfileMapper = new MapperBase<ProfileType, ProfileData>(PROFILE, {});
 
-  static toFrontend(data: ProfileData): ProfileType {
-    return {
-      nif:               data.nif,
-      name:              data.name,
-      telephone:         data.telephone
-    };
-  }
-}
+export default ProfileMapper;

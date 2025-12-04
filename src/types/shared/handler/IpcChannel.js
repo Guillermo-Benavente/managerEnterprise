@@ -1,6 +1,7 @@
 const IpcChannel = Object.freeze({
   GETALL:            'getAll',
   GETONE:            'get',
+  INSERTALL:         'insertAll',
   INSERT:            'insert',
   UPDATE:            'update',
   DELETE:            'delete',

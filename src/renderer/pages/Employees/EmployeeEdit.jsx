@@ -7,21 +7,28 @@ import Modal from 'Components/Modal/Modal';
 import Form from 'Components/Form/Form';
 import TableName from 'Types/shared/handler/TableName.js';
 import DialogType from 'Types/renderer/dialog';
+import FolderType from 'Types/shared/handler/FolderType';
 import EMPLOYEE from 'Schemas/EmployeeSchema';
-import EMPLOYEE_DOCUMENT from 'Schemas/EmployeeDocumentSchema';
+import DOCUMENT from 'Schemas/DocumentSchema';
+import DOCUMENT_EMPLOYEE from 'Schemas/DocumentEmployeeSchema';
 
 export default function EmployeeEdit() {
     const { id } = useParams();
     const [dataForm, setDataForm] = useState(null);
     const [dataTable, setDataTable] = useState(null);
     const empKeys = keys(TableName.EMPLOYEE);
-    const curKeys = keys(TableName.COURSE);
+    const docEmpKeys = keys(TableName.DOCUMENTEMPLOYEE);
+    const docKeys = keys(TableName.DOCUMENT);
 
     useEffect(() => {
         if (id) {
             (async () => {
                 const resultForm = await db[empKeys.GETONE](id);
-                const resultTable = await db[curKeys.GETALL](id);
+                const resultDocEmp = await db[docEmpKeys.GETALL](id);
+                const documentsId = resultDocEmp.map(de => de.document);
+                const resultTable = await Promise.all(
+                    documentsId.map(async docId => await db[docKeys.GETONE](docId))
+                );
 
                 setDataForm(resultForm);
                 setDataTable(resultTable);
@@ -30,26 +37,27 @@ export default function EmployeeEdit() {
     }, [id]);
 
     const handleInsert = async (data) => {
-        const items = await db[curKeys.INSERT](id, data.courses);
+        const documentsId = await db[docKeys.INSERTALL](id, data.documents, FolderType.EMPLOYEES);
         Dialog('Información', 'Documento(s) añadido(s) correctamente.', DialogType.INFO);
-        const newCourses = await Promise.all(
-            items.map(async id => {
-                const course = await dbAPI[curKeys.GETONE](id);
-                return { ...course, id };
+        const newDocuments = await Promise.all(
+            documentsId.map(async id => {
+                const document = await db[docKeys.GETONE](id);
+                return { ...document, id };
             })
         );
-        setDataTable(prev => [...prev, ...newCourses]);
+        setDataTable(prev => [...prev, ...newDocuments]);
     }
 
     const handleUpdate = async (data) => {
+        data.id = id;
         const items = await db[empKeys.UPDATE](data);
         Dialog('Información', 'Empleado actualizado correctamente.', DialogType.INFO);
     }
 
     const handleDelete = async (itemId) => {
-        await db[curKeys.DELETE](itemId);
+        await db[docKeys.DELETE](itemId);
         Dialog('Información', 'Documento eliminado correctamente.', DialogType.INFO);
-        const key = EMPLOYEE_DOCUMENT.find(col => col.identifier)?.key;
+        const key = DOCUMENT.find(col => col.identifier)?.key;
         setDataTable(prev => prev.filter(item => item[key] !== itemId));
     }
 
@@ -60,7 +68,7 @@ export default function EmployeeEdit() {
             backNav='/employee'
             columnsForm={EMPLOYEE}
             dataForm={dataForm}
-            columnsTable={EMPLOYEE_DOCUMENT}
+            columnsTable={DOCUMENT}
             dataTable={dataTable}
             dbActionForm={handleUpdate}
             dbActionTable={handleDelete}
@@ -68,7 +76,7 @@ export default function EmployeeEdit() {
             <Modal title='Nuevos documentos' textButtonOpen='Añadir Documentos'>
                 {({ close }) => (
                     <Form
-                        columns={EMPLOYEE_DOCUMENT}
+                        columns={DOCUMENT_EMPLOYEE}
                         embedded={true}
                         onSubmitSuccess={close}
                         dbAction={handleInsert}

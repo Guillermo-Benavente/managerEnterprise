@@ -28,10 +28,10 @@ export default function Home() {
       const expired = allEmployees
         .filter(emp => new Date(emp.dni_date) < today)
         .map(emp => ({
-          id: emp.dni,
+          id: emp.id,
           type: "error",
           text: `El DNI de ${emp.name ?? 'empleado'} expiró el ${new Date(emp.dni_date).toLocaleDateString()}`,
-          link: `/employee/${emp.dni}`
+          link: `/employee/${emp.id}`
         }));
 
       // Próximos a caducar (<= 30 días)
@@ -42,10 +42,10 @@ export default function Home() {
           return daysDiff > 0 && daysDiff <= 30;
         })
         .map(emp => ({
-          id: emp.dni,
+          id: emp.id,
           type: "warning",
           text: `El DNI de ${emp.name ?? 'empleado'} caduca el ${new Date(emp.dni_date).toLocaleDateString()}`,
-          link: `/employee/${emp.dni}`
+          link: `/employee/${emp.id}`
         }));
 
       setDniExpired(expired);

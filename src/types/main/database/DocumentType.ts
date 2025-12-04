@@ -1,8 +1,6 @@
 type DocumentType = {
   id: string;
   name: string;
-  company: string; // nif
-  profile: string; // nif
   content: JSON;
   url: string;
   buffer?: Buffer;

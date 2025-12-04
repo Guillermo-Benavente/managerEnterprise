@@ -9,10 +9,12 @@ import Modal from 'Components/Modal/Modal';
 import Form from 'Components/Form/Form';
 import DialogType from 'Types/renderer/dialog';
 import TableName from 'Types/shared/handler/TableName.js';
-import EntryPointsType from 'Types/shared/entryPoints';
-import COMPANY_DOCUMENT from 'Schemas/CompanyDocumentSchema';
-import EMPLOYEE_BY_DOCUMENT from 'Schemas/EmployeeByDocumentSchema';
+import FolderType from 'Types/shared/handler/FolderType';
+import DOCUMENT from 'Schemas/DocumentSchema';
+import COMPANY from 'Schemas/CompanySchema';
+import DOCUMENT_EMPLOYEE from 'Schemas/DocumentEmployeeSchema';
 import PROFILE from 'Schemas/ProfileSchema';
+
 
 export default function CompanyCreateDocument() {
     const { id } = useParams();
@@ -21,7 +23,7 @@ export default function CompanyCreateDocument() {
     const editorRef = useRef(null);
     const empKeys = keys(TableName.EMPLOYEE);
     const docKeys = keys(TableName.DOCUMENT);
-    const ebdKeys = keys(TableName.EMPLOYEEBYDOCUMENT);
+    const docEmpKeys = keys(TableName.DOCUMENTEMPLOYEE);
 
     const handleInsert = async (data) => {
         if (editorRef.current) {
@@ -31,16 +33,19 @@ export default function CompanyCreateDocument() {
             let document = {
                 name: data.name,
                 content: html,
-                buffer: pdfBuffer
+                data: pdfBuffer
             };
 
-            const items = await db[docKeys.INSERT](id, [document], EntryPointsType.EDIT_COMPANY);
+            const documentId = await db[docKeys.INSERT](id, document, FolderType.COMPANIES);
             const groupData = {};
             const memberData = {};
 
             Object.entries(data).forEach(([key, value]) => {
                 if (key.startsWith('group-') || key.startsWith('member-')) {
-                    const [_, id, field] = key.split('-');
+                    const prefixLength = key.startsWith('group-') ? 6 : 7;
+                    const lastDash = key.lastIndexOf('-');
+                    const id = key.slice(prefixLength, lastDash);
+                    const field = key.slice(lastDash + 1);
 
                     if (key.startsWith('group-')) {
                         if (!groupData[id]) groupData[id] = {};
@@ -52,9 +57,8 @@ export default function CompanyCreateDocument() {
                     }
                 }
             });
-            
-            for (const [id, data] of Object.entries(memberData))
-                await db[ebdKeys.INSERT](id, items[0], data.date || null);
+            for (const [id, data] of Object.entries(memberData)) 
+                await db[docEmpKeys.INSERT]({ document: documentId, employee: id, date: data.date || null });
 
             navigate(`/company/${id}`);
             setTimeout(() => {
@@ -74,16 +78,16 @@ export default function CompanyCreateDocument() {
             <Editor
                 onReady={(editor) => (editorRef.current = editor)}
                 variableMenu={[
-                    ['Empresas', 'red', COMPANY_DOCUMENT],
-                    ['Empleados', 'blue', EMPLOYEE_BY_DOCUMENT],
+                    ['Empresas', 'red', COMPANY],
+                    ['Empleados', 'blue', DOCUMENT_EMPLOYEE],
                     ['Perfil', 'purple', PROFILE]
                 ]}
             >
                 <Modal title='Nuevo documento' textButtonOpen='Guardar'>
                     {({ close }) => (
                         <Form
-                            columns={COMPANY_DOCUMENT}
-                            selectColumns={EMPLOYEE_BY_DOCUMENT}
+                            columns={DOCUMENT}
+                            selectColumns={DOCUMENT_EMPLOYEE}
                             selectData={handleAllData}
                             dbAction={handleInsert}
                             embedded={true}
