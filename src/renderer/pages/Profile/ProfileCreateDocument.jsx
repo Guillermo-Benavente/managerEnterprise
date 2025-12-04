@@ -15,8 +15,7 @@ import COMPANY from 'Schemas/CompanySchema';
 import DOCUMENT_EMPLOYEE from 'Schemas/DocumentEmployeeSchema';
 import PROFILE from 'Schemas/ProfileSchema';
 
-
-export default function CompanyCreateDocument() {
+export default function ProfileCreateDocument() {
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -36,7 +35,7 @@ export default function CompanyCreateDocument() {
                 data: pdfBuffer
             };
 
-            const documentId = await db[docKeys.INSERT](id, document, FolderType.COMPANIES);
+            const documentId = await db[docKeys.INSERT](id, document, FolderType.PROFILES);
             const groupData = {};
             const memberData = {};
 
@@ -57,10 +56,10 @@ export default function CompanyCreateDocument() {
                     }
                 }
             });
-            for (const [id, data] of Object.entries(memberData)) 
+            for (const [id, data] of Object.entries(memberData))
                 await db[docEmpKeys.INSERT]({ document: documentId, employee: id, date: data.date || null });
 
-            navigate(`/company/${id}`);
+            navigate(`/profile`);
             setTimeout(() => {
                 Dialog('Información', 'Documento añadido correctamente.', DialogType.INFO);
             }, 100);
@@ -71,8 +70,8 @@ export default function CompanyCreateDocument() {
 
     return (
         <TemplateBase
-            title={['Docmaen', 'Empresas', 'Documento', 'Nuevo']}
-            backNav={`/company/${id}`}
+            title={['Docmaen', 'Perfil', 'Documento', 'Nuevo']}
+            backNav={`/profile`}
             question={true}
         >
             <Editor

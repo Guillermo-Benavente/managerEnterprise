@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import style from './modal.module.css';
 import { X } from 'lucide-react';
@@ -6,16 +6,22 @@ import Header from 'Components/Header/Header';
 import Button from "Components/Button/Button";
 import ButtonType from 'Types/renderer/buttonType';
 
-export default function Modal({ title, textButtonOpen, typeButton = ButtonType.PRIMARY, children }) {
+export default function Modal({ title, textButtonOpen, autoOpen = false, hidden = false, typeButton = ButtonType.PRIMARY, children }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <Button type={typeButton}>
-          {textButtonOpen}
-        </Button>
-      </Dialog.Trigger>
+      {!hidden && (
+        <Dialog.Trigger asChild>
+          <Button type={typeButton}>
+            {textButtonOpen}
+          </Button>
+        </Dialog.Trigger>
+      )}
 
       <Dialog.Portal>
         <Dialog.Overlay className={style.overlay}/>
