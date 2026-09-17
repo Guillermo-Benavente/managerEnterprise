@@ -1,0 +1,25 @@
+.menu {
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  left: 0;
+  border-bottom: 1px solid #ccc;
+  background-color: white;
+  z-index: 1;
+}
+
+.iconButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.section {
+  display: flex;
+  gap: 4px;
+  border-right: 1px solid #ddd;
+  padding-right: 8px;
+  margin-right: 8px;
+}

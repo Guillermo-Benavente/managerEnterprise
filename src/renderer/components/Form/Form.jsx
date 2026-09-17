@@ -1,11 +1,15 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import style from './form.module.css';
 import { Dialog } from 'Api/control';
-import Button from "Components/Button/Button";
+import Button from 'Components/Button/Button';
 import DialogType from 'Types/renderer/dialog';
 import ButtonType from 'Types/renderer/buttonType';
+import InputFormat from './InputFormat/InputFormat';
+import GroupOptions from 'Components/GroupOptions/GroupOptions';
+import MemberOptions from 'Components/MemberOptions/MemberOptions';
 
-export default function Form({ columns, data, nav, embedded = false, onSubmitSuccess, dbAction }) {
+
+export default function Form({ columns, data, selectColumns, selectData, selectDataSave, nav, embedded = false, onSubmitSuccess, dbAction }) {
     const spanRef = useRef();
     const formRef = useRef();
     let finalColumns = [];
@@ -15,114 +19,75 @@ export default function Form({ columns, data, nav, embedded = false, onSubmitSuc
         className: formstyle,
         ...(isFile && { encType: 'multipart/form-data' }),
     };
+    const [selectDataAsync, setSelectDataAsync] = useState(null);
 
-    const handleSubmit = async(e) => {
+    useEffect(() => {
+        if (selectData) {
+            selectData().then((data) => {
+                const options = data.map(item => ({
+                    value: item.id,
+                    label: `${item.name} ${item.surnames}`
+                }));
+                setSelectDataAsync(options);
+            });
+        }
+    }, [selectData]);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
         const formData = new FormData(formRef.current);
-        const values = Object.fromEntries(formData.entries());
 
-        const fileProcessingPromises = [];
+        // Convertir FormData a objeto respetando campos repetidos
+        const values = {};
+        for (const [key, value] of formData.entries()) {
+            if (values[key] !== undefined) {
+                // Si ya existe, convertir en array o añadir al array
+                values[key] = Array.isArray(values[key])
+                    ? [...values[key], value]
+                    : [values[key], value];
+            } else {
+                values[key] = value;
+            }
+        }
 
-        formRef.current.querySelectorAll('input[type="file"]').forEach(input => {
-            const filePromises = Array.from(input.files).map(file => {
-                return new Promise((resolve, reject) => {
+        // Procesar archivos si los hay
+        const fileInputs = formRef.current.querySelectorAll('input[type="file"]');
+        const filePromises = [];
+        fileInputs.forEach(input => {
+            const files = Array.from(input.files).map(file =>
+                new Promise((resolve, reject) => {
                     const reader = new FileReader();
-                    reader.onloadend = () =>
-                        resolve({ name: file.name, data: reader.result.split(',')[1] });
+                    reader.onloadend = () => resolve({ name: file.name, data: reader.result.split(',')[1] });
                     reader.onerror = () => reject(new Error('Error leyendo archivo'));
                     reader.readAsDataURL(file);
-                });
-            });
-
-            const processedFilesPromise = Promise.all(filePromises).then(fileContents => {
-                values[input.name] = fileContents;
-            });
-
-            fileProcessingPromises.push(processedFilesPromise);
+                })
+            );
+            filePromises.push(Promise.all(files).then(f => values[input.name] = f));
         });
 
         try {
-            await Promise.all(fileProcessingPromises);
-            await dbAction(values);
+            await Promise.all(filePromises);
+            if (dbAction) await dbAction(values);
             if (onSubmitSuccess) onSubmitSuccess();
-        } catch (error) {
-            Dialog('Error', 'No se ha podido añadir los nuevos datos.', DialogType.ERROR);
-            console.error('Error al procesar los archivos:', error);
+        } catch (err) {
+            Dialog('Error', 'No se ha podido procesar el formulario.', DialogType.ERROR);
+            console.error(err);
         }
     };
-
-    const inputFormat = (column) => {
-        const value = data?.[column.key] ?? '';
-        const input = (
-            <input
-                className={style.input}
-                name={column.key}
-                type={column.type}
-                accept={column.accept}
-                multiple={column.type === 'file'}
-                defaultValue={column.type !== 'file' ? value : undefined}
-                pattern={column.pattern}
-                required={!!column.required}
-            />
-        );
-
-        let buttonFile = <Button className={style.button} type={ButtonType.PRIMARY} nav={nav}>Ver Documentos</Button>;
-        if (embedded) buttonFile = <Button className={style.button} type={ButtonType.FILE} event={
-            (event) => {
-                const files = event.target.files;
-                const text = files.length > 0
-                    ? files.length > 1
-                        ? `${files.length} archivos`
-                        : '1 archivo'
-                    : 'Añadir archivos';
-                if (spanRef.current) spanRef.current.textContent = text;
-            }
-        }>
-            <span ref={spanRef}>Añadir archivos</span>
-            {input}
-        </Button>;
-
-
-        const labelContent = (
-            <span>
-                {column.required && <small title='Campo Requerido' className={style.required}>*</small>} {column.name}
-            </span>
-        );
-
-        let rowInput;
-
-        if (column.type === 'file') {
-            rowInput = (
-                <span key={column.key} className={style.span}>
-                    <span className={style.valSpan}>
-                        {labelContent}
-                        <span className={style.numDocs}>{value}</span>
-                    </span>
-                    {buttonFile}
-                </span>
-            );
-        } else {
-            rowInput = (
-                <span key={column.key} className={style.span}>
-                    <label className={style.label}>
-                        {labelContent}
-                        {input}
-                    </label>
-                </span>
-            );
-        }
-
-        return rowInput;
-    }
 
     if (columns) {
         const filteredColumns = embedded
             ? columns.filter(column => column.showForm)
-            : columns;
+            : columns.filter(column => column.showEdit);
 
         filteredColumns.map((column) => {
-            finalColumns.push(inputFormat(column));
+            finalColumns.push(<InputFormat
+                data={data}
+                nav={nav}
+                spanRef={spanRef}
+                embedded={embedded}
+                column={column}
+            />);
         });
     } else {
         finalColumns.push(
@@ -132,11 +97,23 @@ export default function Form({ columns, data, nav, embedded = false, onSubmitSuc
         );
     }
 
+    let finalselectColumns;
+
+    if (selectColumns && selectDataAsync?.length) {
+        finalselectColumns = (
+            <fieldset className={`${style.fieldset} ${style.options} selector`}>
+                <MemberOptions options={selectDataAsync} value={selectDataSave} />
+                {/* <GroupOptions options={selectDataAsync} /> */}
+            </fieldset>
+        );
+    }
+
     return (
         <form {...formProps} ref={formRef} onSubmit={handleSubmit}>
             <fieldset className={style.fieldset}>
                 {finalColumns}
             </fieldset>
+            {finalselectColumns}
             <Button type={ButtonType.SUBMIT}>Guardar</Button>
         </form>
     );

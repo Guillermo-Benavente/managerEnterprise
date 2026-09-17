@@ -1,0 +1,39 @@
+.headingDropdown {
+  position: relative;
+}
+
+.headingMenu {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  padding: 0 3px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.headingMenu button {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  transition: background 0.2s;
+}
+
+.headingMenu button:hover {
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.activeHeading {
+  background-color: #e0e7ff;
+  border-radius: 4px;
+}

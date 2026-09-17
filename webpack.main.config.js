@@ -26,6 +26,9 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.json'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+    alias: {
+      Schemas: path.resolve(__dirname, "./src/renderer/schemas"),
+    }
   },
   plugins: [
     new CopyWebpackPlugin({

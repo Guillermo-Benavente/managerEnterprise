@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import style from './button.module.css';
 import ButtonType from 'Types/renderer/buttonType';
 
-const Button = forwardRef(({ children, type = ButtonType.PRIMARY, nav, event, className = '', ...props }, ref) => {
+const Button = forwardRef(({ children, type = ButtonType.PRIMARY, active, key, nav, event, className = '', ...props }, ref) => {
     const navigate = useNavigate();
     const onClick = event
         ? event : nav
@@ -12,6 +12,8 @@ const Button = forwardRef(({ children, type = ButtonType.PRIMARY, nav, event, cl
 
     let typeButton = type;
     let styleButton = className;
+    if (active) styleButton += ` ${style.active}`;
+    
     switch (type) {
         case ButtonType.SUBMIT:
             styleButton += ` ${style.btn} ${style['btn-' + ButtonType.PRIMARY]}`;
@@ -30,6 +32,7 @@ const Button = forwardRef(({ children, type = ButtonType.PRIMARY, nav, event, cl
 
     let button = <button
         ref={ref}
+        key={key}
         type={typeButton}
         className={styleButton.trim()}
         onClick={onClick}
@@ -39,6 +42,7 @@ const Button = forwardRef(({ children, type = ButtonType.PRIMARY, nav, event, cl
     </button>
     if (type === ButtonType.FILE) button = <label
         ref={ref}
+        key={key}
         className={styleButton.trim()}
         onChange={onClick}
         {...props}

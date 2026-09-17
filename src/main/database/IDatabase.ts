@@ -4,19 +4,23 @@ import SQLMethod from 'Types/main/database/SQLMethod';
 import ProfileData   from 'Types/main/database/ProfileData';
 import EmployeeData   from 'Types/main/database/EmployeeData';
 import CompanyData    from 'Types/main/database/CompanyData';
-import CourseData     from 'Types/main/database/CourseData';
 import DocumentData   from 'Types/main/database/DocumentData';
-import EmployeeByDocumentData from 'Types/main/database/EmployeeByDocumentData';
+import DocumentEmployeeData from 'Types/main/database/DocumentEmployeeData';
+import DocumentCompanyData from 'Types/main/database/DocumentCompanyData';
+import DocumentProfileData from 'Types/main/database/DocumentProfileData';
+import GroupDocumentData from 'Types/main/database/GroupDocumentData';
 import TableName from 'Types/shared/handler/TableName';
 
 export default interface IDatabase {
   tables: {
     [TableName.PROFILE]: ITable<ProfileData, string>,
     [TableName.EMPLOYEE]: ITable<EmployeeData, string>;
-    [TableName.COURSE]:   ITable<CourseData, string>;
     [TableName.COMPANY]:  ITable<CompanyData, string>;
     [TableName.DOCUMENT]: ITable<DocumentData, string>;
-    [TableName.EMPLOYEEBYDOCUMENT]: ITable<EmployeeByDocumentData, string>;
+    [TableName.DOCUMENTEMPLOYEE]: ITable<DocumentEmployeeData, string>;
+    [TableName.DOCUMENTCOMPANY]: ITable<DocumentCompanyData, string>;
+    [TableName.DOCUMENTPROFILE]: ITable<DocumentProfileData, string>;
+    [TableName.GROUP]: ITable<GroupDocumentData, string>,
   };
   getDB(): Promise<SqliteDatabase>;
   close(): Promise<string>;

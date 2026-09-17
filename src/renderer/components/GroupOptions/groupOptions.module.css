@@ -1,0 +1,108 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.option {
+    flex: 1;
+}
+
+.groupList {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.groupBox {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    overflow: visible;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.groupHeader {
+    background: #f3f4f6;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 5px;
+}
+
+.groupTitle {
+    padding-left: 10px;
+    flex-grow: 1;
+    cursor: pointer;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.deleteButton {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.deleteButton:hover {
+    color: #b91c1c;
+}
+
+.groupContent {
+    padding: 20px;
+    position: relative
+}
+
+.input {
+    display: block;
+    width: calc(100% - 20px);
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+}
+
+.selectorPlaceholder {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.toggleIcon {
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding-left: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.nativeValidationInput {
+  position: absolute;
+  right: 25vw;
+  top: 37px;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  color: transparent;
+}
+
+.nativeValidationInput:focus {
+  outline: none;
+}

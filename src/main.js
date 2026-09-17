@@ -1,15 +1,19 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu, MenuItem } from 'electron';
 import started from 'electron-squirrel-startup';
 import Database from './main/database/Database';
+//import MigrationManager from './main/database/MigrationManager';
 import HandlerManager from './main/handler/HandlerManager';
+import { UUIDv4 } from 'main/utils/uuidCreate';
 import server from './main/server.js';
 import path from 'path';
 
-if (started) {
-  app.quit();
-}
+if (started) app.quit();
 
 const Db = new Database();
+const tablesToMigrate = [
+  { table: 'document', column: 'id' },
+  { table: 'employee', column: 'id' },
+];
 let serverInstance;
 
 const createWindow = async () => {
@@ -25,7 +29,62 @@ const createWindow = async () => {
       contextIsolation: true,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     }
-  })
+  });
+
+  mainWindow.webContents.on('context-menu', (event, params) => {
+    const menu = new Menu();
+
+    const suggestions = params.dictionarySuggestions.filter(
+      s => typeof s === 'string' && s.trim().length > 0
+    );
+
+    suggestions.forEach(suggestion => {
+      menu.append(new MenuItem({
+        label: suggestion,
+        click: () => {
+          mainWindow.webContents.replaceMisspelling(suggestion);
+        },
+      }));
+    });
+
+    if (suggestions.length > 0) {
+      menu.append(new MenuItem({ type: 'separator' }));
+    }
+
+    if (params.isEditable) {
+      menu.append(new MenuItem({
+        role: 'undo',
+        accelerator: 'CmdOrCtrl+Z',
+      }));
+      menu.append(new MenuItem({
+        role: 'redo',
+        accelerator: 'CmdOrCtrl+Y',
+      }));
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(new MenuItem({
+        role: 'cut',
+        accelerator: 'CmdOrCtrl+X',
+      }));
+      menu.append(new MenuItem({
+        role: 'copy',
+        accelerator: 'CmdOrCtrl+C',
+      }));
+      menu.append(new MenuItem({
+        role: 'paste',
+        accelerator: 'CmdOrCtrl+V',
+      }));
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(new MenuItem({
+        role: 'selectAll',
+        accelerator: 'CmdOrCtrl+A',
+      }));
+    }
+
+    if (menu.items.length > 0) {
+      menu.popup({ window: mainWindow });
+    }
+  });
+
 
   try {
     await Db.InitializeDatabaseAsync();
@@ -41,7 +100,7 @@ const createWindow = async () => {
       style-src 'self' 'unsafe-inline'; 
       script-src 'self'  ${!app.isPackaged ? "'unsafe-eval'" : ""}; 
       object-src 'self' ${server.getServer()}; 
-      img-src 'self' data:; 
+      img-src 'self' data: https:; 
       connect-src 'self' ${server.getServer()}`
     ];
     callback({ cancel: false, responseHeaders: details.responseHeaders });
@@ -74,6 +133,14 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
     try {
+      // TODO: Migración de IDs antiguos
+      // El MigrationManager se encarga de actualizar IDs antiguos en las tablas especificadas
+      // reemplazándolos por nuevos IDs generados con UUIDv4. 
+      // Para usarlo correctamente, hay que definir la función `isOldIdFn` que reciba un ID y 
+      // devuelva true si se considera "antiguo".
+      // const migrator = new MigrationManager(Db, tablesToMigrate, UUIDv4, isOldIdFn);
+      // await migrator.migrateOldIds();
+
       const dbMessage = await Db.close();
       serverInstance.close(() => {
         console.log('Servidor Express cerrado.');

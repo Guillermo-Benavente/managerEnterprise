@@ -2,9 +2,11 @@ const TableName = Object.freeze({
   PROFILE:            'profile',
   EMPLOYEE:           'employee',
   COMPANY:            'company',
-  COURSE:             'course',
   DOCUMENT:           'document',
-  EMPLOYEEBYDOCUMENT: 'employeeByDocument',
+  DOCUMENTEMPLOYEE:   'documentEmployee',
+  DOCUMENTCOMPANY:    'documentCompany',
+  DOCUMENTPROFILE:    'documentProfile',
+  GROUP:              'group',
 });
 
 export default TableName;

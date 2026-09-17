@@ -2,10 +2,12 @@ import { verbose, Database as SqliteDatabase } from 'sqlite3';
 import { getDb } from '../utils/path';
 import { TableProfile } from './tables/profile/TableProfile';
 import { TableEmployee } from './tables/employee/TableEmployee';
-import { TableCourse } from './tables/course/TableCourse';
 import { TableCompany } from './tables/company/TableCompany';
 import { TableDocument } from './tables/document/TableDocument';
-import { TableEmployeeByDocument } from './tables/employeeByDocument/TableEmployeeByDocument';
+import { TableDocumentEmployee } from './tables/documentEmployee/TableDocumentEmployee';
+import { TableDocumentCompany } from './tables/documentCompany/TableDocumentCompany';
+import { TableDocumentProfile } from './tables/documentProfile/TableDocumentProfile';
+import { TableGroupDocument } from './tables/groupDocument/TableGroupDocument';
 import SQLMethod from 'Types/main/database/SQLMethod';
 import IDatabase from './IDatabase';
 import TableName from 'Types/shared/handler/TableName';
@@ -31,10 +33,12 @@ export default class Database implements IDatabase{
         this.tables = {
             [TableName.PROFILE]: new TableProfile(this),
             [TableName.EMPLOYEE]: new TableEmployee(this),
-            [TableName.COURSE]: new TableCourse(this),
             [TableName.COMPANY]: new TableCompany(this),
             [TableName.DOCUMENT]: new TableDocument(this),
-            [TableName.EMPLOYEEBYDOCUMENT]: new TableEmployeeByDocument(this),
+            [TableName.DOCUMENTEMPLOYEE]: new TableDocumentEmployee(this),
+            [TableName.DOCUMENTCOMPANY]: new TableDocumentCompany(this),
+            [TableName.DOCUMENTPROFILE]: new TableDocumentProfile(this),
+            [TableName.GROUP]: new TableGroupDocument(this),
         }
     }
 
@@ -88,12 +92,12 @@ export default class Database implements IDatabase{
         });
     }
 
-    async createTable(db: SqliteDatabase, table: string, ddls: string[]): Promise<void> {
+    async createTable(db: SqliteDatabase, table: string, ddls?: string[]): Promise<void> {
         await new Promise<void>((res, rej) =>
             db.run(table, (err) => (err ? rej(err instanceof Error ? err : new Error(String(err))) : res()))
         );
 
-        if (ddls) {
+        if (ddls && ddls.length > 0) {
             await Promise.all(
                 ddls.map(
                 (ddl) =>
