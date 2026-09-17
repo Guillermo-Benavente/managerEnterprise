@@ -1,176 +1,219 @@
 # Docmaen
 
-## Resumen
+## Aplicación de Gestión Empresarial Desktop
 
-**Docmaen** es una aplicación de escritorio para gestión empresarial construida con **Electron** y **React**. Su propósito es proporcionar una solución completa para la gestión de empleados, empresas, cursos y documentos con soporte para PDFs.
+**Docmaen** es una aplicación completa de escritorio para gestión empresarial, construida con **Electron** y **React**. Diseñada para funcionar en Windows, macOS y Linux, proporciona una solución integral para la gestión de recursos humanos, empresas y documentación asociada.
 
-## Características
+## 🚀 Características Principales
 
-- **Gestión de empleados**: Operaciones CRUD con identificación por DNI
-- **Gestión de empresas**: Operaciones CRUD con identificación por NIF
-- **Cursos**: Administrar cursos con archivos PDF adjuntos por empleado
-- **Documentos**: Administrar documentos con archivos PDF adjuntos por empresa o perfil
-- **Relaciones Empleado-Documento**: Seguimiento de qué empleados tienen qué documentos
-- **Visor de PDFs**: Visualización de PDFs dentro de la aplicación
-- **Exportación a CSV**: Exportar datos de tablas a formato CSV
-- **Servidor Express**: Servidor en puerto 3500 para servir archivos PDF
+- **Gestión Completa de Empleados**: CRUD con identificación por DNI, validación de formatos y seguimiento de fechas de alta/baja
+- **Gestión de Empresas**: CRUD con identificación por NIF, control de telefonía y datos fiscales
+- **Sistema de Cursos**: Asociación de cursos (archivos PDF) a empleados, con generación automática de rutas de almacenamiento
+- **Gestión de Documentos**: Subida y asociación de documentos PDF a empresas o perfiles corporativos
+- **Relaciones Empleado-Documento**: Sistema de vinculación Many-to-Many con historial de fechas
+- **Visor de PDFs Integrado**: Componente `PDFViewer` con carga pereziosa y observador de intersección
+- **Servidor Express Incorporado**: Puerto 3500 para servir archivos PDF directamente del sistema de archivos
+- **Exportación a CSV**: Funcionalidad completa para exportar cualquier tabla a formato CSV
+- **Interfaz Responsive**: Diseño modular con componentes TemplateBase, TemplateTable, TemplateFormTable
+- **Navegación Anidada**: Rutas React Router con prefijos por módulo (employee, company, profile)
 
-## Pila Tecnológica
+## 📦 Pila Tecnológica
 
-- **Electron**: 37.2.1
-- **React**: 19.1.0 con TypeScript
-- **SQLite3**: Base de datos local con restricciones de clave foránea
-- **Express**: Servidor en puerto 3500 para entrega de PDFs
-- **react-data-table-component**: Componentes de tabla interactivos
-- **react-pdf**: Visualización de PDFs en el renderer
-- **electron-squirrel-startup**: Soporte para instalador Windows
+| Capa | Tecnología | Versión |
+|------|-----------|---------|
+| **Framework** | Electron | 37.2.1 |
+| **UI** | React + TypeScript | 19.1.0 + TS 5.8.3 |
+| **Estilos** | CSS Modules + Babel | - |
+| **Base de Datos** | SQLite3 | - |
+| **Servidor** | Express | 5.1.0 |
+| **Tablas** | react-data-table-component | - |
+| **PDF** | react-pdf | - |
+| **Instalador** | electron-squirrel-startup | - |
+| **Empaquetado** | Electron Forge | 7.8.1 |
 
-## Estructura del Proyecto
+## 🗂️ Estructura del Proyecto
 
 ```
 docmaen/
-├── src/
-│   ├── main/              # Proceso principal de Electron
-│   │   ├── database/      # Tablas SQLite (6 tablas)
-│   │   ├── handler/       # Manipuladores IPC
-│   │   ├── ipc.js         # Capa de comunicación IPC
-│   │   ├── server.js      # Configuración del servidor Express
-│   │   └── utils/         # Utilidades de rutas y fechas
-│   └── renderer/          # Interfaz de usuario React
-│       ├── components/    # Componentes reutilizables
-│       │   ├── BarOptions/
-│       │   ├── Button/
-│       │   ├── Form/
-│       │   ├── Header/
-│       │   ├── Modal/
-│       │   ├── PDFViewer/
-│       │   ├── Table/
-│       │   ├── TemplateBase/
-│       │   ├── TemplateTable/
-│       │   └── TemplateFormTable/
-│       ├── pages/         # Páginas de la aplicación
-│       ├── api/           # Wrappers de base de datos
-│       ├── schemas/       # Esquemas de campos
-│       ├── routes/        # Rutas React Router
-│       └── types/         # Definiciones de tipo
-├── .webpack/              # Configuración empaquetada
-├── forge.config.js        # Configuración de Electron Forge
-├── package.json           # Dependencias y scripts
-├── tsconfig.json          # Configuración de TypeScript
-└── webpack.*             # Configuraciones Webpack
+├── package.json                    - Metadatos y scripts (start, make, package, publish)
+├── forge.config.js                 - Configuración Electron Forge + makers
+├── tsconfig.json                   - TypeScript paths y compilación
+├── LICENSE.txt                     - Licencia privativa 2025
+├── README.md                       - Documentación actual
+├── .webpack/                       - Builds procesados
+├── webpack.rules.js                - Loaders TS/JS/JSON/node_modules
+├── webpack.main.config.js          - Main process Webpack config
+└── webpack.renderer.config.js      - Renderer Webpack config + alias
+
+src/
+├── main/                         # Proceso Electron principal
+│   ├── database/                 # 6 tablas SQLite + operadores
+│   │   ├── profile/              - nif, name, telephone
+│   │   ├── employee/             - dni, name, surnames, courses, dates
+│   │   ├── company/              - nif, name, telephone
+│   │   ├── course/               - id, name, employee FK, url PDF
+│   │   ├── document/             - id, name, company/profile FK, content, url PDF
+│   │   └── employeeByDocument/   - id, employee, document, date
+│   ├── handler/                  # DatabaseHandler, ControlHandler, UtilHandler
+│   ├── ipc.js                    # Capa comunicación main↔renderer
+│   ├── server.js                 # Express puerto 3500 + rutas PDF
+│   └── utils/                    # path.ts, date.ts, fileWriter.ts
+└── renderer/                     # Interfaz de usuario React
+    ├── app/App.jsx               # HashRouter + AppRoutes
+    ├── routes/                   # AppRoutes + module routes
+    ├── components/               # TemplateBase, Button, Form, Modal, Table, PDFViewer, etc.
+    ├── pages/                    # Home, Employees, Companies, EmployeeDocument, etc.
+    ├── api/                      # db.js, control.js, util.js, handleExport.js
+    ├── schemas/                  # CompanySchema, EmployeeSchema, CompanyDocSchema, EmployeeDocSchema
+    ├── routes/                   # React Router routes por módulo
+    └── types/                    # IpcChannel, TableName, EntryPoints, dialog, buttonType, form
 ```
 
-## Esquema de la Base de Datos
+## 🗄️ Esquema de la Base de Datos
 
-La aplicación utiliza **6 tablas** en SQLite con relaciones de clave foránea:
+### Tablas Principales (6)
 
-| Tabla | Campos Principales |
-|-------|-------------------|
-| **profile** | nif (PK), name, telephone |
-| **employee** | dni (PK), name, first_surname, second_surname, discharge_date, leave_date, medical_leave_date, medical_discharge_date, dni_date, courses |
-| **company** | nif (PK), name, telephone |
-| **course** | id (PK), name, employee (FK→employee.dni), url (PDF) |
-| **documents** | id (PK), name, company (FK→company.nif), profile (FK→profile.nif), content, url (PDF) |
-| **employeeByDocument** | id (PK), employee, document, date |
+| Tabla | PK | Campos Relevantes | Relaciones |
+|-------|-----|-------------------|------------|
+| **profile** | nif | name, telephone | - |
+| **employee** | dni | name, first_surname, second_surname, discharge_date, courses, dni_date | FK→course.employee (CASCADE) |
+| **company** | nif | name, telephone | FK→documents.company (CASCADE), FK→documents.profile (CASCADE) |
+| **course** | id | name, employee (FK→dni), url (PDF) | FK→employee.dni (CASCADE) |
+| **documents** | id | name, company (FK→nif), profile (FK→nif), content, url (PDF) | FK→company.nif (CASCADE), FK→profile.nif (CASCADE) |
+| **employeeByDocument** | id | employee (FK→dni), document (FK→id), date | FK→employee.dni (CASCADE), FK→documents.id (CASCADE) |
 
-**Relaciones clave:**
-- `course.employee` → `employee.dni` (CASCADE delete)
-- `documents.company` → `company.nif` (CASCADE delete)
-- `documents.profile` → `profile.nif` (CASCADE delete)
-- `employeeByDocument.employee` → `employee.dni` (CASCADE delete)
-- `employeeByDocument.document` → `documents.id` (CASCADE delete)
+### Scripts de Ejemplo
 
-## Canales IPC
+```sql
+-- Creación de índice para búsquedas frecuentes
+CREATE INDEX IF NOT EXISTS employee_name ON employee(name);
+CREATE INDEX IF NOT EXISTS course_name ON course(name);
+CREATE INDEX IF NOT EXISTS documents_name ON documents(name);
 
-La comunicación entre el proceso main y renderer utiliza los siguientes canales:
+-- Eliminación en cascada al borrar empleado
+DELETE FROM employee WHERE dni = '12345678-A';
+-- Elimina automáticamente: cursos, registros employeeByDocument
+```
 
-### Comandos de Base de Datos
-- `getAll-{tabla}` - Obtener todos los registros
-- `get-{tabla}` - Obtener un registro por ID
-- `insert-{tabla}` - Insertar un nuevo registro
-- `update-{tabla}` - Actualizar un registro
-- `delete-{tabla}` - Eliminar un registro
+## 🔗 Canales IPC (Communication Channels)
 
-### Canales Especiales
-- `get-server` - Obtener URL del servidor Express
-- `format-local-date` - Formatear fecha a formato local (dd/mm/yyyy)
-- `format-object-local-date` - Formatear fechas en un objeto
-- `export-csv` - Exportar datos a CSV
+### Comandos de Base de Datos (por tabla)
 
-### Modal y Diálogo
-- `modal-window` - Abrir ventana modal
-- `modal-send` - Enviar datos desde modal
-- `modal-response` - Recibir respuesta modal
-- `dialog-window` - Mostrar diálogo nativo
-- `dialog-response` - Respuesta de diálogo
-- `save-dialog` - Cuadro de diálogo guardar archivo
-- `open-dialog` - Cuadro de diálogo abrir archivo
-- `file-save` - Guardar archivo (base64)
+Cada tabla soporta 5 operaciones estándar a través de canales IPC:
 
-## Cómo Empezar
+```
+getAll-{table}   - Obtener todos los registros
+get-{table}      - Obtener un registro por ID
+insert-{table}   - Insertar nuevo registro
+update-{table}   - Actualizar registro existente
+delete-{table}   - Eliminar registro por ID
+```
 
-### Prerrequisitos
+### Ejemplo de Nombres de Tabla
 
-- Node.js (versión 18+ recomendada)
-- npm o yarn
+```javascript
+// TableName.js - Objeto frozen
+const TableName = Object.freeze({
+  PROFILE: 'profile',
+  EMPLOYEE: 'employee', 
+  COMPANY: 'company',
+  COURSE: 'course',
+  DOCUMENT: 'document',
+  EMPLOYEEBYDOCUMENT: 'employeeByDocument'
+});
+```
+
+### Canales Especiales y Utilidades
+
+| Canal | Descripción |
+|-------|-------------|
+| `get-server` | Retorna URL del servidor Express (`http://localhost:3500`) |
+| `format-local-date` | Formatea `YYYY-MM-DD` a `DD/MM/YYYY` |
+| `format-object-local-date` | Mapea fechas en objeto a formato local |
+| `export-csv` | Exporta array de objetos a archivo CSV |
+| `modal-window` | Abre ventana modal radial |
+| `modal-send` | Envía datos desde modal a parent |
+| `modal-response` | Recibe respuesta modal |
+| `dialog-window` | Cuadro de diálogo nativo Electron |
+| `dialog-response` | Respuesta de botón en diálogo |
+| `save-dialog` | Cuadro "Guardar como..." |
+| `open-dialog` | Cuadro "Abrir archivo..." |
+| `file-save` | Guarda archivo base64 en ruta especificada |
+
+## ⚡ Primeros Pasos
 
 ### Instalación
 
 ```bash
-# Clonar el repositorio
-git clone <url-del-repositorio>
+# 1. Clonar repositorio
+git clone <url>
 
-# Entrar al directorio
+# 2. Entrar al directorio del proyecto
 cd docmaen
 
-# Instalar dependencias
+# 3. Instalar dependencias
 npm install
 ```
 
-### Ejecutar en desarrollo
+### Ejecutar en Desarrollo
 
 ```bash
 npm start
 ```
 
-Esto iniciará el servidor Express en el puerto 3500 y abrirá la ventana principal de la aplicación.
+**Esto iniciará:**
+- El servidor Express en `http://localhost:3500`
+- La ventana principal de Electron
+- Cargará automáticamente la base de datos si no existe
+- Abrirá la vista Home como punto de entrada
 
-### Compilar para distribución
+### Compilar para Distribución
 
 ```bash
 npm run make
 ```
 
-Generará los instaladores para las plataformas configuradas en `forge.config.js`.
+Generará instaladores en `./out/` para las plataformas definidas en `forge.config.js` (Squirrel Windows, ZIP macOS, DEB/RPM Linux).
 
-## Configuración
+##  Configuration
 
 ### Ruta de la Base de Datos
 
-La base de datos se guarda en:
+Ubicación automática:
 ```
 %APPDATA%\manager.db
 ```
 
-### Almacenamiento de PDFs
+Almacenamiento multiplataforma:
+- **Windows**: `C:\Users\[usuario]\AppData\Roaming\manager.db`
+- **macOS**: `/Users/[usuario]/Library/Application Support/manager.db`
+- **Linux**: `/home/[usuario]/.config/manager.db`
 
-Los archivos PDF se almacenan en:
+### Almacenamiento de Archivos PDF
+
+Ruta estructurada:
 ```
-%APPDATA%\Docmaen\[courses|documents]\[id del empleado o NIF]\
+%APPDATA%\Docmaen\[courses|documents]\[id_usuario_o_NIF]\
 ```
+
+Ejemplos prácticos:
+- PDFs de cursos empleados: `%APPDATA%\Docmaen\courses\DNI_EMPLEADO\`
+- PDFs de documentos empresas: `%APPDATA%\Docmaen\documents\NIF_EMPRESA\`
 
 ### Servidor Express
 
 - **Puerto**: 3500
 - **Host**: localhost
-- **URL base**: http://localhost:3500
+- **URL Base**: `http://localhost:3500`
+- **Rutas de servicio**:
+  - `GET /pdf/courses/:dni/:courseId` - Sirve PDFs de cursos
+  - `GET /pdf/documents/:nif/:docId` - Sirve PDFs de documentos
 
-Las rutas de acceso a PDFs son:
-- `/pdf/:type/:user/:name` - Sirve archivos PDF del sistema de archivos
+Las rutas son gestionadas automáticamente por `src/main/server.js` usando `app.getPath('appData')`.
 
-## Licencias
+## 📄 Licencia
 
-**docmaen** es software **privativo y confidencial**. Todos los derechos reservados.
+**Docmaen** es software **privativo y confidencial**. Todos los derechos reservados.
 
 © 2025 Guillermo Benavente Mora.
 
@@ -182,6 +225,25 @@ Este software incluye componentes de código abierto, cada uno de los cuales con
 
 Todos los derechos reservados.
 
-## Disclaimer
+## ⚠️ Aviso Legal
 
 Este software se proporciona "tal cual", sin garantías de ningún tipo, ya sea expresas o implícitas, incluidas pero no limitadas a las garantías de comerciabilidad, idoneidad para un propósito particular y no infracción. En ningún caso el autor será responsable de ningún daño, pérdida o reclamo, ya sea en una acción contractual, extracontractual o de otro tipo, que surja del o en conexión con el software.
+
+---
+
+## 🛠️ Scripts Disponibles (package.json)
+
+| Script | Descripción |
+|--------|-------------|
+| `npm start` | Inicia electron-forge con modo desarrollo |
+| `npm run package` | Empaqueta la aplicación |
+| `npm run make` | Genera instaladores (Squirrel/DEB/RPM/ZIP) |
+| `npm run publish` | Publica el paquete |
+| `npm run lint` | Mensaje: "No linting configured" |
+| `npm run clean` | Remueve carpetas `out`, `dist`, `.webpack` |
+
+## 📬 Contacto / Support
+
+- **Autor**: Guillermo Benavente Mora
+- **Email**: guillermobenavente55@gmail.com
+- **Año**: 2025
