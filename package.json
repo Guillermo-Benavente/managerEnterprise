@@ -1,7 +1,7 @@
 {
   "name": "docmaen",
   "productName": "docmaen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Business management",
   "main": ".webpack/main",
   "scripts": {
